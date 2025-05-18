@@ -1,0 +1,85 @@
+IntelliFlow: Architecture Diagram
+System Architecture Overview
+The IntelliFlow multi-agent data analysis platform is built on a sophisticated
+architecture that orchestrates specialized agents through the Agent Development Kit
+(ADK) and integrates seamlessly with Google Cloud services. The architecture follows a
+modular design that enables scalable, flexible, and robust data analysis workflows.
+Below is a detailed description of the architecture diagram that would be created for the
+final submission:
+
+Core Components
+The architecture consists of the following primary components:
+1. Agent Orchestration Layer
+2. Central Orchestrator Agent (ADK-based)
+3. Agent Communication Bus (Google Pub/Sub)
+4. Shared Context Store (Cloud Firestore)
+5. Workflow Management System (Cloud Workflows)
+6. Specialized Agent Cluster
+7. Data Scout Agent
+8. Data Engineer Agent
+9. Analysis Strategist Agent
+10. Insight Generator Agent
+11. Visualization Specialist Agent
+12. Narrative Composer Agent
+13. Google Cloud Integration Layer
+14. BigQuery Integration
+15. Vertex AI Services
+16. Cloud Storage
+17. Document AI
+18. Data Studio Connector
+
+19. External Data Sources Layer
+20. Structured Data Sources
+21. API Connectors
+22. Document Repositories
+23. Streaming Data Inputs
+24. Output & Visualization Layer
+25. Interactive Dashboards
+26. Report Generation System
+27. Alert & Notification System
+28. Insight Repository
+
+Data Flow
+The architecture diagram would illustrate the following data flow:
+1. Data Scout Agent identifies and connects to data sources through the External Data
+Sources Layer
+2. Raw data flows through the Google Cloud Integration Layer into Cloud Storage
+3. Data Engineer Agent processes and transforms the data using BigQuery and Cloud
+Functions
+4. Analysis Strategist Agent evaluates the prepared data and selects analytical
+approaches
+5. Insight Generator Agent applies selected techniques using Vertex AI and BigQuery
+6. Results flow to both the Visualization Specialist and Narrative Composer Agents
+7. Final insights, visualizations, and narratives are assembled by the Orchestrator
+Agent
+8. Completed analysis is delivered through the Output & Visualization Layer
+
+Agent Communication Patterns
+The diagram would highlight the following communication patterns:
+1. Publish-Subscribe: Agents communicate asynchronously through Google Pub/Sub
+topics
+2. Request-Response: Direct inter-agent queries for specific information
+3. Shared State: Agents access and update shared context in Cloud Firestore
+4. Event-Driven: Agents respond to system events and data state changes
+
+Deployment Architecture
+The deployment architecture would show:
+1. Containerized Agents: Each agent deployed as a containerized service in Cloud
+Run
+2. Serverless Functions: Specialized analytical capabilities implemented as Cloud
+Functions
+3. Managed Services: Leveraging Google Cloud managed services for data processing
+and storage
+4. API Gateway: Secure external access to the system through Cloud API Gateway
+
+Security & Governance
+The architecture includes:
+1. Identity & Access Management: Fine-grained access control through IAM
+2. Data Governance: Lineage tracking and metadata management
+3. Encryption: Data encryption at rest and in transit
+4. Audit Logging: Comprehensive activity logging and monitoring
+This architecture diagram would be created as a professional visualization using
+appropriate diagramming tools, with clear labels, color-coding for different components,
+and directional arrows showing data and control flows between system elements.
+
+

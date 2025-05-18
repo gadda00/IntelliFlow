@@ -1,0 +1,79 @@
+IntelliFlow: Demonstration Video Script
+Introduction (0:00 - 0:30)
+[Opening shot: IntelliFlow logo animation fades in]
+Welcome to IntelliFlow, a revolutionary multi-agent data analysis platform built with
+Google Cloud's Agent Development Kit. Today, we'll demonstrate how IntelliFlow
+orchestrates specialized AI agents to transform raw data into actionable business
+intelligence through autonomous collaboration.
+[Cut to presenter with architecture diagram in background]
+IntelliFlow addresses a critical challenge in modern data analytics: the complexity and
+time-intensive nature of comprehensive data analysis pipelines. By decomposing the
+analysis workflow into specialized agent roles and orchestrating their interactions
+through ADK, IntelliFlow enables faster, more thorough, and more insightful data
+exploration than traditional approaches.
+
+System Architecture Overview (0:30 - 1:00)
+[Animated architecture diagram highlighting each component as mentioned]
+IntelliFlow's architecture consists of seven specialized agents, each with distinct
+capabilities:
+• The Data Scout discovers and extracts data from various sources
+• The Data Engineer transforms raw data into analysis-ready formats
+• The Analysis Strategist determines optimal analytical approaches
+• The Insight Generator applies these techniques to discover patterns and trends
+• The Visualization Specialist creates compelling visual representations
+• The Narrative Composer translates findings into accessible business narratives
+• And the Orchestrator coordinates the entire ecosystem
+All agents are built using ADK and leverage Google Cloud services including BigQuery,
+Vertex AI, and Cloud Functions.
+
+Live Demonstration (1:00 - 2:15)
+[Screen recording of the platform in action]
+Let's see IntelliFlow in action with a real-world scenario: analyzing customer feedback
+data to identify improvement opportunities.
+[Show Data Scout connecting to data sources]
+First, the Data Scout agent connects to our customer feedback database in BigQuery,
+identifies relevant tables, and extracts the raw data.
+[Show Data Engineer processing the data]
+Next, the Data Engineer agent cleans and transforms the data, handling missing values
+and normalizing text fields for analysis.
+[Show Analysis Strategist selecting approaches]
+The Analysis Strategist agent evaluates the prepared data and determines that
+sentiment analysis, topic modeling, and trend analysis would yield the most valuable
+insights.
+[Show Insight Generator applying techniques]
+The Insight Generator agent applies these techniques using Vertex AI, discovering that
+product reliability issues are driving negative sentiment in recent feedback.
+[Split screen showing Visualization Specialist and Narrative Composer]
+Simultaneously, the Visualization Specialist creates trend charts and sentiment
+distribution visualizations, while the Narrative Composer generates a clear explanation
+of the findings.
+[Show final dashboard with insights]
+Finally, the Orchestrator agent assembles everything into this comprehensive
+dashboard, highlighting the key insight that addressing product reliability could
+significantly improve customer satisfaction.
+
+Technical Implementation (2:15 - 2:45)
+[Code snippets and Google Cloud console]
+
+IntelliFlow is built entirely on ADK's agent architecture. Each specialized agent is
+implemented as a distinct ADK agent with custom tools and capabilities.
+[Show agent communication flow]
+Agent communication follows a structured protocol using ADK's native messaging
+capabilities, enhanced by Google Pub/Sub for scalable message passing.
+[Show Google Cloud integration points]
+We've leveraged several Google Cloud services to enhance IntelliFlow's capabilities,
+including BigQuery for data storage and analysis, Vertex AI for machine learning, and
+Cloud Functions for serverless agent deployment.
+
+Conclusion (2:45 - 3:00)
+[Return to presenter]
+IntelliFlow demonstrates the power of multi-agent collaboration using ADK and Google
+Cloud. By orchestrating specialized agents through the entire data analysis lifecycle,
+we've created a system that can autonomously transform raw data into actionable
+insights with minimal human intervention.
+[Show contact information and repository link]
+Thank you for watching our demonstration. For more information, please visit our
+repository at the link below.
+[Fade to IntelliFlow logo]
+
+

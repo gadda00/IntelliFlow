@@ -1,0 +1,58 @@
+{
+  "agents": {
+    "orchestrator": {
+      "message_bus": {
+        "type": "pubsub",
+        "project_id": "intelliflow-project"
+      },
+      "context_store": {
+        "type": "firestore",
+        "project_id": "intelliflow-project"
+      }
+    },
+    "data_scout": {
+      "default_project_id": "intelliflow-project",
+      "allowed_data_sources": ["bigquery", "cloud_storage", "api"]
+    },
+    "data_engineer": {
+      "default_project_id": "intelliflow-project",
+      "transformation_options": {
+        "max_memory_usage": "4GB",
+        "timeout_seconds": 3600
+      }
+    },
+    "analysis_strategist": {
+      "strategy_library": "default",
+      "max_strategies_per_objective": 3
+    },
+    "insight_generator": {
+      "insight_threshold": 0.7,
+      "max_insights_per_analysis": 10
+    },
+    "visualization_specialist": {
+      "default_theme": "light",
+      "color_schemes": ["default", "colorblind_friendly", "monochrome", "pastel"],
+      "max_charts_per_dashboard": 8
+    },
+    "narrative_composer": {
+      "default_template": "executive_summary",
+      "language": "en-US",
+      "tone": "professional"
+    }
+  },
+  "message_bus": {
+    "type": "pubsub",
+    "project_id": "intelliflow-project",
+    "topic_prefix": "intelliflow"
+  },
+  "context_store": {
+    "type": "firestore",
+    "project_id": "intelliflow-project",
+    "collection_prefix": "intelliflow"
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    "file": "logs/intelliflow.log"
+  }
+}

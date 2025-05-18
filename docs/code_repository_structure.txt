@@ -1,0 +1,241 @@
+IntelliFlow: Code Repository Structure
+Repository Organization
+The IntelliFlow project repository is structured to facilitate clear organization, easy
+navigation, and efficient collaboration. The repository follows modern software
+development best practices with a modular architecture that separates concerns and
+enables independent development of different system components.
+
+Root Directory Structure
+intelliflow/
+├── README.md
+# Project overview, setup instructions, and
+documentation links
+├── CONTRIBUTING.md
+# Guidelines for contributors
+├── LICENSE
+# Open source license information
+├── architecture.png
+# Visual architecture diagram
+├── docs/
+# Comprehensive documentation
+├── agents/
+# Individual agent implementations
+├── orchestration/
+# Agent orchestration and workflow management
+├── integrations/
+# Google Cloud service integrations
+├── common/
+# Shared utilities and libraries
+├── config/
+# Configuration files and environment settings
+├── tests/
+# Test suites and testing utilities
+├── examples/
+# Example workflows and use cases
+└── deployment/
+# Deployment scripts and configurations
+
+Agent Implementation Structure
+Each specialized agent is implemented in its own directory within the agents/ folder:
+agents/
+├── data_scout/
+# Data discovery and extraction agent
+├── data_engineer/
+# Data transformation and preparation agent
+├── analysis_strategist/
+# Analysis planning and strategy agent
+├── insight_generator/
+# Analytical processing and insight discovery agent
+├── visualization_specialist/ # Data visualization agent
+├── narrative_composer/
+# Natural language generation agent
+└── orchestrator/
+# Central coordination agent
+Each agent directory contains:
+
+agents/data_scout/
+├── README.md
+├── main.py
+├── tools/
+├── models/
+├── services/
+├── config/
+└── tests/
+
+# Agent-specific documentation
+# Entry point
+# Agent-specific tools
+# Data models and schemas
+# Business logic and services
+# Agent-specific configuration
+# Agent-specific tests
+
+Orchestration Layer
+The orchestration layer manages agent interactions and workflow coordination:
+orchestration/
+├── workflow_manager/
+# Workflow definition and execution
+├── message_bus/
+# Inter-agent communication system
+├── context_store/
+# Shared state management
+├── conflict_resolution/
+# Handling conflicting agent actions
+└── monitoring/
+# System monitoring and logging
+
+Google Cloud Integrations
+Integration with Google Cloud services is organized by service:
+integrations/
+├── bigquery/
+# BigQuery data access and processing
+├── vertex_ai/
+# Machine learning model training and inference
+├── cloud_storage/
+# Object storage management
+├── pubsub/
+# Messaging service integration
+├── document_ai/
+# Document processing capabilities
+├── data_studio/
+# Visualization and reporting
+└── cloud_functions/
+# Serverless function management
+
+Common Utilities
+Shared functionality used across the system:
+common/
+├── logging/
+├── auth/
+├── data_models/
+├── validators/
+
+# Centralized logging utilities
+# Authentication and authorization
+# Shared data structures
+# Input and output validation
+
+├── metrics/
+└── utils/
+
+# Performance and usage metrics
+# General utility functions
+
+Key Implementation Files
+Agent Development Kit Integration
+The repository includes ADK integration code that demonstrates how each agent is built
+using the Agent Development Kit:
+# agents/data_scout/main.py
+from adk import Agent, Tool, Message
+from adk.tools import DataSourceConnector
+class DataScoutAgent(Agent):
+"""Agent responsible for discovering and extracting data from various sources."""
+def __init__(self, config):
+super().__init__(name="DataScoutAgent")
+self.register_tools([
+DataSourceConnector(),
+BigQueryConnector(),
+CloudStorageConnector(),
+APIConnector()
+])
+self.config = config
+async def process_message(self, message: Message):
+"""Process incoming requests for data discovery and extraction."""
+if message.intent == "DISCOVER_DATA_SOURCES":
+return await self.discover_data_sources(message.content)
+elif message.intent == "EXTRACT_DATA":
+return await self.extract_data(message.content)
+# Additional message handling...
+
+Orchestration Implementation
+The orchestrator agent coordinates the entire analysis workflow:
+# agents/orchestrator/main.py
+from adk import Agent, Workflow, AgentRegistry
+from adk.workflows import SequentialWorkflow, ParallelWorkflow
+class OrchestratorAgent(Agent):
+"""Central agent that coordinates the multi-agent analysis workflow."""
+
+def __init__(self, config):
+super().__init__(name="OrchestratorAgent")
+self.agent_registry = AgentRegistry()
+self.register_agents()
+self.workflows = self.define_workflows()
+def register_agents(self):
+"""Register all specialized agents with the orchestrator."""
+self.agent_registry.register("data_scout", DataScoutAgent)
+self.agent_registry.register("data_engineer", DataEngineerAgent)
+# Register remaining agents...
+def define_workflows(self):
+"""Define the analysis workflows."""
+data_preparation = SequentialWorkflow([
+("discover_sources", "data_scout", "DISCOVER_DATA_SOURCES"),
+("extract_data", "data_scout", "EXTRACT_DATA"),
+("clean_data", "data_engineer", "CLEAN_DATA"),
+("transform_data", "data_engineer", "TRANSFORM_DATA")
+])
+analysis = SequentialWorkflow([
+("plan_analysis", "analysis_strategist", "PLAN_ANALYSIS"),
+("execute_analysis", "insight_generator", "GENERATE_INSIGHTS")
+])
+presentation = ParallelWorkflow([
+("create_visualizations", "visualization_specialist",
+"CREATE_VISUALIZATIONS"),
+("compose_narrative", "narrative_composer", "COMPOSE_NARRATIVE")
+])
+return {
+"data_preparation": data_preparation,
+"analysis": analysis,
+"presentation": presentation,
+"complete_analysis": SequentialWorkflow([
+data_preparation,
+analysis,
+presentation
+])
+}
+
+Google Cloud Integration
+Integration with Google Cloud services is demonstrated through service connectors:
+# integrations/bigquery/connector.py
+from google.cloud import bigquery
+from adk import Tool
+
+class BigQueryConnector(Tool):
+"""Tool for interacting with Google BigQuery."""
+def __init__(self):
+super().__init__(name="BigQueryConnector")
+self.client = bigquery.Client()
+async def execute_query(self, query, destination=None):
+"""Execute a BigQuery SQL query and return results."""
+try:
+query_job = self.client.query(query)
+results = query_job.result()
+return {"status": "success", "data": [dict(row) for row in results]}
+except Exception as e:
+return {"status": "error", "message": str(e)}
+
+Deployment Configuration
+The repository includes configuration for deploying the system to Google Cloud:
+# deployment/cloud_run.yaml
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+name: intelliflow-orchestrator
+spec:
+template:
+spec:
+containers:
+- image: gcr.io/intelliflow/orchestrator:latest
+env:
+- name: PROJECT_ID
+value: "intelliflow-demo"
+- name: PUBSUB_TOPIC
+value: "agent-messages"
+resources:
+limits:
+cpu: "1"
+memory: "1Gi"
+This code repository structure demonstrates how IntelliFlow leverages the Agent
+Development Kit to create a sophisticated multi-agent system that integrates seamlessly
+with Google Cloud services for advanced data analysis capabilities.
+
+

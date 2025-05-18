@@ -1,0 +1,31 @@
+{
+  "type": "customer_feedback",
+  "data_source": {
+    "source_type": "bigquery",
+    "project_id": "intelliflow-project",
+    "dataset_id": "customer_data",
+    "table_id": "feedback"
+  },
+  "objectives": [
+    "analyze_text",
+    "discover_patterns",
+    "detect_anomalies"
+  ],
+  "parameters": {
+    "time_period": "last_30_days",
+    "include_recommendations": true,
+    "visualization_config": {
+      "theme": "light",
+      "color_scheme": "colorblind_friendly",
+      "layout": {
+        "type": "grid",
+        "columns": 2
+      }
+    },
+    "narrative_config": {
+      "template_id": "insight_brief",
+      "include_optional": true,
+      "title": "Customer Feedback Analysis Report"
+    }
+  }
+}
