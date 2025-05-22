@@ -1,0 +1,25 @@
+graph TD
+    User[User Interface] <--> API[API Gateway]
+    API <--> Orchestrator[Orchestrator Agent]
+    
+    Orchestrator --> DataScout[Data Scout Agent]
+    Orchestrator --> DataEngineer[Data Engineer Agent]
+    Orchestrator --> AnalysisStrategist[Analysis Strategist Agent]
+    Orchestrator --> InsightGenerator[Insight Generator Agent]
+    Orchestrator --> VisualizationSpecialist[Visualization Specialist Agent]
+    Orchestrator --> NarrativeComposer[Narrative Composer Agent]
+    
+    DataScout <--> GCP[Google Cloud Services]
+    DataEngineer <--> GCP
+    
+    subgraph "Google Cloud Platform"
+        GCP --> BigQuery[BigQuery]
+        GCP --> Storage[Cloud Storage]
+        GCP --> PubSub[Pub/Sub]
+        GCP --> Functions[Cloud Functions]
+        GCP --> DataStudio[Data Studio]
+    end
+    
+    style Orchestrator fill:#f9d,stroke:#333,stroke-width:2px
+    style User fill:#bbf,stroke:#333,stroke-width:2px
+    style GCP fill:#bfb,stroke:#333,stroke-width:2px
