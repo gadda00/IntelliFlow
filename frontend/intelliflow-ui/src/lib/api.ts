@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { mockApiClient, useMockAnalysisStatus } from './mockApi';
+
+// Check if we're running on GitHub Pages
+const isGitHubPages = window.location.hostname !== 'localhost';
 
 // Define API base URL
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = isGitHubPages ? '' : 'http://localhost:5000/api';
 
 // API client for IntelliFlow
-export const apiClient = {
+export const apiClient = isGitHubPages ? mockApiClient : {
   // Health check
   healthCheck: async () => {
     try {
@@ -96,6 +100,11 @@ export interface AnalysisResult {
 
 // Custom hook for analysis status polling
 export const useAnalysisStatus = (analysisId: string | null) => {
+  // If on GitHub Pages, use the mock hook
+  if (isGitHubPages) {
+    return useMockAnalysisStatus(analysisId);
+  }
+  
   const [status, setStatus] = useState<string>('loading');
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
