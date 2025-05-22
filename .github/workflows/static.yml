@@ -36,8 +36,10 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          # Upload the directory containing your website files
+          # This tells GitHub Pages to serve the content of this directory
+          # as the root of your site.
+          path: 'frontend/intelliflow-ui' # <-- CHANGE IS HERE
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
