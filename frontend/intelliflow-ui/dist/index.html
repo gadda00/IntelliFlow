@@ -1,32 +1,152 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="./vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>IntelliFlow - Data Analysis Platform</title>
-    <!-- Handle SPA routing for GitHub Pages -->
-    <script type="text/javascript">
-      // Single Page Apps for GitHub Pages
-      // This script checks to see if a redirect is present in the query string
-      // and converts it back into the correct url and adds it to the
-      // browser's history using window.history.replaceState(...),
-      // which won't cause the browser to attempt to load the new url.
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
-          }).join('?');
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          );
-        }
-      }(window.location))
-    </script>
-    <script type="module" crossorigin src="/IntelliFlow/assets/main-DfQsDqRP.js"></script>
-    <link rel="stylesheet" crossorigin href="/IntelliFlow/assets/main-DigVUZV0.css">
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f5f7fa;
+        color: #333;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+      }
+      header {
+        background: linear-gradient(135deg, #4a6cf7 0%, #6e42d3 100%);
+        color: white;
+        padding: 2rem 0;
+        text-align: center;
+      }
+      h1 {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+      }
+      .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 2rem;
+      }
+      .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+      .card h2 {
+        color: #4a6cf7;
+        margin-top: 0;
+      }
+      .agents {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+      }
+      .agent-card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+        transition: transform 0.3s ease;
+      }
+      .agent-card:hover {
+        transform: translateY(-5px);
+      }
+      .agent-card h3 {
+        color: #4a6cf7;
+        margin-top: 0;
+      }
+      .button {
+        display: inline-block;
+        background: #4a6cf7;
+        color: white;
+        padding: 0.8rem 1.5rem;
+        border-radius: 4px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: background 0.3s ease;
+      }
+      .button:hover {
+        background: #3a5bd9;
+      }
+      footer {
+        text-align: center;
+        padding: 2rem 0;
+        color: #666;
+        font-size: 0.9rem;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <header>
+      <div class="container">
+        <h1>IntelliFlow</h1>
+        <div class="subtitle">A sophisticated multi-agent data analysis and insights platform</div>
+      </div>
+    </header>
+    
+    <div class="container">
+      <div class="card">
+        <h2>Overview</h2>
+        <p>
+          IntelliFlow orchestrates seven specialized AI agents that collaborate autonomously to extract, process, analyze, and visualize data from diverse sources, transforming raw information into actionable business intelligence with minimal human intervention.
+        </p>
+      </div>
+      
+      <h2>Our Specialized Agents</h2>
+      <div class="agents">
+        <div class="agent-card">
+          <h3>Data Scout</h3>
+          <p>Discovers and extracts data from various sources including BigQuery, APIs, and databases.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Data Engineer</h3>
+          <p>Transforms raw data into analysis-ready formats through cleaning, normalization, and enrichment.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Analysis Strategist</h3>
+          <p>Determines optimal analytical approaches based on data characteristics and business objectives.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Insight Generator</h3>
+          <p>Applies advanced techniques to discover patterns, trends, and anomalies in processed data.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Visualization Specialist</h3>
+          <p>Creates visual representations of findings through charts, dashboards, and interactive displays.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Narrative Composer</h3>
+          <p>Translates analytical findings into clear, actionable business narratives and recommendations.</p>
+        </div>
+        <div class="agent-card">
+          <h3>Orchestrator</h3>
+          <p>Coordinates the entire agent ecosystem, managing workflows and ensuring seamless collaboration.</p>
+        </div>
+      </div>
+      
+      <div class="card">
+        <h2>Built with Google Cloud and ADK</h2>
+        <p>
+          IntelliFlow leverages the Agent Development Kit (ADK) and Google Cloud services to create a powerful, scalable platform for multi-agent orchestration and data analysis.
+        </p>
+        <p>
+          <a href="https://github.com/gadda00/IntelliFlow" class="button">View on GitHub</a>
+        </p>
+      </div>
+    </div>
+    
+    <footer>
+      <div class="container">
+        <p>IntelliFlow - A multi-agent system built for the Google ADK Competition</p>
+      </div>
+    </footer>
   </body>
 </html>
