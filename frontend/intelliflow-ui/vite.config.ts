@@ -1,25 +1,26 @@
-import path from "path"
-import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/IntelliFlow/', // Set base path for GitHub Pages
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"),
+      '@': path.resolve(__dirname, './src'),
     },
   },
   build: {
-    outDir: 'dist',
-    assetsDir: 'assets',
-    // Generate a 404.html file for SPA routing on GitHub Pages
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'index.html'),
+    // Add this to ensure proper environment for Netlify
+    target: 'es2015',
+    // Add this to prevent minification issues
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        // Add this to prevent null reference errors
+        keep_fnames: true,
+        keep_classnames: true
       }
     }
   }
 })
-
