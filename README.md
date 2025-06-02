@@ -119,3 +119,32 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+
+
+## Deployment
+
+### Vercel (Frontend Only)
+
+This project's frontend (the React application in `frontend/intelliflow-ui`) can be deployed to Vercel.
+
+**Method 1: Using `vercel.json` (Recommended)**
+
+The repository includes a `vercel.json` file in the root directory. When importing the project to Vercel from GitHub, Vercel should automatically detect this file and configure the deployment settings correctly.
+
+**Method 2: Manual Configuration on Vercel Dashboard**
+
+If you need to configure manually during the import process on the Vercel dashboard:
+
+- **Framework Preset:** Select `Vite`.
+- **Root Directory:** Set to `frontend/intelliflow-ui`.
+- **Build Command:** Override to `pnpm run build`.
+- **Output Directory:** Override to `dist`.
+- **Install Command:** Override to `pnpm install --force`.
+
+**Note:** This deployment method only covers the frontend application. The Python backend agents are not deployed via Vercel with this configuration.
+
+### GitHub Pages (Previous Deployment)
+
+The project was previously deployed to GitHub Pages. The live demo link reflects this deployment: [https://gadda00.github.io/IntelliFlow/](https://gadda00.github.io/IntelliFlow/)
+
