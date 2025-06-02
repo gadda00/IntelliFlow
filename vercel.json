@@ -1,0 +1,6 @@
+{
+  "framework": "vite",
+  "buildCommand": "cd frontend/intelliflow-ui && pnpm install --force && pnpm run build",
+  "outputDirectory": "frontend/intelliflow-ui/dist",
+  "installCommand": "cd frontend/intelliflow-ui && pnpm install --force"
+}
