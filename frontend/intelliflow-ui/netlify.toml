@@ -1,0 +1,8 @@
+[build]
+  base = "frontend/intelliflow-ui"
+  command = "npm install && npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  PHP_VERSION = "8.3"
