@@ -1,0 +1,8 @@
+{
+  "name": "intelliflow-root",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "build": "cd frontend/intelliflow-ui && pnpm install --force && pnpm run build"
+  }
+}
