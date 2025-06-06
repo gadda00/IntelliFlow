@@ -1,6 +1,5 @@
 # Core dependencies
-adk==1.0.0
-google-cloud-sdk==450.0.0
+adk==0.0.5
 google-cloud-bigquery==3.11.0
 google-cloud-storage==2.10.0
 google-cloud-pubsub==2.18.0
@@ -8,7 +7,6 @@ google-cloud-firestore==2.11.0
 google-cloud-documentai==2.20.0
 google-cloud-functions==1.13.0
 google-cloud-workflows==1.10.0
-google-cloud-vertexai==1.36.0
 
 # Web framework
 flask==2.3.3

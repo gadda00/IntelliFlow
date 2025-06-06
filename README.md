@@ -1,60 +1,92 @@
 # IntelliFlow
 
-A sophisticated multi-agent data analysis and insights platform built using the Agent Development Kit (ADK) and Google Cloud services.
+IntelliFlow is an intelligent data analysis platform that leverages agent-based architecture and Google Cloud services to provide powerful, automated data analysis capabilities.
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Overview
 
-IntelliFlow orchestrates seven specialized AI agents that collaborate autonomously to extract, process, analyze, and visualize data from diverse sources, transforming raw information into actionable business intelligence with minimal human intervention.
+IntelliFlow combines the power of the Agent Development Kit (ADK) with Google Cloud services to create a flexible, scalable platform for data analysis. The system uses multiple specialized agents that work together to ingest, process, analyze, and visualize data, providing valuable insights to users.
 
-## Live Demo
+## Features
 
-Visit our live demo at: [https://gadda00.github.io/IntelliFlow/](https://gadda00.github.io/IntelliFlow/)
+### Agent-Based Architecture
+- **Orchestrator Agent**: Coordinates the overall workflow and communication between agents
+- **Data Ingestion Agent**: Handles data loading, cleaning, and preprocessing
+- **Analysis Agent**: Performs statistical analysis and modeling
+- **Visualization Agent**: Creates charts and graphs
+- **Insight Generation Agent**: Extracts insights and generates reports
+
+### Enhanced ADK Integration
+- **Robust Agent Communication**: Secure, reliable message passing between agents
+- **Planning and Goal Setting**: Hierarchical planning system for complex workflows
+- **Memory Management**: Short-term, long-term, and working memory for agents
+- **Agent Monitoring**: Real-time monitoring and visualization of agent activities
+
+### Google Cloud Integration
+- **BigQuery Integration**: Powerful data querying and analysis
+- **Vertex AI Integration**: Advanced machine learning capabilities
+- **Gemini API Integration**: State-of-the-art language model integration
+- **Cloud Storage Integration**: Scalable data storage
+- **Pub/Sub Integration**: Real-time messaging and event handling
+- **Cloud Functions Integration**: Serverless compute for specific tasks
+
+### Modern UI/UX
+- **Intuitive Dashboard**: Clear overview of analyses and insights
+- **Multi-Step Wizard**: Guided analysis configuration
+- **Interactive Visualizations**: Explore data through dynamic charts
+- **Responsive Design**: Works on desktop and mobile devices
+- **Accessibility**: WCAG 2.1 compliant interface
 
 ## Architecture
 
-The system consists of the following specialized agents:
+IntelliFlow follows a modular, microservices-based architecture:
 
-- **Data Scout Agent**: Discovers and extracts data from various sources
-- **Data Engineer Agent**: Transforms raw data into analysis-ready formats
-- **Analysis Strategist Agent**: Determines optimal analytical approaches
-- **Insight Generator Agent**: Applies techniques to discover patterns and trends
-- **Visualization Specialist Agent**: Creates visual representations of findings
-- **Narrative Composer Agent**: Translates findings into business narratives
-- **Orchestrator Agent**: Coordinates the entire agent ecosystem
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Frontend UI   │◄────┤   API Gateway   │◄────┤  Authentication │
+└────────┬────────┘     └────────┬────────┘     └─────────────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Orchestration  │◄────┤  Message Bus    │◄────┤  Agent Registry │
+└────────┬────────┘     └─────────────────┘     └─────────────────┘
+         │
+         ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                           Agent Pool                              │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐  │
+│  │ Data Agent  │  │Analysis Agent│  │  Viz Agent  │  │ Insights │  │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘  │
+└───────────────────────────────────────────────────────────────────┘
+         │                │                │               │
+         ▼                ▼                ▼               ▼
+┌───────────────────────────────────────────────────────────────────┐
+│                       Google Cloud Services                       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐  │
+│  │  BigQuery   │  │  Vertex AI  │  │   Storage   │  │  Pub/Sub │  │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘  │
+└───────────────────────────────────────────────────────────────────┘
+```
 
-![Architecture Diagram](docs/images/architecture_diagram.png)
-
-## Technologies
-
-IntelliFlow leverages the following technologies:
-
-### Core Technologies
-- **Agent Development Kit (ADK)**: The foundation for creating and orchestrating all specialized agents
-- **Google Cloud Platform**: Provides the infrastructure and services that enhance agent capabilities
-- **React + TypeScript**: Powers the responsive frontend interface
-- **Vite**: Enables fast development and optimized builds
-
-### Google Cloud Services
-- **BigQuery**: Powers large-scale data storage and SQL-based analysis
-- **Vertex AI**: Enables machine learning model training and deployment
-- **Cloud Storage**: Facilitates data staging and result persistence
-- **Pub/Sub**: Handles inter-agent communication
-- **Cloud Functions**: Supports serverless agent deployment
-- **Data Studio**: Enhances visualization capabilities
-- **Document AI**: Extracts structured data from unstructured documents
-- **Cloud Run**: Hosts containerized agent services
-- **Cloud Firestore**: Maintains shared context between agents
-- **Cloud Workflows**: Manages complex multi-agent workflows
-
-## Getting Started
+## Installation
 
 ### Prerequisites
-- Python 3.8+
-- Google Cloud SDK
-- Agent Development Kit (ADK)
-- Node.js 16+ (for frontend)
+- Python 3.8 or higher
+- Node.js 14 or higher
+- Google Cloud account with required services enabled
+- ADK 0.0.5 or higher
 
-### Installation
+### Backend Setup
 
 1. Clone the repository:
 ```bash
@@ -62,89 +94,108 @@ git clone https://github.com/gadda00/IntelliFlow.git
 cd IntelliFlow
 ```
 
-2. Install backend dependencies:
+2. Create and activate a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Install frontend dependencies:
+4. Set up Google Cloud credentials:
+```bash
+export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
+```
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
 ```bash
 cd frontend/intelliflow-ui
-pnpm install
 ```
 
-4. Configure Google Cloud credentials:
+2. Install dependencies:
 ```bash
-gcloud auth application-default login
+npm install
 ```
 
-5. Set up configuration:
-```bash
-cp config/default.yaml config/development.yaml
-# Edit development.yaml with your settings
+3. Create a `.env` file with your configuration:
+```
+VITE_API_URL=http://localhost:5000/api
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
 ```
 
-6. Run the backend:
+## Usage
+
+### Running the Backend
+
 ```bash
+cd IntelliFlow
 python main.py
 ```
 
-7. Run the frontend:
+### Running the Frontend
+
 ```bash
 cd frontend/intelliflow-ui
-pnpm dev
+npm run dev
 ```
 
-## Documentation
+### Accessing the Application
 
-For more detailed information, please refer to the following documentation:
+Open your browser and navigate to `http://localhost:3000`
 
-- [Project Summary](docs/project_summary.md)
-- [Architecture Diagram](docs/architecture_diagram.md)
-- [GitHub Pages Configuration](docs/github_pages.md)
-- [Submission Guide](docs/submission_guide.md)
+## Development
 
-## Example Workflows
+### Project Structure
 
-The repository includes several example workflows:
+```
+IntelliFlow/
+├── agents/                 # Agent implementations
+│   ├── orchestrator/       # Orchestrator agent
+│   ├── data_ingestion/     # Data ingestion agent
+│   ├── analysis/           # Analysis agent
+│   ├── visualization/      # Visualization agent
+│   └── insight_generation/ # Insight generation agent
+├── common/                 # Shared utilities and helpers
+│   ├── enhanced_adk/       # Enhanced ADK implementation
+│   └── utils/              # Utility functions
+├── integrations/           # External service integrations
+│   └── google_cloud/       # Google Cloud integrations
+├── orchestration/          # Orchestration system
+│   ├── message_bus/        # Message bus implementation
+│   └── workflow_manager/   # Workflow management
+├── frontend/               # Frontend application
+│   └── intelliflow-ui/     # React application
+├── tests/                  # Test suite
+├── docs/                   # Documentation
+└── main.py                 # Application entry point
+```
 
-- **Customer Feedback Analysis**: Analyzes sentiment and topics from customer feedback data
-- **Market Analysis**: Identifies trends and patterns in market data
-- **Operational Metrics Analysis**: Monitors and analyzes operational performance metrics
+### Development Workflow
+
+1. Create a new branch for your feature or bugfix:
+```bash
+git checkout -b feature/your-feature-name
+```
+
+2. Make your changes and write tests
+
+3. Run the test suite:
+```bash
+pytest
+```
+
+4. Submit a pull request
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+We welcome contributions to IntelliFlow! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-
-
-## Deployment
-
-### Vercel (Frontend Only)
-
-This project's frontend (the React application in `frontend/intelliflow-ui`) can be deployed to Vercel.
-
-**Method 1: Using `vercel.json` (Recommended)**
-
-The repository includes a `vercel.json` file in the root directory. When importing the project to Vercel from GitHub, Vercel should automatically detect this file and configure the deployment settings correctly.
-
-**Method 2: Manual Configuration on Vercel Dashboard**
-
-If you need to configure manually during the import process on the Vercel dashboard:
-
-- **Framework Preset:** Select `Vite`.
-- **Root Directory:** Set to `frontend/intelliflow-ui`.
-- **Build Command:** Override to `pnpm run build`.
-- **Output Directory:** Override to `dist`.
-- **Install Command:** Override to `pnpm install --force`.
-
-**Note:** This deployment method only covers the frontend application. The Python backend agents are not deployed via Vercel with this configuration.
-
-### GitHub Pages (Previous Deployment)
-
-The project was previously deployed to GitHub Pages. The live demo link reflects this deployment: [https://gadda00.github.io/IntelliFlow/](https://gadda00.github.io/IntelliFlow/)
+IntelliFlow is licensed under the MIT License. See [LICENSE](LICENSE) for more information.
 

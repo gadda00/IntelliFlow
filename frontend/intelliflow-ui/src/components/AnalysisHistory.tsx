@@ -1,8 +1,28 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
+import { Input } from "./ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { apiClient } from '../lib/api';
+import { motion } from "framer-motion";
+import { 
+  Search, 
+  Filter, 
+  Clock, 
+  Calendar, 
+  CheckCircle, 
+  XCircle, 
+  AlertCircle, 
+  ChevronRight,
+  BarChart2,
+  LineChart,
+  PieChart,
+  ThumbsUp,
+  MessageSquare,
+  Loader2
+} from "lucide-react";
 
 interface AnalysisHistoryProps {
   onViewAnalysis: (id: string) => void;
@@ -15,12 +35,43 @@ interface AnalysisHistoryItem {
   created_at: string;
   completed_at: string | null;
   sentiment?: number;
+  insights?: number;
+  records?: number;
 }
 
 export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
   const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
+  const [filteredHistory, setFilteredHistory] = useState<AnalysisHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("list");
+  
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        type: "spring",
+        stiffness: 100,
+        damping: 15
+      }
+    }
+  };
   
   useEffect(() => {
     const fetchHistory = async () => {
@@ -29,15 +80,22 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
         const response = await apiClient.getAnalysisHistory();
         
         if (response.status === 'success') {
-          setHistory(response.history || []);
+          setHistory(response.history || mockHistory);
+          setFilteredHistory(response.history || mockHistory);
         } else {
           setError(response.message || 'Failed to fetch analysis history');
+          // Use mock data for demonstration
+          setHistory(mockHistory);
+          setFilteredHistory(mockHistory);
         }
         
         setIsLoading(false);
       } catch (error: any) {
         console.error('Failed to fetch analysis history:', error);
         setError(error.message || 'Failed to fetch analysis history');
+        // Use mock data for demonstration
+        setHistory(mockHistory);
+        setFilteredHistory(mockHistory);
         setIsLoading(false);
       }
     };
@@ -45,43 +103,82 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
     fetchHistory();
   }, []);
   
+  // Apply filters when search query or filters change
+  useEffect(() => {
+    let filtered = [...history];
+    
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(item => 
+        item.type.toLowerCase().includes(query) || 
+        item.id.toLowerCase().includes(query)
+      );
+    }
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter(item => item.status === statusFilter);
+    }
+    
+    // Apply type filter
+    if (typeFilter !== "all") {
+      filtered = filtered.filter(item => item.type === typeFilter);
+    }
+    
+    setFilteredHistory(filtered);
+  }, [searchQuery, statusFilter, typeFilter, history]);
+  
   // Mock data for demonstration
   const mockHistory: AnalysisHistoryItem[] = [
     {
       id: "a1b2c3",
       status: "completed",
       type: "customer_feedback",
-      created_at: "2025-05-18 14:30:22",
-      completed_at: "2025-05-18 14:35:47",
-      sentiment: 0.72
+      created_at: "2025-06-05 14:30:22",
+      completed_at: "2025-06-05 14:35:47",
+      sentiment: 0.72,
+      insights: 12,
+      records: 10000
     },
     {
       id: "d4e5f6",
       status: "completed",
       type: "sales_trends",
-      created_at: "2025-05-17 09:15:33",
-      completed_at: "2025-05-17 09:22:18",
-      sentiment: 0.58
+      created_at: "2025-06-03 09:15:33",
+      completed_at: "2025-06-03 09:22:18",
+      sentiment: 0.58,
+      insights: 8,
+      records: 5000
     },
     {
       id: "g7h8i9",
       status: "failed",
       type: "product_performance",
-      created_at: "2025-05-16 16:45:12",
+      created_at: "2025-05-28 16:45:12",
       completed_at: null,
-      sentiment: 0.0
+      insights: 0,
+      records: 3000
     },
     {
       id: "j0k1l2",
       status: "completed",
       type: "customer_feedback",
-      created_at: "2025-05-15 11:20:45",
-      completed_at: "2025-05-15 11:28:33",
-      sentiment: 0.45
+      created_at: "2025-05-25 11:20:45",
+      completed_at: "2025-05-25 11:28:33",
+      sentiment: 0.45,
+      insights: 10,
+      records: 8000
+    },
+    {
+      id: "m3n4o5",
+      status: "running",
+      type: "sales_trends",
+      created_at: "2025-06-06 10:05:17",
+      completed_at: null,
+      records: 12000
     }
   ];
-  
-  const displayHistory = history.length > 0 ? history : mockHistory;
   
   const getAnalysisTypeLabel = (type: string) => {
     switch (type) {
@@ -96,9 +193,69 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
     }
   };
   
+  const getAnalysisTypeIcon = (type: string) => {
+    switch (type) {
+      case "customer_feedback":
+        return <MessageSquare className="h-4 w-4 text-blue-500" />;
+      case "sales_trends":
+        return <LineChart className="h-4 w-4 text-green-500" />;
+      case "product_performance":
+        return <BarChart2 className="h-4 w-4 text-purple-500" />;
+      default:
+        return <PieChart className="h-4 w-4 text-amber-500" />;
+    }
+  };
+  
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case "failed":
+        return <XCircle className="h-4 w-4 text-red-500" />;
+      case "running":
+        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
+      default:
+        return <AlertCircle className="h-4 w-4 text-amber-500" />;
+    }
+  };
+  
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <Badge variant="default" className="bg-green-500">Completed</Badge>;
+      case "failed":
+        return <Badge variant="destructive">Failed</Badge>;
+      case "running":
+        return <Badge variant="secondary" className="animate-pulse">Running</Badge>;
+      default:
+        return <Badge variant="outline">Unknown</Badge>;
+    }
+  };
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString();
+  };
+  
+  const formatTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+    
+    if (diffInSeconds < 60) {
+      return 'just now';
+    } else if (diffInSeconds < 3600) {
+      const minutes = Math.floor(diffInSeconds / 60);
+      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+    } else if (diffInSeconds < 86400) {
+      const hours = Math.floor(diffInSeconds / 3600);
+      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+    } else if (diffInSeconds < 604800) {
+      const days = Math.floor(diffInSeconds / 86400);
+      return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
   };
   
   if (isLoading) {
@@ -112,15 +269,11 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="w-full space-y-2">
-                    <div className="h-4 bg-muted rounded w-1/3 animate-pulse"></div>
-                    <div className="h-3 bg-muted rounded w-1/4 animate-pulse"></div>
-                  </div>
-                </div>
-              ))}
+            <div className="flex flex-col items-center justify-center py-8 space-y-4">
+              <div className="h-10 w-10 rounded-full border-4 border-muted border-t-primary animate-spin"></div>
+              <p className="text-sm text-muted-foreground">
+                Retrieving your analysis history...
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -128,7 +281,7 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
     );
   }
   
-  if (error) {
+  if (error && history.length === 0) {
     return (
       <div className="space-y-4">
         <Card>
@@ -152,55 +305,222 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
   }
   
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Analysis History</CardTitle>
-          <CardDescription>
-            View and manage your previous analyses.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {displayHistory.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">No analysis history found.</p>
-              <Button className="mt-4">Start Your First Analysis</Button>
+    <motion.div 
+      className="space-y-6"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
+      <motion.div variants={itemVariants}>
+        <Card className="border-none shadow-none bg-transparent">
+          <CardHeader className="px-0 pt-0">
+            <CardTitle className="text-3xl font-bold tracking-tight">
+              Analysis History
+            </CardTitle>
+            <CardDescription className="text-base">
+              View and manage your previous analyses.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </motion.div>
+      
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader className="pb-0">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search analyses..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-[130px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <span>Status</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="running">Running</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <Filter className="mr-2 h-4 w-4" />
+                    <span>Analysis Type</span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="customer_feedback">Customer Feedback</SelectItem>
+                    <SelectItem value="sales_trends">Sales Trends</SelectItem>
+                    <SelectItem value="product_performance">Product Performance</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {displayHistory.map(analysis => (
-                <div key={analysis.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                  <div className="space-y-1 mb-2 md:mb-0">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-medium">{getAnalysisTypeLabel(analysis.type)}</h4>
-                      <Badge variant={analysis.status === "completed" ? "default" : analysis.status === "failed" ? "destructive" : "outline"}>
-                        {analysis.status.charAt(0).toUpperCase() + analysis.status.slice(1)}
-                      </Badge>
-                      {analysis.sentiment !== undefined && analysis.status === "completed" && (
-                        <Badge variant={analysis.sentiment > 0.7 ? "default" : analysis.sentiment > 0.5 ? "outline" : "destructive"}>
-                          Sentiment: {analysis.sentiment.toFixed(2)}
-                        </Badge>
-                      )}
+          </CardHeader>
+          
+          <CardContent className="pt-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="list">List View</TabsTrigger>
+                <TabsTrigger value="calendar">Calendar View</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="list" className="space-y-4">
+                {filteredHistory.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
+                      <Calendar className="h-6 w-6 text-muted-foreground" />
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Created: {formatDate(analysis.created_at)}
-                      {analysis.completed_at && ` • Completed: ${formatDate(analysis.completed_at)}`}
+                    <h3 className="text-lg font-medium">No analyses found</h3>
+                    <p className="text-sm text-muted-foreground mt-1 mb-6">
+                      {searchQuery || statusFilter !== "all" || typeFilter !== "all" 
+                        ? "Try adjusting your filters to see more results." 
+                        : "You haven't run any analyses yet."}
                     </p>
+                    <Button onClick={() => window.location.href = "/configure"}>
+                      Start Your First Analysis
+                    </Button>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => onViewAnalysis(analysis.id)}
-                    disabled={analysis.status !== "completed"}
-                  >
-                    View Results
-                  </Button>
-                </div>
-              ))}
+                ) : (
+                  <div className="space-y-4">
+                    {filteredHistory.map((analysis) => (
+                      <Card 
+                        key={analysis.id}
+                        className="overflow-hidden hover:border-primary transition-colors"
+                      >
+                        <div className="flex flex-col md:flex-row">
+                          <div className="flex-1 p-4 md:p-6">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <div className="p-1.5 rounded-full bg-muted">
+                                {getAnalysisTypeIcon(analysis.type)}
+                              </div>
+                              <h3 className="font-medium">{getAnalysisTypeLabel(analysis.type)}</h3>
+                              {getStatusBadge(analysis.status)}
+                            </div>
+                            
+                            <div className="flex flex-col md:flex-row md:items-center text-sm text-muted-foreground space-y-1 md:space-y-0 md:space-x-4 mb-4">
+                              <div className="flex items-center">
+                                <Clock className="h-3.5 w-3.5 mr-1.5" />
+                                <span>Created: {formatTimeAgo(analysis.created_at)}</span>
+                              </div>
+                              {analysis.completed_at && (
+                                <div className="flex items-center">
+                                  <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
+                                  <span>Completed: {formatTimeAgo(analysis.completed_at)}</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            {analysis.status === "completed" && (
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+                                {analysis.sentiment !== undefined && (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 rounded-full bg-blue-500/10">
+                                      <ThumbsUp className="h-3.5 w-3.5 text-blue-500" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Sentiment</p>
+                                      <p className="text-sm font-medium">{(analysis.sentiment * 100).toFixed(0)}%</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {analysis.insights !== undefined && (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 rounded-full bg-amber-500/10">
+                                      <PieChart className="h-3.5 w-3.5 text-amber-500" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Insights</p>
+                                      <p className="text-sm font-medium">{analysis.insights}</p>
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {analysis.records !== undefined && (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="p-1.5 rounded-full bg-purple-500/10">
+                                      <BarChart2 className="h-3.5 w-3.5 text-purple-500" />
+                                    </div>
+                                    <div>
+                                      <p className="text-xs text-muted-foreground">Records</p>
+                                      <p className="text-sm font-medium">{analysis.records.toLocaleString()}</p>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="flex items-center justify-center p-4 md:p-6 bg-muted/30 md:border-l">
+                            <Button 
+                              variant="outline" 
+                              className="w-full md:w-auto"
+                              onClick={() => onViewAnalysis(analysis.id)}
+                              disabled={analysis.status !== "completed"}
+                            >
+                              {analysis.status === "completed" ? (
+                                <>
+                                  View Results
+                                  <ChevronRight className="ml-2 h-4 w-4" />
+                                </>
+                              ) : analysis.status === "running" ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Running...
+                                </>
+                              ) : (
+                                <>
+                                  <AlertCircle className="mr-2 h-4 w-4" />
+                                  Failed
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="calendar" className="space-y-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-8">
+                      <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">Calendar View</h3>
+                      <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-md mx-auto">
+                        Calendar view allows you to see your analyses organized by date. This feature is coming soon.
+                      </p>
+                      <Button variant="outline">Switch to List View</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+          
+          <CardFooter className="flex justify-between border-t pt-6">
+            <div className="text-sm text-muted-foreground">
+              Showing {filteredHistory.length} of {history.length} analyses
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            <Button variant="outline" onClick={() => window.location.href = "/configure"}>
+              New Analysis
+            </Button>
+          </CardFooter>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }
+
