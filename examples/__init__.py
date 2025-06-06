@@ -12,7 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Enhanced ADK for IntelliFlow."""
-
-from . import data_analysis
+"""Examples for the IntelliFlow project."""
 

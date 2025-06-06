@@ -11,6 +11,7 @@ IntelliFlow is an intelligent data analysis platform that leverages agent-based 
 - [Usage](#usage)
 - [Development](#development)
 - [Contributing](#contributing)
+- [ADK Contributions](#adk-contributions)
 - [Team](#team)
 - [License](#license)
 
@@ -32,6 +33,7 @@ IntelliFlow combines the power of the Agent Development Kit (ADK) with Google Cl
 - **Planning and Goal Setting**: Hierarchical planning system for complex workflows
 - **Memory Management**: Short-term, long-term, and working memory for agents
 - **Agent Monitoring**: Real-time monitoring and visualization of agent activities
+- **Data Analysis**: Comprehensive data preprocessing, analysis, and visualization capabilities
 
 ### Google Cloud Integration
 - **BigQuery Integration**: Powerful data querying and analysis
@@ -168,6 +170,11 @@ IntelliFlow/
 │   └── insight_generation/ # Insight generation agent
 ├── common/                 # Shared utilities and helpers
 │   ├── enhanced_adk/       # Enhanced ADK implementation
+│   │   ├── data_analysis/  # Data analysis module
+│   │   ├── planning/       # Planning module
+│   │   ├── memory/         # Memory module
+│   │   ├── monitoring/     # Monitoring module
+│   │   └── communication/  # Communication module
 │   └── utils/              # Utility functions
 ├── integrations/           # External service integrations
 │   └── google_cloud/       # Google Cloud integrations
@@ -176,6 +183,8 @@ IntelliFlow/
 │   └── workflow_manager/   # Workflow management
 ├── frontend/               # Frontend application
 │   └── intelliflow-ui/     # React application
+├── examples/               # Example implementations
+├── adk_contributions/      # ADK open source contributions
 ├── tests/                  # Test suite
 ├── docs/                   # Documentation
 └── main.py                 # Application entry point
@@ -201,10 +210,23 @@ pytest
 
 We welcome contributions to IntelliFlow! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
 
-### ADK Open Source Contributions
+## ADK Contributions
 
-IntelliFlow actively contributes to the Google ADK Python repository. You can view our pull requests and contributions here:
-- [https://github.com/google/adk-python/pulls](https://github.com/google/adk-python/pulls)
+IntelliFlow actively contributes to the Google ADK Python repository. Our contributions include:
+
+### Data Analysis Module
+
+We've implemented comprehensive data preprocessing tools for the Data Analysis Agent template, enabling it to handle common data quality issues and prepare data for analysis. These tools include:
+
+- **Missing Value Handling**: Methods for detecting, removing, or imputing missing values using various strategies (drop, fill with mean/median/mode/constant, forward/backward fill, interpolation).
+- **Outlier Detection and Treatment**: Methods for identifying and handling outliers using different approaches (z-score, IQR, percentile) and treatments (remove, cap, replace with null).
+- **Feature Engineering**: Tools for creating new features from existing ones, including polynomial features, interaction terms, binning, and date/time feature extraction.
+- **Categorical Encoding**: Methods for encoding categorical variables using various techniques (one-hot, label, ordinal, target encoding).
+- **Data Normalization**: Tools for normalizing or standardizing numeric data using different methods (min-max, z-score, robust scaling, log transformation).
+- **Duplicate Removal**: Methods for identifying and removing duplicate records.
+- **Data Type Conversion**: Tools for converting column data types (numeric, datetime, category).
+
+For more details, see our [ADK Contributions README](adk_contributions/README.md).
 
 ## Team
 
@@ -213,4 +235,5 @@ IntelliFlow actively contributes to the Google ADK Python repository. You can vi
 ## License
 
 IntelliFlow is licensed under the MIT License. See [LICENSE](LICENSE) for more information.
+
 

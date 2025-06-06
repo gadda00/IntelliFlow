@@ -1,284 +1,56 @@
-# Enhanced Agent Development Kit (ADK)
+# Enhanced ADK for IntelliFlow
 
-The Enhanced ADK is a comprehensive framework for building multi-agent systems with advanced capabilities for planning, memory, monitoring, and communication.
+This module provides enhanced capabilities for the IntelliFlow project, building on the Google ADK (Agent Development Kit) framework. It includes improvements and extensions to the core ADK functionality, as well as specialized modules for data analysis, planning, memory, monitoring, and communication.
 
-## Features
+## Modules
 
-### Core Components
+- **Data Analysis**: Comprehensive data analysis capabilities, including preprocessing, analysis, and visualization
+- **Planning**: Enhanced planning capabilities for agent workflows
+- **Memory**: Improved memory systems for agent state management
+- **Monitoring**: Tools for monitoring agent performance and behavior
+- **Communication**: Enhanced communication capabilities for agent interactions
 
-- **Enhanced Agent**: Advanced agent implementation with support for planning, memory, monitoring, and communication.
-- **Tool**: Enhanced tool implementation with parameter validation, monitoring, and error handling.
-- **Message**: Enhanced message class with routing, priority, and metadata support.
+## Data Analysis Module
 
-### Planning
+The Data Analysis module provides comprehensive data analysis capabilities, including:
 
-- **Goal-Oriented Planning**: Create and execute plans to achieve specific goals.
-- **Hierarchical Planning**: Break down complex goals into subgoals and create hierarchical plans.
-- **Dynamic Replanning**: Adapt plans when execution fails or conditions change.
+- **Data Loading**: Load data from various sources and formats
+- **Data Preprocessing**: Clean and prepare data for analysis
+- **Data Analysis**: Analyze data to extract insights
+- **Data Visualization**: Create visualizations to illustrate findings
 
-### Memory
-
-- **Working Memory**: Short-term memory for current task execution.
-- **Long-Term Memory**: Persistent memory for knowledge and experiences.
-- **Memory Storage**: Multiple storage backends (in-memory, file-based).
-
-### Monitoring
-
-- **Event Logging**: Comprehensive event logging for agent activities.
-- **Metrics Collection**: Collect and analyze metrics from agent operations.
-- **Visualization**: Visualize agent networks and metrics.
-
-### Communication
-
-- **Channels**: Multiple communication channels (in-memory, Google Pub/Sub).
-- **Message Routing**: Topic-based routing for efficient communication.
-- **Subscription Patterns**: Subscribe to topics using regular expression patterns.
+See the [Data Analysis README](./data_analysis/README.md) for more details.
 
 ## Usage
 
-### Creating an Agent
-
 ```python
-from common.enhanced_adk import EnhancedAgent, Tool, Message
-from common.enhanced_adk.planning import GoalOrientedPlanner
-from common.enhanced_adk.memory import WorkingMemory
-from common.enhanced_adk.monitoring import AgentMonitor
-from common.enhanced_adk.communication import InMemoryChannel
+from IntelliFlow.common.enhanced_adk.data_analysis import DataAnalysisAgent
 
-# Create components
-planner = GoalOrientedPlanner()
-memory = WorkingMemory()
-monitor = AgentMonitor()
-channel = InMemoryChannel()
-
-# Create agent
-agent = EnhancedAgent(
-    name="MyAgent",
-    description="An example agent",
-    planner=planner,
-    memory=memory,
-    monitor=monitor,
-    channel=channel
+# Create a data analysis agent
+agent = DataAnalysisAgent(
+    name="data_analyst",
+    model="gemini-1.5-pro",
+    data_sources=["data.csv", "data.json", "data.xlsx"],
+    analysis_types=["summary", "correlation", "distribution", "outliers", "time_series"],
+    visualization_types=["line", "bar", "scatter", "histogram", "boxplot", "heatmap", "pie"],
+    preprocessing_operations=["clean_missing_values", "handle_outliers", "engineer_features", 
+                             "encode_categorical", "normalize_data", "remove_duplicates", "convert_types"]
 )
 
-# Start agent
-await agent.start()
+# Start a conversation with the agent
+response = agent.generate_content("Can you help me analyze this dataset?")
+print(response.text)
 ```
 
-### Creating and Registering Tools
+## Examples
 
-```python
-from common.enhanced_adk import Tool
+See the [examples](../../examples/) directory for complete examples of how to use the Enhanced ADK modules.
 
-class CalculatorTool(Tool):
-    def __init__(self):
-        super().__init__(
-            name="CalculatorTool",
-            description="Perform calculations",
-            parameters=[
-                ToolParameter(
-                    name="operation",
-                    description="Operation to perform",
-                    type_hint=str,
-                    required=True
-                ),
-                ToolParameter(
-                    name="a",
-                    description="First operand",
-                    type_hint=float,
-                    required=True
-                ),
-                ToolParameter(
-                    name="b",
-                    description="Second operand",
-                    type_hint=float,
-                    required=True
-                )
-            ]
-        )
-    
-    async def _execute_impl(self, operation: str, a: float, b: float) -> Dict[str, Any]:
-        if operation == "add":
-            return {"result": a + b}
-        elif operation == "subtract":
-            return {"result": a - b}
-        elif operation == "multiply":
-            return {"result": a * b}
-        elif operation == "divide":
-            if b == 0:
-                return {"status": "error", "message": "Division by zero"}
-            return {"result": a / b}
-        else:
-            return {"status": "error", "message": f"Unknown operation: {operation}"}
+## Contributing
 
-# Register tool with agent
-agent.register_tool(CalculatorTool())
-```
+This module is part of the IntelliFlow project's contributions to the Google ADK ecosystem. The enhancements made here have been contributed back to the ADK Python repository to benefit the broader community.
 
-### Creating and Executing Plans
+## License
 
-```python
-from common.enhanced_adk.planning import Goal, Plan, PlanStep
-
-# Create a goal
-goal = Goal(
-    name="Calculate area",
-    description="Calculate the area of a rectangle"
-)
-
-# Create a plan
-plan = await agent.planner.create_plan(goal)
-
-# Execute the plan
-context = {
-    "execute_tool": agent.execute_tool,
-    "length": 5,
-    "width": 3
-}
-result = await agent.planner.execute_plan(plan, context)
-```
-
-### Using Memory
-
-```python
-# Add item to memory
-await agent.memory.add(
-    category="calculations",
-    key="rectangle_area",
-    value={"length": 5, "width": 3, "area": 15}
-)
-
-# Get item from memory
-area_data = await agent.memory.get("calculations", "rectangle_area")
-
-# Search memory
-results = await agent.memory.search("rectangle")
-```
-
-### Sending and Receiving Messages
-
-```python
-# Register message handler
-async def handle_calculation_request(message: Message) -> Optional[Message]:
-    # Extract parameters from message
-    operation = message.content.get("operation")
-    a = message.content.get("a")
-    b = message.content.get("b")
-    
-    # Execute calculation
-    result = await agent.execute_tool(
-        "CalculatorTool",
-        operation=operation,
-        a=a,
-        b=b
-    )
-    
-    # Create response
-    return Message(
-        sender=agent.name,
-        intent="CALCULATION_RESULT",
-        content={"result": result},
-        correlation_id=message.message_id,
-        reply_to=message.sender
-    )
-
-agent.register_message_handler("CALCULATION_REQUEST", handle_calculation_request)
-
-# Send a message
-await agent.send_message(
-    to="CalculatorAgent",
-    intent="CALCULATION_REQUEST",
-    content={
-        "operation": "add",
-        "a": 5,
-        "b": 3
-    }
-)
-```
-
-### Monitoring
-
-```python
-# Log custom event
-agent.monitor.log_event(
-    agent_id=agent.name,
-    event_type="CUSTOM",
-    data={"action": "calculation", "operation": "add"}
-)
-
-# Get agent metrics
-metrics = agent.monitor.get_agent_metrics(agent.name)
-
-# Get system metrics
-system_metrics = agent.monitor.get_system_metrics()
-```
-
-## Integration with IntelliFlow
-
-The Enhanced ADK is designed to integrate seamlessly with the IntelliFlow platform, providing advanced capabilities for multi-agent data analysis workflows.
-
-### Orchestrator Agent
-
-```python
-from common.enhanced_adk import EnhancedAgent
-from common.enhanced_adk.planning import GoalOrientedPlanner
-from common.enhanced_adk.memory import LongTermMemory
-from common.enhanced_adk.monitoring import AgentMonitor
-from common.enhanced_adk.communication import PubSubChannel
-
-class EnhancedOrchestratorAgent(EnhancedAgent):
-    def __init__(self, config):
-        # Create components
-        planner = GoalOrientedPlanner()
-        memory = LongTermMemory()
-        monitor = AgentMonitor()
-        channel = PubSubChannel(config.get("project_id"))
-        
-        super().__init__(
-            name="OrchestratorAgent",
-            description="Coordinates the multi-agent analysis workflow",
-            planner=planner,
-            memory=memory,
-            monitor=monitor,
-            channel=channel
-        )
-        
-        # Register tools and message handlers
-        self.register_tools([
-            AgentRegistryTool(),
-            WorkflowManagerTool()
-        ])
-        
-        self.register_message_handler("REGISTER_AGENT", self.handle_register_agent)
-        self.register_message_handler("REGISTER_WORKFLOW", self.handle_register_workflow)
-        self.register_message_handler("EXECUTE_WORKFLOW", self.handle_execute_workflow)
-        self.register_message_handler("START_ANALYSIS", self.handle_start_analysis)
-```
-
-## Best Practices
-
-1. **Agent Design**:
-   - Keep agents focused on specific responsibilities
-   - Use tools for agent capabilities
-   - Use message handlers for inter-agent communication
-
-2. **Planning**:
-   - Break down complex goals into subgoals
-   - Use hierarchical planning for complex workflows
-   - Implement proper error handling and replanning
-
-3. **Memory Management**:
-   - Use working memory for short-term data
-   - Use long-term memory for persistent knowledge
-   - Implement proper memory cleanup
-
-4. **Monitoring**:
-   - Log important events
-   - Collect and analyze metrics
-   - Visualize agent activities for debugging
-
-5. **Communication**:
-   - Use topic-based routing for efficient communication
-   - Implement proper error handling for message processing
-   - Use correlation IDs for tracking related messages
+Licensed under the Apache License, Version 2.0.
 
