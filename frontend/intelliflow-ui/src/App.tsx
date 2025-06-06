@@ -10,10 +10,23 @@ import './App.css';
 
 // Define interfaces for better type safety
 interface AnalysisConfigType {
-  dataSource: string;
-  analysisType: string;
-  parameters: Record<string, string>;
+  type: string;
+  data_source: {
+    source_type: string;
+    project_id?: string;
+    dataset_id?: string;
+    table_id?: string;
+  };
   objectives: string[];
+  parameters: {
+    time_period: string;
+    include_recommendations: boolean;
+    insight_threshold: number;
+    visualization_config: {
+      theme: string;
+      use_data_studio: boolean;
+    };
+  };
 }
 
 function App() {

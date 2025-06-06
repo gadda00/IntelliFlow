@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Wizard, WizardContent, WizardNavigation } from "./ui/wizard";
 import { AnalysisType } from '../lib/api';
 import { LineChart, BarChart2, PieChart, ChevronRight, Loader2 } from "lucide-react";
+import { motion } from "framer-motion";
+import { Badge } from "./ui/badge";
 
-interface AnalysisConfigProps {
+export interface AnalysisConfigProps {
   analysisTypes: AnalysisType[];
   onStartAnalysis: (config: any) => void;
   isLoading: boolean;
@@ -290,6 +291,117 @@ export function AnalysisConfig({
                      "Analyze data to extract insights and patterns."}
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
+        {currentStep === 1 && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <LineChart className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle>Data Source</CardTitle>
+                </div>
+                <CardDescription>
+                  Configure the data source for your analysis.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="data-source-select">Data Source Type</Label>
+                  <Select 
+                    value={dataSource} 
+                    onValueChange={setDataSource}
+                  >
+                    <SelectTrigger id="data-source-select" className="h-11">
+                      <SelectValue placeholder="Select data source" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bigquery">Google BigQuery</SelectItem>
+                      <SelectItem value="file_upload">File Upload</SelectItem>
+                      <SelectItem value="cloud_storage">Cloud Storage</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {dataSource === "bigquery" && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="project-id">Project ID</Label>
+                      <input
+                        id="project-id"
+                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={projectId}
+                        onChange={(e) => setProjectId(e.target.value)}
+                        placeholder="Enter your BigQuery project ID"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="dataset-id">Dataset ID</Label>
+                      <input
+                        id="dataset-id"
+                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={datasetId}
+                        onChange={(e) => setDatasetId(e.target.value)}
+                        placeholder="Enter your BigQuery dataset ID"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="table-id">Table ID</Label>
+                      <input
+                        id="table-id"
+                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={tableId}
+                        onChange={(e) => setTableId(e.target.value)}
+                        placeholder="Enter your BigQuery table ID"
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                {dataSource === "file_upload" && (
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        <div className="rounded-full bg-primary/10 p-2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                          </svg>
+                        </div>
+                        <div className="text-sm font-medium">
+                          Drag and drop your file here, or click to browse
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Supports CSV, Excel, and JSON files (max 10MB)
+                        </div>
+                        <Badge variant="outline" className="mt-2">
+                          Max 5 files
+                        </Badge>
+                      </div>
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept=".csv,.xlsx,.json"
+                        multiple
+                      />
+                    </div>
+                    
+                    <div className="text-sm text-muted-foreground">
+                      <Badge variant="outline" className="mr-2">
+                        File Limitations
+                      </Badge>
+                      Maximum file size: 10MB, Maximum files: 5
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

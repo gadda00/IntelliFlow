@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { apiClient } from '../lib/api';
+import { motion } from "framer-motion";
 import { 
   Search, 
   Filter, 
@@ -194,25 +195,15 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
     }
   };
   
-  const formatTimeAgo = (dateString: string) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) {
-      return 'just now';
-    } else if (diffInSeconds < 3600) {
-      const minutes = Math.floor(diffInSeconds / 60);
-      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
-    } else if (diffInSeconds < 86400) {
-      const hours = Math.floor(diffInSeconds / 3600);
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-    } else if (diffInSeconds < 604800) {
-      const days = Math.floor(diffInSeconds / 86400);
-      return `${days} ${days === 1 ? 'day' : 'days'} ago`;
-    } else {
-      return date.toLocaleDateString();
-    }
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
   
   if (isLoading) {
@@ -362,12 +353,12 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
                             <div className="flex flex-col md:flex-row md:items-center text-sm text-muted-foreground space-y-1 md:space-y-0 md:space-x-4 mb-4">
                               <div className="flex items-center">
                                 <Clock className="h-3.5 w-3.5 mr-1.5" />
-                                <span>Created: {formatTimeAgo(analysis.created_at)}</span>
+                                <span>Created: {formatDate(analysis.created_at)}</span>
                               </div>
                               {analysis.completed_at && (
                                 <div className="flex items-center">
                                   <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                                  <span>Completed: {formatTimeAgo(analysis.completed_at)}</span>
+                                  <span>Completed: {formatDate(analysis.completed_at)}</span>
                                 </div>
                               )}
                             </div>
@@ -413,14 +404,13 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
                             )}
                           </div>
                           
-                          <div className="flex items-center justify-end p-4 md:p-6 border-t md:border-t-0 md:border-l bg-muted/30">
+                          <div className="flex items-center justify-center p-4 md:p-6 bg-muted/10 md:border-l">
                             <Button 
                               variant="outline" 
                               className="w-full md:w-auto"
                               onClick={() => onViewAnalysis(analysis.id)}
-                              disabled={analysis.status !== "completed"}
                             >
-                              <span>View Results</span>
+                              View Results
                               <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
                           </div>
@@ -438,21 +428,15 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
                   </div>
                   <h3 className="text-lg font-medium">Calendar View Coming Soon</h3>
                   <p className="text-sm text-muted-foreground mt-1 mb-6">
-                    We're working on a calendar view to help you visualize your analysis history over time.
+                    We're working on a calendar view to help you visualize your analysis history.
                   </p>
+                  <Button variant="outline" onClick={() => setActiveTab("list")}>
+                    Switch to List View
+                  </Button>
                 </div>
               </TabsContent>
             </Tabs>
           </CardContent>
-          
-          <CardFooter className="flex justify-between">
-            <Button variant="outline" onClick={() => window.location.reload()}>
-              Refresh
-            </Button>
-            <Button onClick={() => window.location.href = "/configure"}>
-              New Analysis
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     </div>

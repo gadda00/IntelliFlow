@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useAnalysisStatus } from '../lib/api';
-// Import Database icon
+import { motion } from "framer-motion";
 import { 
   BarChart2, 
   LineChart, 
@@ -21,7 +21,9 @@ import {
   MessageSquare,
   BarChart,
   Clock,
-  Database
+  Database,
+  Loader2,
+  ChevronRight
 } from "lucide-react";
 
 interface AnalysisResultsProps {
@@ -419,12 +421,15 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
           <Card className="overflow-hidden">
             <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">Records Analyzed</CardTitle>
-              <FileText className="h-4 w-4 text-purple-500" />
+              <Database className="h-4 w-4 text-purple-500" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{analysisData.metrics.recordsAnalyzed.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs text-muted-foreground mt-1 flex items-center">
                 <span>From {analysisData.dataSource.timePeriod}</span>
+              </div>
+              <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-purple-500 rounded-full w-full"></div>
               </div>
             </CardContent>
           </Card>
@@ -436,130 +441,340 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{analysisData.metrics.processingTime}</div>
-              <div className="text-xs text-muted-foreground mt-1">
+              <div className="text-xs text-muted-foreground mt-1 flex items-center">
                 <span>Completed analysis</span>
               </div>
+              <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full w-full"></div>
+              </div>
             </CardContent>
           </Card>
         </div>
       </div>
       
-      <Tabs defaultValue="insights" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="insights">Insights</TabsTrigger>
-          <TabsTrigger value="visualizations">Visualizations</TabsTrigger>
-          <TabsTrigger value="narrative">Narrative</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="insights" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center space-x-2">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Zap className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle>Key Insights</CardTitle>
-                  <CardDescription>
-                    Important findings from your data analysis.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {analysisData.insights.map((insight: Insight) => (
-                  <Card 
-                    key={insight.id} 
-                    className={`border transition-all duration-300 ${expandedInsight === insight.id ? 'shadow-md' : ''}`}
-                  >
-                    <CardHeader className="p-4 pb-0">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-3">
-                          <div className="mt-0.5">
-                            {insight.category && getCategoryIcon(insight.category)}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-base">{insight.title}</h4>
-                            {!expandedInsight || expandedInsight !== insight.id ? (
-                              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {insight.description}
-                              </p>
-                            ) : null}
-                          </div>
+      <div>
+        <Card>
+          <CardHeader>
+            <Tabs defaultValue="insights" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="insights">Insights</TabsTrigger>
+                <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+                <TabsTrigger value="visualizations">Visualizations</TabsTrigger>
+                <TabsTrigger value="narrative">Narrative</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </CardHeader>
+          <CardContent>
+            <TabsContent value="insights" className="space-y-4 mt-0">
+              {analysisData.insights.map((insight) => (
+                <Card key={insight.id} className="overflow-hidden">
+                  <CardHeader className="p-4">
+                    <div 
+                      className="flex items-start justify-between cursor-pointer"
+                      onClick={() => toggleInsight(insight.id)}
+                    >
+                      <div className="flex items-start space-x-2">
+                        <div className="p-1.5 rounded-full bg-muted mt-0.5">
+                          {insight.category ? getCategoryIcon(insight.category) : <Zap className="h-4 w-4 text-amber-500" />}
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0 rounded-full"
-                          onClick={() => toggleInsight(insight.id)}
-                        >
-                          {expandedInsight === insight.id ? (
-                            <ChevronUp className="h-4 w-4" />
-                          ) : (
-                            <ChevronDown className="h-4 w-4" />
+                        <div>
+                          <h3 className="font-medium">{insight.title}</h3>
+                          {insight.importance && (
+                            <div className="flex items-center mt-1">
+                              <div className="h-1.5 w-16 rounded-full bg-muted overflow-hidden mr-2">
+                                <div 
+                                  className="h-full bg-amber-500 rounded-full" 
+                                  style={{ width: `${insight.importance * 100}%` }}
+                                ></div>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {insight.importance >= 0.8 ? 'High' : insight.importance >= 0.6 ? 'Medium' : 'Low'} importance
+                              </span>
+                            </div>
                           )}
-                        </Button>
+                        </div>
                       </div>
-                    </CardHeader>
-                    {expandedInsight === insight.id && (
-                      <CardContent className="pt-0 pb-4 px-4">
-                        <p className="text-sm text-muted-foreground mt-2">
+                      <div>
+                        {expandedInsight === insight.id ? (
+                          <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  {expandedInsight === insight.id && (
+                    <CardContent className="px-4 pt-0 pb-4">
+                      <div className="pl-8">
+                        <p className="text-sm text-muted-foreground">
                           {insight.description}
                         </p>
-                        <div className="flex items-center space-x-2 mt-4">
-                          {insight.importance && (
-                            <Badge variant={insight.importance > 0.8 ? "default" : "outline"}>
-                              {insight.importance > 0.8 ? "High" : insight.importance > 0.6 ? "Medium" : "Low"} Importance
-                            </Badge>
-                          )}
-                          {insight.category && (
-                            <Badge variant="secondary">
-                              {insight.category.charAt(0).toUpperCase() + insight.category.slice(1)}
-                            </Badge>
-                          )}
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </TabsContent>
+            
+            <TabsContent value="recommendations" className="space-y-4 mt-0">
+              {analysisData.recommendations.map((recommendation) => (
+                <Card key={recommendation.id} className="overflow-hidden">
+                  <CardHeader className="p-4">
+                    <div 
+                      className="flex items-start justify-between cursor-pointer"
+                      onClick={() => toggleRecommendation(recommendation.id)}
+                    >
+                      <div className="flex items-start space-x-2">
+                        <div className="p-1.5 rounded-full bg-muted mt-0.5">
+                          <Zap className="h-4 w-4 text-green-500" />
                         </div>
-                      </CardContent>
-                    )}
-                  </Card>
-                ))}
+                        <div>
+                          <h3 className="font-medium">{recommendation.title}</h3>
+                          <div className="flex flex-wrap gap-2 mt-1">
+                            {recommendation.impact && getImpactBadge(recommendation.impact)}
+                            {recommendation.difficulty && getDifficultyBadge(recommendation.difficulty)}
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        {expandedRecommendation === recommendation.id ? (
+                          <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                        ) : (
+                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  {expandedRecommendation === recommendation.id && (
+                    <CardContent className="px-4 pt-0 pb-4">
+                      <div className="pl-8">
+                        <p className="text-sm text-muted-foreground">
+                          {recommendation.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  )}
+                </Card>
+              ))}
+            </TabsContent>
+            
+            <TabsContent value="visualizations" className="mt-0">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Sentiment Distribution</CardTitle>
+                    <CardDescription>
+                      Overall sentiment breakdown
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex justify-center">
+                    <div className="h-64 w-64 relative">
+                      {/* Placeholder for pie chart */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="relative h-full w-full">
+                          <div className="absolute inset-0 rounded-full border-8 border-blue-500" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0% 100%)' }}></div>
+                          <div className="absolute inset-0 rounded-full border-8 border-amber-500" style={{ clipPath: 'polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%)' }}></div>
+                          <div className="absolute inset-0 rounded-full border-8 border-red-500" style={{ clipPath: 'polygon(50% 50%, 100% 100%, 50% 100%)' }}></div>
+                        </div>
+                      </div>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <div className="text-3xl font-bold">72%</div>
+                        <div className="text-sm text-muted-foreground">Positive</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Topic Distribution</CardTitle>
+                    <CardDescription>
+                      Most discussed topics
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {analysisData.visualizations.topicDistribution.data.map((item) => (
+                        <div key={item.label} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>{item.label}</span>
+                            <span className="font-medium">{item.value}%</span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                            <div 
+                              className="h-full bg-purple-500 rounded-full" 
+                              style={{ width: `${item.value}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Sentiment by Category</CardTitle>
+                    <CardDescription>
+                      Sentiment scores across categories
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {analysisData.visualizations.sentimentByCategory.data.map((item) => (
+                        <div key={item.label} className="space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>{item.label}</span>
+                            <span className="font-medium">{(item.value * 100).toFixed(0)}%</span>
+                          </div>
+                          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                            <div 
+                              className="h-full rounded-full" 
+                              style={{ 
+                                width: `${item.value * 100}%`,
+                                backgroundColor: item.value >= 0.7 ? '#22c55e' : item.value >= 0.5 ? '#f59e0b' : '#ef4444'
+                              }}
+                            ></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-base">Sentiment Trend</CardTitle>
+                    <CardDescription>
+                      Sentiment score over time
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="h-64 flex items-center justify-center">
+                    {/* Placeholder for line chart */}
+                    <div className="w-full h-48 relative">
+                      <div className="absolute bottom-0 left-0 w-full h-px bg-border"></div>
+                      <div className="absolute top-0 left-0 h-full w-px bg-border"></div>
+                      
+                      <div className="absolute bottom-0 left-0 w-full h-full flex items-end">
+                        <div className="flex items-end justify-between w-full h-full">
+                          {analysisData.visualizations.sentimentTrend.data.map((item, index, array) => {
+                            const nextItem = array[index + 1];
+                            return (
+                              <div key={item.label} className="flex flex-col items-center" style={{ height: '100%', width: `${100 / array.length}%` }}>
+                                <div 
+                                  className="w-full bg-blue-500" 
+                                  style={{ 
+                                    height: `${item.value * 100}%`,
+                                    position: 'relative'
+                                  }}
+                                >
+                                  {nextItem && (
+                                    <div 
+                                      className="absolute top-0 right-0 h-px bg-blue-500" 
+                                      style={{ 
+                                        width: '100%',
+                                        transform: `rotate(${Math.atan2((nextItem.value - item.value) * 100, 100) * (180 / Math.PI)}deg)`,
+                                        transformOrigin: 'right',
+                                      }}
+                                    ></div>
+                                  )}
+                                </div>
+                                <div className="text-xs mt-2">{item.label}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
-            </CardContent>
-          </Card>
-          
-          {/* Rest of the component omitted for brevity */}
-        </TabsContent>
-        
-        <TabsContent value="visualizations" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Visualizations content */}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="narrative" className="space-y-6">
-          {/* Narrative content */}
-        </TabsContent>
-      </Tabs>
-      
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onNewAnalysis}>
-          New Analysis
-        </Button>
-        <div className="flex space-x-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
-          <Button variant="outline">
-            <Share2 className="mr-2 h-4 w-4" />
-            Share
-          </Button>
-        </div>
-      </div>
-      
-      <div className="text-xs text-muted-foreground mt-4 flex items-center">
-        <Database className="h-3 w-3 mr-1" />
-        <span>Data source: {analysisData.dataSource.type.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
+            </TabsContent>
+            
+            <TabsContent value="narrative" className="mt-0">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Summary</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {analysisData.narrative.summary}
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Key Findings</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {analysisData.narrative.keyFindings}
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Recommendations</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {analysisData.narrative.recommendations}
+                  </p>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-medium mb-2">Conclusion</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {analysisData.narrative.conclusion}
+                  </p>
+                </div>
+                
+                <div className="pt-4 border-t">
+                  <h3 className="text-lg font-medium mb-2">Data Source Information</h3>
+                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+                    <div className="flex items-center space-x-2">
+                      <Database className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Source Type</p>
+                        <p className="text-sm font-medium">{analysisData.dataSource.type}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Project/Dataset</p>
+                        <p className="text-sm font-medium">{analysisData.dataSource.project}/{analysisData.dataSource.dataset}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <BarChart className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Records</p>
+                        <p className="text-sm font-medium">{analysisData.dataSource.recordCount.toLocaleString()}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Clock className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">Time Period</p>
+                        <p className="text-sm font-medium">{analysisData.dataSource.timePeriod}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+          </CardContent>
+          <CardFooter className="flex justify-between border-t px-6 py-4">
+            <Button variant="outline" onClick={onNewAnalysis}>
+              New Analysis
+            </Button>
+            
+            <div className="flex space-x-2">
+              <Button variant="outline" size="icon">
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button variant="outline" size="icon">
+                <Share2 className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
