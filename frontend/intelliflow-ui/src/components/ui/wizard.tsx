@@ -1,95 +1,17 @@
 import * as React from "react";
 import { cn } from "../../lib/utils";
-import { Check, ChevronRight } from "lucide-react";
 
-export interface WizardStep {
+interface WizardStep {
   id: string;
   title: string;
   description?: string;
-  isComplete?: boolean;
-  isActive?: boolean;
 }
 
 interface WizardProps {
   steps: WizardStep[];
   currentStep: number;
-  onStepClick?: (stepIndex: number) => void;
+  onStepClick?: (index: number) => void;
   className?: string;
-}
-
-export function Wizard({ steps, currentStep, onStepClick, className }: WizardProps) {
-  return (
-    <div className={cn("w-full", className)}>
-      <div className="relative">
-        {/* Progress bar */}
-        <div className="absolute top-5 left-0 right-0 h-0.5 bg-muted">
-          <div
-            className="absolute top-0 left-0 h-full bg-primary transition-all duration-500 ease-in-out"
-            style={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-          />
-        </div>
-
-        {/* Steps */}
-        <div className="relative flex justify-between">
-          {steps.map((step, index) => {
-            const isComplete = index < currentStep;
-            const isActive = index === currentStep;
-            
-            return (
-              <div
-                key={step.id}
-                className={cn(
-                  "flex flex-col items-center",
-                  (isComplete || isActive) ? "cursor-pointer" : "cursor-not-allowed"
-                )}
-                onClick={() => {
-                  if (onStepClick && (isComplete || isActive)) {
-                    onStepClick(index);
-                  }
-                }}
-              >
-                <div
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-full border-2 transition-all duration-200",
-                    isComplete
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : isActive
-                      ? "border-primary bg-background text-primary"
-                      : "border-muted bg-background text-muted-foreground"
-                  )}
-                >
-                  {isComplete ? (
-                    <Check className="h-5 w-5" />
-                  ) : (
-                    <span>{index + 1}</span>
-                  )}
-                </div>
-                <div className="mt-2 space-y-1 text-center">
-                  <p
-                    className={cn(
-                      "text-sm font-medium",
-                      isComplete
-                        ? "text-primary"
-                        : isActive
-                        ? "text-foreground"
-                        : "text-muted-foreground"
-                    )}
-                  >
-                    {step.title}
-                  </p>
-                  {step.description && (
-                    <p className="text-xs text-muted-foreground hidden md:block">
-                      {step.description}
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 interface WizardContentProps {
@@ -97,70 +19,118 @@ interface WizardContentProps {
   className?: string;
 }
 
-export function WizardContent({ children, className }: WizardContentProps) {
+interface WizardNavigationProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export function Wizard({
+  steps,
+  currentStep,
+  onStepClick,
+  className,
+}: WizardProps) {
   return (
-    <div className={cn("mt-8 animate-fade-in", className)}>
+    <div className={cn("space-y-4", className)}>
+      <div className="relative">
+        <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-muted" />
+        <ol className="relative z-10 flex justify-between">
+          {steps.map((step, index) => {
+            const isActive = index === currentStep;
+            const isCompleted = index < currentStep;
+            
+            return (
+              <li key={step.id} className="flex flex-col items-center">
+                <button
+                  type="button"
+                  className={cn(
+                    "flex h-8 w-8 items-center justify-center rounded-full text-sm font-medium",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : isCompleted
+                      ? "bg-primary/80 text-primary-foreground"
+                      : "bg-muted text-muted-foreground",
+                    onStepClick ? "cursor-pointer" : "cursor-default"
+                  )}
+                  onClick={() => onStepClick?.(index)}
+                  disabled={!onStepClick}
+                >
+                  {isCompleted ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    index + 1
+                  )}
+                </button>
+                <div className="mt-2 hidden md:block">
+                  <div
+                    className={cn(
+                      "text-xs font-medium",
+                      isActive || isCompleted
+                        ? "text-foreground"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    {step.title}
+                  </div>
+                  {step.description && (
+                    <div className="text-xs text-muted-foreground">
+                      {step.description}
+                    </div>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </div>
+      <div className="md:hidden">
+        <div
+          className={cn(
+            "text-sm font-medium",
+            "text-foreground"
+          )}
+        >
+          Step {currentStep + 1}: {steps[currentStep].title}
+        </div>
+        {steps[currentStep].description && (
+          <div className="text-xs text-muted-foreground">
+            {steps[currentStep].description}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export function WizardContent({
+  children,
+  className,
+}: WizardContentProps) {
+  return (
+    <div className={cn("mt-4", className)}>
       {children}
     </div>
   );
 }
 
-interface WizardNavigationProps {
-  currentStep: number;
-  totalSteps: number;
-  onNext: () => void;
-  onPrevious: () => void;
-  onComplete?: () => void;
-  isNextDisabled?: boolean;
-  isPreviousDisabled?: boolean;
-  nextLabel?: string;
-  previousLabel?: string;
-  completeLabel?: string;
-  className?: string;
-}
-
 export function WizardNavigation({
-  currentStep,
-  totalSteps,
-  onNext,
-  onPrevious,
-  onComplete,
-  isNextDisabled = false,
-  isPreviousDisabled = false,
-  nextLabel = "Next",
-  previousLabel = "Previous",
-  completeLabel = "Complete",
+  children,
   className,
 }: WizardNavigationProps) {
-  const isLastStep = currentStep === totalSteps - 1;
-
   return (
-    <div className={cn("flex justify-between mt-8", className)}>
-      <button
-        type="button"
-        onClick={onPrevious}
-        disabled={isPreviousDisabled || currentStep === 0}
-        className={cn(
-          "px-4 py-2 text-sm font-medium rounded-md",
-          currentStep === 0
-            ? "text-muted-foreground cursor-not-allowed"
-            : "text-primary hover:text-primary/80"
-        )}
-      >
-        {previousLabel}
-      </button>
-      <button
-        type="button"
-        onClick={isLastStep ? onComplete : onNext}
-        disabled={isNextDisabled}
-        className={cn(
-          "px-4 py-2 text-sm font-medium rounded-md bg-primary text-primary-foreground hover:bg-primary/90 flex items-center space-x-1",
-          isNextDisabled && "opacity-50 cursor-not-allowed"
-        )}
-      >
-        <span>{isLastStep ? completeLabel : nextLabel}</span>
-        <ChevronRight className="h-4 w-4" />
-      </button>
+    <div className={cn("mt-8", className)}>
+      {children}
     </div>
   );
 }

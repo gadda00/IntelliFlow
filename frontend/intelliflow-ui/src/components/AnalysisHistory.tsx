@@ -3,10 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { apiClient } from '../lib/api';
-import { motion } from "framer-motion";
 import { 
   Search, 
   Filter, 
@@ -48,30 +47,6 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [activeTab, setActiveTab] = useState("list");
-  
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15
-      }
-    }
-  };
   
   useEffect(() => {
     const fetchHistory = async () => {
@@ -206,19 +181,6 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
     }
   };
   
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "completed":
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case "failed":
-        return <XCircle className="h-4 w-4 text-red-500" />;
-      case "running":
-        return <Loader2 className="h-4 w-4 text-blue-500 animate-spin" />;
-      default:
-        return <AlertCircle className="h-4 w-4 text-amber-500" />;
-    }
-  };
-  
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
@@ -230,11 +192,6 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
-  };
-  
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
   };
   
   const formatTimeAgo = (dateString: string) => {
@@ -305,13 +262,8 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
   }
   
   return (
-    <motion.div 
-      className="space-y-6"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <motion.div variants={itemVariants}>
+    <div className="space-y-6">
+      <div>
         <Card className="border-none shadow-none bg-transparent">
           <CardHeader className="px-0 pt-0">
             <CardTitle className="text-3xl font-bold tracking-tight">
@@ -322,9 +274,9 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
             </CardDescription>
           </CardHeader>
         </Card>
-      </motion.div>
+      </div>
       
-      <motion.div variants={itemVariants}>
+      <div>
         <Card>
           <CardHeader className="pb-0">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -448,8 +400,8 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
                                 
                                 {analysis.records !== undefined && (
                                   <div className="flex items-center space-x-2">
-                                    <div className="p-1.5 rounded-full bg-purple-500/10">
-                                      <BarChart2 className="h-3.5 w-3.5 text-purple-500" />
+                                    <div className="p-1.5 rounded-full bg-green-500/10">
+                                      <BarChart2 className="h-3.5 w-3.5 text-green-500" />
                                     </div>
                                     <div>
                                       <p className="text-xs text-muted-foreground">Records</p>
@@ -461,29 +413,15 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
                             )}
                           </div>
                           
-                          <div className="flex items-center justify-center p-4 md:p-6 bg-muted/30 md:border-l">
+                          <div className="flex items-center justify-end p-4 md:p-6 border-t md:border-t-0 md:border-l bg-muted/30">
                             <Button 
                               variant="outline" 
                               className="w-full md:w-auto"
                               onClick={() => onViewAnalysis(analysis.id)}
                               disabled={analysis.status !== "completed"}
                             >
-                              {analysis.status === "completed" ? (
-                                <>
-                                  View Results
-                                  <ChevronRight className="ml-2 h-4 w-4" />
-                                </>
-                              ) : analysis.status === "running" ? (
-                                <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  Running...
-                                </>
-                              ) : (
-                                <>
-                                  <AlertCircle className="mr-2 h-4 w-4" />
-                                  Failed
-                                </>
-                              )}
+                              <span>View Results</span>
+                              <ChevronRight className="ml-2 h-4 w-4" />
                             </Button>
                           </div>
                         </div>
@@ -494,33 +432,30 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
               </TabsContent>
               
               <TabsContent value="calendar" className="space-y-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center py-8">
-                      <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-medium">Calendar View</h3>
-                      <p className="text-sm text-muted-foreground mt-1 mb-6 max-w-md mx-auto">
-                        Calendar view allows you to see your analyses organized by date. This feature is coming soon.
-                      </p>
-                      <Button variant="outline">Switch to List View</Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div className="text-center py-12">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
+                    <Calendar className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium">Calendar View Coming Soon</h3>
+                  <p className="text-sm text-muted-foreground mt-1 mb-6">
+                    We're working on a calendar view to help you visualize your analysis history over time.
+                  </p>
+                </div>
               </TabsContent>
             </Tabs>
           </CardContent>
           
-          <CardFooter className="flex justify-between border-t pt-6">
-            <div className="text-sm text-muted-foreground">
-              Showing {filteredHistory.length} of {history.length} analyses
-            </div>
-            <Button variant="outline" onClick={() => window.location.href = "/configure"}>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              Refresh
+            </Button>
+            <Button onClick={() => window.location.href = "/configure"}>
               New Analysis
             </Button>
           </CardFooter>
         </Card>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 

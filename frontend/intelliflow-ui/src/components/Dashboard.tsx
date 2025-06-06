@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { motion } from "framer-motion";
 import { ArrowRight, BarChart2, LineChart, PieChart, TrendingUp, Zap, Activity, Clock, CheckCircle } from "lucide-react";
 
 interface DashboardProps {
@@ -21,35 +20,11 @@ interface RecentAnalysis {
 export function Dashboard({ onStartAnalysis }: DashboardProps) {
   const [activeTab, setActiveTab] = useState("overview");
   const [isHovered, setIsHovered] = useState(false);
-  const [recentAnalyses, setRecentAnalyses] = useState<RecentAnalysis[]>([
+  const [recentAnalyses] = useState<RecentAnalysis[]>([
     { id: "a1b2c3", type: "Customer Feedback", date: "2025-06-05", status: "completed", insights: 12 },
     { id: "d4e5f6", type: "Sales Trends", date: "2025-06-03", status: "completed", insights: 8 },
     { id: "g7h8i9", type: "Product Performance", date: "2025-05-28", status: "completed", insights: 15 }
   ]);
-  
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15
-      }
-    }
-  };
   
   const getAnalysisTypeIcon = (type: string) => {
     switch (type) {
@@ -70,17 +45,9 @@ export function Dashboard({ onStartAnalysis }: DashboardProps) {
   };
   
   return (
-    <motion.div 
-      className="space-y-8"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
+    <div className="space-y-8">
       {/* Hero Section */}
-      <motion.div 
-        className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-background p-8 md:p-10"
-        variants={itemVariants}
-      >
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-background p-8 md:p-10">
         <div className="absolute inset-0 bg-grid-white/10" />
         <div className="relative z-10">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
@@ -110,10 +77,10 @@ export function Dashboard({ onStartAnalysis }: DashboardProps) {
         {/* Decorative elements */}
         <div className="absolute -top-16 -right-16 h-64 w-64 rounded-full bg-primary/10 blur-3xl" />
         <div className="absolute -bottom-16 -left-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
-      </motion.div>
+      </div>
       
       {/* Tabs */}
-      <motion.div variants={itemVariants}>
+      <div>
         <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -351,7 +318,7 @@ export function Dashboard({ onStartAnalysis }: DashboardProps) {
                     </div>
                     <h4 className="font-semibold">Q2 sales increased by 18% compared to Q1</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      The sales growth is primarily driven by new product launches and expanded market reach.
+                      The second quarter showed significant growth across all product categories, with the highest increase in the premium segment.
                     </p>
                   </div>
                   
@@ -360,9 +327,9 @@ export function Dashboard({ onStartAnalysis }: DashboardProps) {
                       <Badge variant="secondary">Product Performance</Badge>
                       <span className="text-xs text-muted-foreground">May 28, 2025</span>
                     </div>
-                    <h4 className="font-semibold">Product A outperforms others in user engagement</h4>
+                    <h4 className="font-semibold">Product A outperforms competitors by 35% in user satisfaction</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Users spend 35% more time with Product A compared to other products in the portfolio.
+                      Comparative analysis shows that our flagship product significantly outperforms competitors in user satisfaction metrics.
                     </p>
                   </div>
                 </div>
@@ -373,8 +340,8 @@ export function Dashboard({ onStartAnalysis }: DashboardProps) {
             </Card>
           </TabsContent>
         </Tabs>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 

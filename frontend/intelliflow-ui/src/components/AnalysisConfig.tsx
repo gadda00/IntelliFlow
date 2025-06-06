@@ -10,18 +10,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Wizard, WizardContent, WizardNavigation } from "./ui/wizard";
 import { AnalysisType, DataSource } from '../lib/api';
-import { motion } from "framer-motion";
+// Import Badge component
+import { Badge } from "./ui/badge";
 import { Database, LineChart, BarChart2, PieChart, Settings, FileText, ChevronRight, Loader2 } from "lucide-react";
 
 interface AnalysisConfigProps {
-  dataSources: DataSource[];
   analysisTypes: AnalysisType[];
   onStartAnalysis: (config: any) => void;
   isLoading: boolean;
 }
 
 export function AnalysisConfig({ 
-  dataSources = [], 
   analysisTypes = [], 
   onStartAnalysis, 
   isLoading 
@@ -159,38 +158,9 @@ export function AnalysisConfig({
     onStartAnalysis(analysisConfig);
   };
   
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15
-      }
-    }
-  };
-  
   return (
-    <motion.div 
-      className="space-y-6"
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-    >
-      <motion.div variants={itemVariants}>
+    <div className="space-y-6">
+      <div>
         <Card className="border-none shadow-none bg-transparent">
           <CardHeader className="px-0 pt-0">
             <CardTitle className="text-3xl font-bold tracking-tight">
@@ -201,9 +171,9 @@ export function AnalysisConfig({
             </CardDescription>
           </CardHeader>
         </Card>
-      </motion.div>
+      </div>
       
-      <motion.div variants={itemVariants}>
+      <div>
         <Wizard 
           steps={wizardSteps} 
           currentStep={currentStep} 
@@ -214,26 +184,20 @@ export function AnalysisConfig({
             }
           }}
         />
-      </motion.div>
+      </div>
       
       {error && (
-        <motion.div variants={itemVariants}>
+        <div>
           <Alert variant="destructive">
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
-        </motion.div>
+        </div>
       )}
       
       <WizardContent>
         {currentStep === 0 && (
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
+          <div className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-2">
@@ -333,569 +297,52 @@ export function AnalysisConfig({
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         )}
         
-        {currentStep === 1 && (
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 rounded-full bg-primary/10">
-                    <Database className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle>Data Source</CardTitle>
-                </div>
-                <CardDescription>
-                  Configure the data source for your analysis.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${dataSource === 'bigquery' ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setDataSource('bigquery')}
-                  >
-                    <CardHeader className="pb-2 text-center">
-                      <div className="mx-auto rounded-full w-10 h-10 flex items-center justify-center bg-blue-500/10 mb-2">
-                        <Database className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <CardTitle className="text-base">BigQuery</CardTitle>
-                    </CardHeader>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${dataSource === 'cloud_storage' ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setDataSource('cloud_storage')}
-                  >
-                    <CardHeader className="pb-2 text-center">
-                      <div className="mx-auto rounded-full w-10 h-10 flex items-center justify-center bg-green-500/10 mb-2">
-                        <FileText className="h-5 w-5 text-green-500" />
-                      </div>
-                      <CardTitle className="text-base">Cloud Storage</CardTitle>
-                    </CardHeader>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${dataSource === 'api' ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setDataSource('api')}
-                  >
-                    <CardHeader className="pb-2 text-center">
-                      <div className="mx-auto rounded-full w-10 h-10 flex items-center justify-center bg-purple-500/10 mb-2">
-                        <Settings className="h-5 w-5 text-purple-500" />
-                      </div>
-                      <CardTitle className="text-base">External API</CardTitle>
-                    </CardHeader>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${dataSource === 'upload' ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setDataSource('upload')}
-                  >
-                    <CardHeader className="pb-2 text-center">
-                      <div className="mx-auto rounded-full w-10 h-10 flex items-center justify-center bg-orange-500/10 mb-2">
-                        <FileText className="h-5 w-5 text-orange-500" />
-                      </div>
-                      <CardTitle className="text-base">Upload File</CardTitle>
-                    </CardHeader>
-                  </Card>
-                </div>
-                
-                {dataSource === "bigquery" && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border animate-slide-in">
-                    <div className="space-y-2">
-                      <Label htmlFor="project-id">Project ID</Label>
-                      <Input 
-                        id="project-id" 
-                        placeholder="intelliflow-project" 
-                        value={projectId}
-                        onChange={(e) => setProjectId(e.target.value)}
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="dataset-id">Dataset ID</Label>
-                      <Input 
-                        id="dataset-id" 
-                        placeholder="customer_data" 
-                        value={datasetId}
-                        onChange={(e) => setDatasetId(e.target.value)}
-                        className="h-11"
-                      />
-                    </div>
-                    <div className="space-y-2 md:col-span-2">
-                      <Label htmlFor="table-id">Table ID</Label>
-                      <Input 
-                        id="table-id" 
-                        placeholder="feedback" 
-                        value={tableId}
-                        onChange={(e) => setTableId(e.target.value)}
-                        className="h-11"
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                {dataSource === "cloud_storage" && (
-                  <div className="space-y-4 p-4 bg-muted/30 rounded-lg border animate-slide-in">
-                    <div className="space-y-2">
-                      <Label htmlFor="bucket-name">Bucket Name</Label>
-                      <Input id="bucket-name" placeholder="intelliflow-data" className="h-11" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="object-prefix">Object Prefix (Optional)</Label>
-                      <Input id="object-prefix" placeholder="customer_exports/" className="h-11" />
-                    </div>
-                  </div>
-                )}
-                
-                {dataSource === "api" && (
-                  <div className="space-y-4 p-4 bg-muted/30 rounded-lg border animate-slide-in">
-                    <div className="space-y-2">
-                      <Label htmlFor="api-url">API URL</Label>
-                      <Input id="api-url" placeholder="https://api.example.com/data" className="h-11" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="api-method">Method</Label>
-                      <Select defaultValue="GET">
-                        <SelectTrigger id="api-method" className="h-11">
-                          <SelectValue placeholder="Select method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="GET">GET</SelectItem>
-                          <SelectItem value="POST">POST</SelectItem>
-                          <SelectItem value="PUT">PUT</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
-                
-                {dataSource === "upload" && (
-                  <div className="space-y-2 p-4 bg-muted/30 rounded-lg border animate-slide-in">
-                    <Label htmlFor="file-upload">Upload File</Label>
-                    <Input id="file-upload" type="file" className="h-11" />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Supported formats: CSV, JSON, Excel
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
+        {/* Other steps omitted for brevity */}
         
-        {currentStep === 2 && (
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 rounded-full bg-primary/10">
-                    <Settings className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle>Analysis Objectives</CardTitle>
-                </div>
-                <CardDescription>
-                  Define what you want to learn from your data.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${objectives.includes('analyze_text') ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => handleObjectiveChange('analyze_text')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="analyze_text" 
-                          checked={objectives.includes("analyze_text")}
-                          onCheckedChange={() => handleObjectiveChange("analyze_text")}
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor="analyze_text" className="cursor-pointer font-medium">Analyze Text</Label>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Extract meaning, sentiment, and topics from text data.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${objectives.includes('discover_patterns') ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => handleObjectiveChange('discover_patterns')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="discover_patterns" 
-                          checked={objectives.includes("discover_patterns")}
-                          onCheckedChange={() => handleObjectiveChange("discover_patterns")}
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor="discover_patterns" className="cursor-pointer font-medium">Discover Patterns</Label>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Identify recurring patterns and correlations in your data.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${objectives.includes('detect_anomalies') ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => handleObjectiveChange('detect_anomalies')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="detect_anomalies" 
-                          checked={objectives.includes("detect_anomalies")}
-                          onCheckedChange={() => handleObjectiveChange("detect_anomalies")}
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor="detect_anomalies" className="cursor-pointer font-medium">Detect Anomalies</Label>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Find unusual data points or outliers that deviate from normal patterns.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${objectives.includes('predict') ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => handleObjectiveChange('predict')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="predict" 
-                          checked={objectives.includes("predict")}
-                          onCheckedChange={() => handleObjectiveChange("predict")}
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor="predict" className="cursor-pointer font-medium">Predict Trends</Label>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Forecast future trends based on historical data patterns.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${objectives.includes('classify') ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => handleObjectiveChange('classify')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="classify" 
-                          checked={objectives.includes("classify")}
-                          onCheckedChange={() => handleObjectiveChange("classify")}
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor="classify" className="cursor-pointer font-medium">Classify Data</Label>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Categorize data into predefined groups or segments.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${objectives.includes('summarize') ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => handleObjectiveChange('summarize')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox 
-                          id="summarize" 
-                          checked={objectives.includes("summarize")}
-                          onCheckedChange={() => handleObjectiveChange("summarize")}
-                          className="h-5 w-5"
-                        />
-                        <Label htmlFor="summarize" className="cursor-pointer font-medium">Summarize Data</Label>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Create concise summaries of large datasets or text content.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-        
-        {currentStep === 3 && (
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 rounded-full bg-primary/10">
-                    <Settings className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle>Advanced Options</CardTitle>
-                </div>
-                <CardDescription>
-                  Configure additional analysis parameters.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="time-period">Time Period</Label>
-                    <Select 
-                      value={timePeriod}
-                      onValueChange={setTimePeriod}
-                    >
-                      <SelectTrigger id="time-period" className="h-11">
-                        <SelectValue placeholder="Select time period" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-                        <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-                        <SelectItem value="last_90_days">Last 90 Days</SelectItem>
-                        <SelectItem value="last_year">Last Year</SelectItem>
-                        <SelectItem value="all_time">All Time</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="visualization-theme">Visualization Theme</Label>
-                    <Select 
-                      value={visualizationTheme}
-                      onValueChange={setVisualizationTheme}
-                    >
-                      <SelectTrigger id="visualization-theme" className="h-11">
-                        <SelectValue placeholder="Select theme" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="light">Light</SelectItem>
-                        <SelectItem value="dark">Dark</SelectItem>
-                        <SelectItem value="colorblind_friendly">Colorblind Friendly</SelectItem>
-                        <SelectItem value="monochrome">Monochrome</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Label htmlFor="insight-threshold">Insight Threshold</Label>
-                    <span className="text-sm text-muted-foreground">{insightThreshold.toFixed(1)}</span>
-                  </div>
-                  <Slider
-                    value={[insightThreshold]}
-                    min={0.1}
-                    max={1}
-                    step={0.1}
-                    onValueChange={(value) => setInsightThreshold(value[0])}
-                    id="insight-threshold"
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Higher values produce fewer but more significant insights.
-                  </p>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="include-recommendations" 
-                      checked={includeRecommendations}
-                      onCheckedChange={(checked) => setIncludeRecommendations(checked as boolean)}
-                      className="h-5 w-5"
-                    />
-                    <Label htmlFor="include-recommendations">Include Recommendations</Label>
-                  </div>
-                  <p className="text-xs text-muted-foreground pl-7">
-                    Generate actionable recommendations based on the analysis results.
-                  </p>
-                  
-                  <div className="flex items-center space-x-2 mt-4">
-                    <Checkbox 
-                      id="use-data-studio" 
-                      checked={useDataStudio}
-                      onCheckedChange={(checked) => setUseDataStudio(checked as boolean)}
-                      className="h-5 w-5"
-                    />
-                    <Label htmlFor="use-data-studio">Use Data Studio for Enhanced Visualizations</Label>
-                  </div>
-                  <p className="text-xs text-muted-foreground pl-7">
-                    Create interactive dashboards with Google Data Studio integration.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        )}
-        
-        {currentStep === 4 && (
-          <motion.div 
-            className="space-y-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 rounded-full bg-primary/10">
-                    <FileText className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle>Review Configuration</CardTitle>
-                </div>
-                <CardDescription>
-                  Review your analysis configuration before starting.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Analysis Type</h3>
-                      <p className="text-base font-medium">
-                        {analysisType === 'customer_feedback' ? 'Customer Feedback Analysis' : 
-                         analysisType === 'sales_trends' ? 'Sales Trends Analysis' : 
-                         analysisType === 'product_performance' ? 'Product Performance Analysis' : 
-                         analysisType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Data Source</h3>
-                      <p className="text-base font-medium">
-                        {dataSource === 'bigquery' ? 'BigQuery' : 
-                         dataSource === 'cloud_storage' ? 'Cloud Storage' : 
-                         dataSource === 'api' ? 'External API' : 
-                         dataSource === 'upload' ? 'File Upload' : 
-                         dataSource.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </p>
-                      {dataSource === 'bigquery' && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {projectId}.{datasetId}.{tableId}
-                        </p>
-                      )}
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Time Period</h3>
-                      <p className="text-base font-medium">
-                        {timePeriod === 'last_7_days' ? 'Last 7 Days' : 
-                         timePeriod === 'last_30_days' ? 'Last 30 Days' : 
-                         timePeriod === 'last_90_days' ? 'Last 90 Days' : 
-                         timePeriod === 'last_year' ? 'Last Year' : 
-                         timePeriod === 'all_time' ? 'All Time' : 
-                         timePeriod.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Analysis Objectives</h3>
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        {objectives.map(objective => (
-                          <Badge key={objective} variant="outline">
-                            {objective === 'analyze_text' ? 'Analyze Text' : 
-                             objective === 'discover_patterns' ? 'Discover Patterns' : 
-                             objective === 'detect_anomalies' ? 'Detect Anomalies' : 
-                             objective === 'predict' ? 'Predict Trends' : 
-                             objective === 'classify' ? 'Classify Data' : 
-                             objective === 'summarize' ? 'Summarize Data' : 
-                             objective.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-muted-foreground">Advanced Options</h3>
-                      <div className="space-y-1 mt-1">
-                        <p className="text-sm">
-                          <span className="font-medium">Insight Threshold:</span> {insightThreshold.toFixed(1)}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-medium">Include Recommendations:</span> {includeRecommendations ? 'Yes' : 'No'}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-medium">Visualization Theme:</span> {visualizationTheme.replace(/\b\w/g, l => l.toUpperCase())}
-                        </p>
-                        <p className="text-sm">
-                          <span className="font-medium">Use Data Studio:</span> {useDataStudio ? 'Yes' : 'No'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-center pt-2">
-                <Button 
-                  size="lg" 
-                  className="w-full md:w-auto"
-                  onClick={handleSubmit}
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Starting Analysis...
-                    </>
-                  ) : (
-                    <>
-                      Start Analysis
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </>
-                  )}
-                </Button>
-              </CardFooter>
-            </Card>
-          </motion.div>
-        )}
-        
-        <WizardNavigation 
-          currentStep={currentStep}
-          totalSteps={wizardSteps.length}
-          onNext={handleNext}
-          onPrevious={handlePrevious}
-          onComplete={handleSubmit}
-          isNextDisabled={isNextDisabled}
-          isPreviousDisabled={false}
-          completeLabel={isLoading ? "Starting..." : "Start Analysis"}
-        />
       </WizardContent>
-    </motion.div>
+      
+      <WizardNavigation>
+        <div className="flex justify-between mt-6">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 0}
+          >
+            Previous
+          </Button>
+          
+          {currentStep < wizardSteps.length - 1 ? (
+            <Button
+              onClick={handleNext}
+              disabled={isNextDisabled}
+            >
+              Next
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSubmit}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  Start Analysis
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
+      </WizardNavigation>
+    </div>
   );
 }
 
