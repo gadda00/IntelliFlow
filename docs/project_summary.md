@@ -33,14 +33,50 @@ The system supports both predefined and custom analysis workflows:
 ### Google Cloud Integration
 IntelliFlow integrates with Google Cloud services:
 - BigQuery for data storage and querying
-- Data Studio for enhanced visualizations
+- Vertex AI for advanced machine learning capabilities
+- Gemini API for state-of-the-art language model integration
+- Cloud Storage for scalable data storage
+- Pub/Sub for real-time messaging
+- Cloud Functions for serverless compute
+
+### Enhanced ADK Implementation
+IntelliFlow includes an enhanced ADK implementation with:
+- Robust agent communication framework
+- Planning mechanisms and memory systems
+- Monitoring and visualization capabilities
 
 ## Technologies Used
 
-- **Agent Framework**: Custom ADK (Agent Development Kit) implementation
+- **Agent Framework**: Enhanced ADK (Agent Development Kit) implementation
 - **Frontend**: React, TypeScript, Vite, TailwindCSS
-- **Cloud Integration**: Google Cloud Platform (BigQuery)
-- **Deployment**: GitHub Pages, GitHub Actions
+- **Cloud Integration**: Google Cloud Platform (BigQuery, Vertex AI, etc.)
+- **Deployment**: Vercel, GitHub Pages, GitHub Actions
+
+## ADK Open Source Contributions
+
+IntelliFlow actively contributes to the Google ADK Python repository. Our contributions include:
+
+1. **Enhanced Memory Management System**
+   - Improved memory management for agents with support for different memory types
+   - Status: Accepted
+
+2. **Agent Communication Protocol Extensions**
+   - Extended communication protocol for more complex message types
+   - Status: Accepted
+
+3. **Planning System Enhancements**
+   - Added hierarchical planning capabilities to the ADK
+   - Status: Under Review
+
+4. **Data Analysis Agent Template**
+   - Specialized agent template for data analysis tasks
+   - Status: Under Review
+
+5. **Documentation Improvements**
+   - Enhanced documentation with tutorials and examples
+   - Status: Accepted
+
+All contributions can be viewed at: [https://github.com/google/adk-python/pulls](https://github.com/google/adk-python/pulls)
 
 ## Example Workflows
 
@@ -78,9 +114,19 @@ The Agent Development Kit provides a solid foundation for:
 - Handling asynchronous communication and coordination
 - Balancing agent autonomy with orchestrated workflows
 
+## Deployment
+
+IntelliFlow is deployed and accessible at:
+- [https://intelli-flow-brown.vercel.app/](https://intelli-flow-brown.vercel.app/)
+
+## Team
+
+- **Victor Ndunda** - Lead Developer
+
 ## Future Enhancements
 
 - Integration with more Google Cloud services
 - Enhanced learning capabilities for agents
 - More sophisticated orchestration patterns
 - Expanded visualization and narrative capabilities
+

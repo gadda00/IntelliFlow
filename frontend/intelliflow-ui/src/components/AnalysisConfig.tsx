@@ -1,18 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Checkbox } from "./ui/checkbox";
-import { Slider } from "./ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Wizard, WizardContent, WizardNavigation } from "./ui/wizard";
-import { AnalysisType, DataSource } from '../lib/api';
-// Import Badge component
-import { Badge } from "./ui/badge";
-import { Database, LineChart, BarChart2, PieChart, Settings, FileText, ChevronRight, Loader2 } from "lucide-react";
+import { AnalysisType } from '../lib/api';
+import { LineChart, BarChart2, PieChart, ChevronRight, Loader2 } from "lucide-react";
 
 interface AnalysisConfigProps {
   analysisTypes: AnalysisType[];

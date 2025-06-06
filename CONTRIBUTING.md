@@ -45,12 +45,30 @@ If you have an idea for an enhancement, please create an issue with the followin
 - Keep pull requests focused on a single change
 - Reference any related issues in the pull request description
 
+## Contributing to ADK through IntelliFlow
+
+IntelliFlow actively contributes to the [Google Agent Development Kit (ADK) Python repository](https://github.com/google/adk-python). If you're interested in contributing to the ADK through IntelliFlow:
+
+1. Check the existing contributions in the `adk_contributions` directory
+2. Identify an area for improvement in the ADK
+3. Implement your changes in the appropriate subdirectory:
+   - `bug_fixes`: For patches and fixes to ADK issues
+   - `documentation`: For enhanced documentation and tutorials
+   - `features`: For new functionality
+   - `examples`: For sample implementations
+4. Create tests to validate your changes
+5. Submit a pull request to the IntelliFlow repository
+6. After review and approval, we'll submit the contribution to the ADK repository
+
+You can view our existing pull requests and contributions to the ADK here:
+- [https://github.com/google/adk-python/pulls](https://github.com/google/adk-python/pulls)
+
 ## Development Setup
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/intelliflow.git
-cd intelliflow
+git clone https://github.com/gadda00/IntelliFlow.git
+cd IntelliFlow
 ```
 
 2. Install dependencies:
@@ -101,4 +119,14 @@ pytest
 - Use clear, concise language
 - Include examples where appropriate
 
+## Live Demo
+
+You can access the live demo of IntelliFlow at:
+- [https://intelli-flow-brown.vercel.app/](https://intelli-flow-brown.vercel.app/)
+
+## Team
+
+- **Victor Ndunda** - Lead Developer
+
 Thank you for contributing to IntelliFlow!
+

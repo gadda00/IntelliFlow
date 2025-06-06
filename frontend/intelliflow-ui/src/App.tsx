@@ -21,7 +21,6 @@ function App() {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dataSources, setDataSources] = useState([]);
   const [analysisTypes, setAnalysisTypes] = useState([]);
   const navigate = useNavigate();
   
@@ -33,12 +32,6 @@ function App() {
         
         // Check API health
         await apiClient.healthCheck();
-        
-        // Fetch data sources
-        const dataSourcesResponse = await apiClient.getDataSources();
-        if (dataSourcesResponse.status === 'success') {
-          setDataSources(dataSourcesResponse.data_sources);
-        }
         
         // Fetch analysis types
         const analysisTypesResponse = await apiClient.getAnalysisTypes();
@@ -112,7 +105,6 @@ function App() {
           <Route path="/" element={<Dashboard onStartAnalysis={() => navigate('/configure')} />} />
           <Route path="/configure" element={
             <AnalysisConfig 
-              dataSources={dataSources}
               analysisTypes={analysisTypes}
               onStartAnalysis={handleStartAnalysis}
               isLoading={isLoading}
@@ -134,3 +126,4 @@ function App() {
 }
 
 export default App;
+

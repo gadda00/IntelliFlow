@@ -11,6 +11,7 @@ IntelliFlow is an intelligent data analysis platform that leverages agent-based 
 - [Usage](#usage)
 - [Development](#development)
 - [Contributing](#contributing)
+- [Team](#team)
 - [License](#license)
 
 ## Overview
@@ -148,6 +149,11 @@ npm run dev
 
 Open your browser and navigate to `http://localhost:3000`
 
+### Live Demo
+
+You can access the live demo of IntelliFlow at:
+- [https://intelli-flow-brown.vercel.app/](https://intelli-flow-brown.vercel.app/)
+
 ## Development
 
 ### Project Structure
@@ -194,6 +200,15 @@ pytest
 ## Contributing
 
 We welcome contributions to IntelliFlow! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
+
+### ADK Open Source Contributions
+
+IntelliFlow actively contributes to the Google ADK Python repository. You can view our pull requests and contributions here:
+- [https://github.com/google/adk-python/pulls](https://github.com/google/adk-python/pulls)
+
+## Team
+
+- **Victor Ndunda** - Lead Developer
 
 ## License
 
