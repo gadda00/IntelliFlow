@@ -5,15 +5,30 @@ import { Label } from "./ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Wizard, WizardContent, WizardNavigation } from "./ui/wizard";
+import { FileUpload } from "./ui/file-upload";
 import { AnalysisType } from '../lib/api';
-import { LineChart, BarChart2, PieChart, ChevronRight, Loader2 } from "lucide-react";
-import { motion } from "framer-motion";
+import { LineChart, BarChart2, PieChart, ChevronRight, Loader2, Link as LinkIcon, Globe, Database, FileText, CheckCircle, AlertCircle, X } from "lucide-react";
+import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
+import { Textarea } from "./ui/textarea";
 
 export interface AnalysisConfigProps {
   analysisTypes: AnalysisType[];
   onStartAnalysis: (config: any) => void;
   isLoading: boolean;
+}
+
+interface URLValidation {
+  url: string;
+  isValid: boolean;
+  type: 'csv' | 'json' | 'api' | 'sheets' | 'unknown';
+  status: 'checking' | 'valid' | 'invalid';
+  error?: string;
+  metadata?: {
+    size?: number;
+    contentType?: string;
+    lastModified?: string;
+  };
 }
 
 export function AnalysisConfig({ 
@@ -32,12 +47,28 @@ export function AnalysisConfig({
   const [projectId, setProjectId] = useState("intelliflow-project");
   const [datasetId, setDatasetId] = useState("customer_data");
   const [tableId, setTableId] = useState("feedback");
-  const [timePeriod, setTimePeriod] = useState("last_30_days");
-  const [visualizationTheme, setVisualizationTheme] = useState("light");
-  const [insightThreshold, setInsightThreshold] = useState(0.7);
-  const [includeRecommendations, setIncludeRecommendations] = useState(true);
-  const [useDataStudio, setUseDataStudio] = useState(false);
+  const [timePeriod] = useState("last_30_days");
+  const [visualizationTheme] = useState("light");
+  const [insightThreshold] = useState(0.7);
+  const [includeRecommendations] = useState(true);
+  const [useDataStudio] = useState(false);
   const [error, setError] = useState("");
+  
+  // File upload state
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  
+  // Enhanced URL state
+  const [dataUrl, setDataUrl] = useState("");
+  const [urlList, setUrlList] = useState<URLValidation[]>([]);
+  const [isValidatingUrl, setIsValidatingUrl] = useState(false);
+  
+  // Google Sheets state
+  const [sheetsUrl, setSheetsUrl] = useState("");
+  const [sheetsRange, setSheetsRange] = useState("A1:Z1000");
+  
+  // Database connection state
+  const [dbConnectionString, setDbConnectionString] = useState("");
+  const [dbQuery, setDbQuery] = useState("");
   
   // Wizard steps
   const wizardSteps = [
@@ -59,7 +90,7 @@ export function AnalysisConfig({
   // Validate current step
   useEffect(() => {
     validateCurrentStep();
-  }, [currentStep, analysisType, dataSource, projectId, datasetId, tableId, objectives]);
+  }, [currentStep, analysisType, dataSource, projectId, datasetId, tableId, objectives, selectedFiles, urlList, sheetsUrl, dbConnectionString]);
   
   const validateCurrentStep = () => {
     switch (currentStep) {
@@ -69,6 +100,14 @@ export function AnalysisConfig({
       case 1: // Data Source
         if (dataSource === "bigquery") {
           setIsNextDisabled(!projectId || !datasetId || !tableId);
+        } else if (dataSource === "file_upload") {
+          setIsNextDisabled(selectedFiles.length === 0);
+        } else if (dataSource === "url") {
+          setIsNextDisabled(urlList.filter(u => u.isValid).length === 0);
+        } else if (dataSource === "google_sheets") {
+          setIsNextDisabled(!sheetsUrl);
+        } else if (dataSource === "database") {
+          setIsNextDisabled(!dbConnectionString || !dbQuery);
         } else {
           setIsNextDisabled(false);
         }
@@ -87,12 +126,122 @@ export function AnalysisConfig({
     }
   };
   
-  const handleObjectiveChange = (objective: string) => {
-    setObjectives(
-      objectives.includes(objective)
-        ? objectives.filter(o => o !== objective)
-        : [...objectives, objective]
-    );
+  const validateUrl = async (url: string): Promise<URLValidation> => {
+    const validation: URLValidation = {
+      url,
+      isValid: false,
+      type: 'unknown',
+      status: 'checking'
+    };
+    
+    try {
+      // Basic URL validation
+      const urlObj = new URL(url);
+      
+      // Determine URL type based on extension or domain
+      if (url.includes('docs.google.com/spreadsheets')) {
+        validation.type = 'sheets';
+      } else if (url.endsWith('.csv')) {
+        validation.type = 'csv';
+      } else if (url.endsWith('.json')) {
+        validation.type = 'json';
+      } else if (url.includes('/api/') || url.includes('api.')) {
+        validation.type = 'api';
+      }
+      
+      // For demo purposes, simulate validation
+      // In a real implementation, you would make a HEAD request to check the URL
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Simulate validation results
+      const isValidDomain = ['github.com', 'raw.githubusercontent.com', 'docs.google.com', 'drive.google.com'].some(domain => 
+        urlObj.hostname.includes(domain)
+      );
+      
+      if (isValidDomain || urlObj.protocol === 'https:') {
+        validation.isValid = true;
+        validation.status = 'valid';
+        validation.metadata = {
+          contentType: validation.type === 'csv' ? 'text/csv' : 'application/json',
+          size: Math.floor(Math.random() * 1000000) + 10000, // Random size for demo
+          lastModified: new Date().toISOString()
+        };
+      } else {
+        validation.status = 'invalid';
+        validation.error = 'URL appears to be invalid or inaccessible';
+      }
+      
+    } catch (error) {
+      validation.status = 'invalid';
+      validation.error = 'Invalid URL format';
+    }
+    
+    return validation;
+  };
+  
+  const handleAddUrl = async () => {
+    if (!dataUrl || urlList.some(u => u.url === dataUrl)) {
+      return;
+    }
+    
+    setIsValidatingUrl(true);
+    
+    // Add URL with checking status
+    const newValidation: URLValidation = {
+      url: dataUrl,
+      isValid: false,
+      type: 'unknown',
+      status: 'checking'
+    };
+    
+    setUrlList(prev => [...prev, newValidation]);
+    setDataUrl("");
+    
+    // Validate the URL
+    try {
+      const validation = await validateUrl(newValidation.url);
+      setUrlList(prev => prev.map(u => u.url === validation.url ? validation : u));
+    } catch (error) {
+      setUrlList(prev => prev.map(u => 
+        u.url === newValidation.url 
+          ? { ...u, status: 'invalid', error: 'Validation failed' }
+          : u
+      ));
+    }
+    
+    setIsValidatingUrl(false);
+  };
+  
+  const handleRemoveUrl = (url: string) => {
+    setUrlList(prev => prev.filter(u => u.url !== url));
+  };
+  
+  const getUrlTypeIcon = (type: string) => {
+    switch (type) {
+      case 'csv':
+        return <Database className="h-4 w-4 text-green-500" />;
+      case 'json':
+        return <FileText className="h-4 w-4 text-blue-500" />;
+      case 'api':
+        return <Globe className="h-4 w-4 text-purple-500" />;
+      case 'sheets':
+        return <FileText className="h-4 w-4 text-amber-500" />;
+      default:
+        return <LinkIcon className="h-4 w-4 text-gray-500" />;
+    }
+  };
+  
+  const getUrlStatusIcon = (status: string) => {
+    switch (status) {
+      case 'valid':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'invalid':
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+      case 'checking':
+        return <div className="h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />;
+      default:
+        return null;
+    }
   };
   
   const handleNext = () => {
@@ -107,6 +256,10 @@ export function AnalysisConfig({
     }
   };
   
+  const handleFilesSelected = (files: File[]) => {
+    setSelectedFiles(files);
+  };
+  
   const handleSubmit = () => {
     // Validate form
     if (!dataSource) {
@@ -116,6 +269,26 @@ export function AnalysisConfig({
     
     if (dataSource === "bigquery" && (!projectId || !datasetId || !tableId)) {
       setError("Please fill in all BigQuery details");
+      return;
+    }
+    
+    if (dataSource === "file_upload" && selectedFiles.length === 0) {
+      setError("Please upload at least one file");
+      return;
+    }
+    
+    if (dataSource === "url" && urlList.filter(u => u.isValid).length === 0) {
+      setError("Please add at least one valid URL");
+      return;
+    }
+    
+    if (dataSource === "google_sheets" && !sheetsUrl) {
+      setError("Please provide a Google Sheets URL");
+      return;
+    }
+    
+    if (dataSource === "database" && (!dbConnectionString || !dbQuery)) {
+      setError("Please provide database connection details and query");
       return;
     }
     
@@ -136,6 +309,28 @@ export function AnalysisConfig({
           project_id: projectId,
           dataset_id: datasetId,
           table_id: tableId
+        }),
+        ...(dataSource === "file_upload" && {
+          files: selectedFiles.map(file => ({
+            name: file.name,
+            size: file.size,
+            type: file.type
+          }))
+        }),
+        ...(dataSource === "url" && {
+          urls: urlList.filter(u => u.isValid).map(u => ({
+            url: u.url,
+            type: u.type,
+            metadata: u.metadata
+          }))
+        }),
+        ...(dataSource === "google_sheets" && {
+          sheets_url: sheetsUrl,
+          range: sheetsRange
+        }),
+        ...(dataSource === "database" && {
+          connection_string: dbConnectionString,
+          query: dbQuery
         })
       },
       objectives: objectives,
@@ -302,7 +497,7 @@ export function AnalysisConfig({
               <CardHeader>
                 <div className="flex items-center space-x-2">
                   <div className="p-2 rounded-full bg-primary/10">
-                    <LineChart className="h-5 w-5 text-primary" />
+                    <Database className="h-5 w-5 text-primary" />
                   </div>
                   <CardTitle>Data Source</CardTitle>
                 </div>
@@ -323,6 +518,9 @@ export function AnalysisConfig({
                     <SelectContent>
                       <SelectItem value="bigquery">Google BigQuery</SelectItem>
                       <SelectItem value="file_upload">File Upload</SelectItem>
+                      <SelectItem value="url">URL/Web Data</SelectItem>
+                      <SelectItem value="google_sheets">Google Sheets</SelectItem>
+                      <SelectItem value="database">Database Connection</SelectItem>
                       <SelectItem value="cloud_storage">Cloud Storage</SelectItem>
                     </SelectContent>
                   </Select>
@@ -332,9 +530,8 @@ export function AnalysisConfig({
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="project-id">Project ID</Label>
-                      <input
+                      <Input
                         id="project-id"
-                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         value={projectId}
                         onChange={(e) => setProjectId(e.target.value)}
                         placeholder="Enter your BigQuery project ID"
@@ -343,9 +540,8 @@ export function AnalysisConfig({
                     
                     <div className="space-y-2">
                       <Label htmlFor="dataset-id">Dataset ID</Label>
-                      <input
+                      <Input
                         id="dataset-id"
-                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         value={datasetId}
                         onChange={(e) => setDatasetId(e.target.value)}
                         placeholder="Enter your BigQuery dataset ID"
@@ -354,9 +550,8 @@ export function AnalysisConfig({
                     
                     <div className="space-y-2">
                       <Label htmlFor="table-id">Table ID</Label>
-                      <input
+                      <Input
                         id="table-id"
-                        className="flex h-11 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         value={tableId}
                         onChange={(e) => setTableId(e.target.value)}
                         placeholder="Enter your BigQuery table ID"
@@ -367,38 +562,165 @@ export function AnalysisConfig({
                 
                 {dataSource === "file_upload" && (
                   <div className="space-y-4">
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <div className="flex flex-col items-center justify-center space-y-2">
-                        <div className="rounded-full bg-primary/10 p-2">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                        </div>
-                        <div className="text-sm font-medium">
-                          Drag and drop your file here, or click to browse
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          Supports CSV, Excel, and JSON files (max 10MB)
-                        </div>
-                        <Badge variant="outline" className="mt-2">
-                          Max 5 files
-                        </Badge>
+                    <FileUpload
+                      onFilesSelected={handleFilesSelected}
+                      maxFiles={10}
+                      maxSizeInMB={50}
+                      acceptedFileTypes={[".csv", ".xlsx", ".xls", ".json", ".txt", ".tsv", ".parquet"]}
+                      label="Upload Data Files"
+                      description="Drag and drop your data files here, or click to browse. Supports CSV, Excel, JSON, and more."
+                      analysisType={analysisType}
+                    />
+                  </div>
+                )}
+                
+                {dataSource === "url" && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="data-url">Data URL</Label>
+                      <div className="flex space-x-2">
+                        <Input
+                          id="data-url"
+                          value={dataUrl}
+                          onChange={(e) => setDataUrl(e.target.value)}
+                          placeholder="https://example.com/data.csv or API endpoint"
+                          className="flex-1"
+                        />
+                        <Button 
+                          onClick={handleAddUrl} 
+                          type="button"
+                          disabled={!dataUrl || isValidatingUrl}
+                        >
+                          {isValidatingUrl ? <Loader2 className="h-4 w-4 animate-spin" /> : "Add"}
+                        </Button>
                       </div>
-                      <input
-                        type="file"
-                        className="hidden"
-                        accept=".csv,.xlsx,.json"
-                        multiple
+                      <p className="text-xs text-muted-foreground">
+                        Supports CSV files, JSON APIs, Google Sheets (public), and other web-accessible data sources.
+                      </p>
+                    </div>
+                    
+                    {urlList.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>Added URLs ({urlList.filter(u => u.isValid).length} valid)</Label>
+                        <div className="space-y-2">
+                          {urlList.map((urlValidation, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 border rounded-md">
+                              <div className="flex items-center space-x-2 overflow-hidden flex-1">
+                                {getUrlTypeIcon(urlValidation.type)}
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm truncate max-w-[300px]">{urlValidation.url}</div>
+                                  <div className="flex items-center space-x-2 mt-1">
+                                    <Badge variant="outline" className="text-xs">
+                                      {urlValidation.type}
+                                    </Badge>
+                                    {urlValidation.metadata?.size && (
+                                      <span className="text-xs text-muted-foreground">
+                                        {(urlValidation.metadata.size / 1024).toFixed(0)}KB
+                                      </span>
+                                    )}
+                                  </div>
+                                  {urlValidation.error && (
+                                    <div className="text-xs text-red-500 mt-1">{urlValidation.error}</div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                {getUrlStatusIcon(urlValidation.status)}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  onClick={() => handleRemoveUrl(urlValidation.url)}
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                {dataSource === "google_sheets" && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="sheets-url">Google Sheets URL</Label>
+                      <Input
+                        id="sheets-url"
+                        value={sheetsUrl}
+                        onChange={(e) => setSheetsUrl(e.target.value)}
+                        placeholder="https://docs.google.com/spreadsheets/d/..."
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Make sure the Google Sheet is publicly accessible or shared with appropriate permissions.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="sheets-range">Data Range (Optional)</Label>
+                      <Input
+                        id="sheets-range"
+                        value={sheetsRange}
+                        onChange={(e) => setSheetsRange(e.target.value)}
+                        placeholder="A1:Z1000"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Specify the range of cells to analyze (e.g., A1:Z1000). Leave default to analyze all data.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {dataSource === "database" && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="db-connection">Database Connection String</Label>
+                      <Input
+                        id="db-connection"
+                        type="password"
+                        value={dbConnectionString}
+                        onChange={(e) => setDbConnectionString(e.target.value)}
+                        placeholder="postgresql://user:password@host:port/database"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Supports PostgreSQL, MySQL, SQLite, and other SQL databases.
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="db-query">SQL Query</Label>
+                      <Textarea
+                        id="db-query"
+                        value={dbQuery}
+                        onChange={(e) => setDbQuery(e.target.value)}
+                        placeholder="SELECT * FROM your_table WHERE created_at >= '2024-01-01'"
+                        rows={4}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Write a SQL query to extract the data you want to analyze.
+                      </p>
+                    </div>
+                  </div>
+                )}
+                
+                {dataSource === "cloud_storage" && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="bucket-name">Bucket Name</Label>
+                      <Input
+                        id="bucket-name"
+                        placeholder="Enter your Cloud Storage bucket name"
                       />
                     </div>
                     
-                    <div className="text-sm text-muted-foreground">
-                      <Badge variant="outline" className="mr-2">
-                        File Limitations
-                      </Badge>
-                      Maximum file size: 10MB, Maximum files: 5
+                    <div className="space-y-2">
+                      <Label htmlFor="object-path">Object Path</Label>
+                      <Input
+                        id="object-path"
+                        placeholder="Enter the path to your data object"
+                      />
                     </div>
                   </div>
                 )}
@@ -407,7 +729,130 @@ export function AnalysisConfig({
           </div>
         )}
         
-        {/* Other steps omitted for brevity */}
+        {currentStep === 2 && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <BarChart2 className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle>Analysis Objectives</CardTitle>
+                </div>
+                <CardDescription>
+                  Define what you want to discover from your data analysis.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[
+                    { id: "analyze_text", label: "Text Analysis", description: "Extract insights from text data" },
+                    { id: "discover_patterns", label: "Pattern Discovery", description: "Find hidden patterns and trends" },
+                    { id: "detect_anomalies", label: "Anomaly Detection", description: "Identify unusual data points" },
+                    { id: "sentiment_analysis", label: "Sentiment Analysis", description: "Analyze emotional tone" },
+                    { id: "trend_analysis", label: "Trend Analysis", description: "Track changes over time" },
+                    { id: "correlation_analysis", label: "Correlation Analysis", description: "Find relationships between variables" }
+                  ].map((objective) => (
+                    <Card 
+                      key={objective.id}
+                      className={`cursor-pointer transition-all hover:border-primary ${
+                        objectives.includes(objective.id) ? 'border-primary bg-primary/5' : ''
+                      }`}
+                      onClick={() => {
+                        if (objectives.includes(objective.id)) {
+                          setObjectives(objectives.filter(o => o !== objective.id));
+                        } else {
+                          setObjectives([...objectives, objective.id]);
+                        }
+                      }}
+                    >
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-sm">{objective.label}</CardTitle>
+                          {objectives.includes(objective.id) && (
+                            <CheckCircle className="h-4 w-4 text-primary" />
+                          )}
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <p className="text-xs text-muted-foreground">
+                          {objective.description}
+                        </p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+                
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Selected objectives: {objectives.length > 0 ? objectives.join(', ') : 'None'}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
+        {currentStep === 3 && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Advanced Options</CardTitle>
+                <CardDescription>
+                  Configure advanced analysis parameters (optional).
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-muted-foreground">
+                  Advanced options are automatically configured based on your analysis type and data source.
+                  You can proceed to review your configuration.
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+        
+        {currentStep === 4 && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Review Configuration</CardTitle>
+                <CardDescription>
+                  Review your analysis configuration before starting.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-medium mb-2">Analysis Type</h4>
+                    <p className="text-sm text-muted-foreground">{analysisType.replace('_', ' ')}</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Data Source</h4>
+                    <p className="text-sm text-muted-foreground">{dataSource.replace('_', ' ')}</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Objectives</h4>
+                    <p className="text-sm text-muted-foreground">{objectives.length} selected</p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Data Items</h4>
+                    <p className="text-sm text-muted-foreground">
+                      {dataSource === "file_upload" && `${selectedFiles.length} files`}
+                      {dataSource === "url" && `${urlList.filter(u => u.isValid).length} URLs`}
+                      {dataSource === "bigquery" && `${projectId}.${datasetId}.${tableId}`}
+                      {dataSource === "google_sheets" && "Google Sheets"}
+                      {dataSource === "database" && "Database query"}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
         
       </WizardContent>
       

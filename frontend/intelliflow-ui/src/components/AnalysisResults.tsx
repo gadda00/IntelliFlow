@@ -1,14 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { useAnalysisStatus } from '../lib/api';
-import { motion } from "framer-motion";
 import { 
-  BarChart2, 
-  LineChart, 
-  PieChart, 
   Download, 
   Share2, 
   AlertTriangle, 
@@ -19,16 +15,13 @@ import {
   Zap,
   FileText,
   MessageSquare,
-  BarChart,
   Clock,
-  Database,
-  Loader2,
-  ChevronRight
+  Database
 } from "lucide-react";
 
 interface AnalysisResultsProps {
   analysisId: string | null;
-  onNewAnalysis: () => void;
+  onNewAnalysis?: () => void;
 }
 
 interface Insight {
@@ -51,6 +44,43 @@ interface Recommendation {
 interface DataItem {
   label: string;
   value: number;
+}
+
+interface VisualizationData {
+  type: string;
+  data: DataItem[];
+}
+
+interface AnalysisData {
+  insights: Insight[];
+  recommendations: Recommendation[];
+  metrics: {
+    insightCount: number;
+    sentimentScore: number;
+    topicCount: number;
+    recordsAnalyzed: number;
+    processingTime: string;
+  };
+  narrative: {
+    summary: string;
+    keyFindings: string;
+    recommendations: string;
+    conclusion: string;
+  };
+  dataSource: {
+    type: string;
+    project: string;
+    dataset: string;
+    table: string;
+    recordCount: number;
+    timePeriod: string;
+  };
+  visualizations: {
+    sentimentDistribution: VisualizationData;
+    topicDistribution: VisualizationData;
+    sentimentByCategory: VisualizationData;
+    sentimentTrend: VisualizationData;
+  };
 }
 
 export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsProps) {
@@ -96,9 +126,11 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
                 Configure and run an analysis to see insights and visualizations from your data.
               </p>
             </div>
-            <Button onClick={onNewAnalysis} size="lg">
-              Start New Analysis
-            </Button>
+            {onNewAnalysis && (
+              <Button onClick={onNewAnalysis} size="lg">
+                Start New Analysis
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -195,9 +227,11 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
             <div className="rounded-md bg-destructive/15 p-4 text-destructive mb-6">
               <p>{error || "An unknown error occurred"}</p>
             </div>
-            <Button onClick={onNewAnalysis}>
-              Try Again
-            </Button>
+            {onNewAnalysis && (
+              <Button onClick={onNewAnalysis}>
+                Try Again
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -205,7 +239,7 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
   }
   
   // Mock data for demonstration - in a real implementation, this would come from the API result
-  const analysisData = result || {
+  const analysisData: AnalysisData = result || {
     insights: [
       {
         id: "i1",
@@ -466,7 +500,7 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
           </CardHeader>
           <CardContent>
             <TabsContent value="insights" className="space-y-4 mt-0">
-              {analysisData.insights.map((insight) => (
+              {analysisData.insights.map((insight: Insight) => (
                 <Card key={insight.id} className="overflow-hidden">
                   <CardHeader className="p-4">
                     <div 
@@ -517,7 +551,7 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
             </TabsContent>
             
             <TabsContent value="recommendations" className="space-y-4 mt-0">
-              {analysisData.recommendations.map((recommendation) => (
+              {analysisData.recommendations.map((recommendation: Recommendation) => (
                 <Card key={recommendation.id} className="overflow-hidden">
                   <CardHeader className="p-4">
                     <div 
@@ -594,7 +628,7 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {analysisData.visualizations.topicDistribution.data.map((item) => (
+                      {analysisData.visualizations.topicDistribution.data.map((item: DataItem) => (
                         <div key={item.label} className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span>{item.label}</span>
@@ -621,7 +655,7 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {analysisData.visualizations.sentimentByCategory.data.map((item) => (
+                      {analysisData.visualizations.sentimentByCategory.data.map((item: DataItem) => (
                         <div key={item.label} className="space-y-1">
                           <div className="flex justify-between text-sm">
                             <span>{item.label}</span>
@@ -657,7 +691,7 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
                       
                       <div className="absolute bottom-0 left-0 w-full h-full flex items-end">
                         <div className="flex items-end justify-between w-full h-full">
-                          {analysisData.visualizations.sentimentTrend.data.map((item, index, array) => {
+                          {analysisData.visualizations.sentimentTrend.data.map((item: DataItem, index: number, array: DataItem[]) => {
                             const nextItem = array[index + 1];
                             return (
                               <div key={item.label} className="flex flex-col items-center" style={{ height: '100%', width: `${100 / array.length}%` }}>
@@ -722,58 +756,32 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
                 </div>
                 
                 <div className="pt-4 border-t">
-                  <h3 className="text-lg font-medium mb-2">Data Source Information</h3>
-                  <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="flex items-center space-x-2">
-                      <Database className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Source Type</p>
-                        <p className="text-sm font-medium">{analysisData.dataSource.type}</p>
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h4 className="text-sm font-medium">Data Source</h4>
+                      <p className="text-xs text-muted-foreground">
+                        {analysisData.dataSource.type} • {analysisData.dataSource.recordCount.toLocaleString()} records • {analysisData.dataSource.timePeriod}
+                      </p>
                     </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Project/Dataset</p>
-                        <p className="text-sm font-medium">{analysisData.dataSource.project}/{analysisData.dataSource.dataset}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <BarChart className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Records</p>
-                        <p className="text-sm font-medium">{analysisData.dataSource.recordCount.toLocaleString()}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">Time Period</p>
-                        <p className="text-sm font-medium">{analysisData.dataSource.timePeriod}</p>
-                      </div>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm" className="flex items-center">
+                        <Download className="h-4 w-4 mr-1" />
+                        Export
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex items-center">
+                        <Share2 className="h-4 w-4 mr-1" />
+                        Share
+                      </Button>
+                      <Button variant="outline" size="sm" className="flex items-center">
+                        <FileText className="h-4 w-4 mr-1" />
+                        Report
+                      </Button>
                     </div>
                   </div>
                 </div>
               </div>
             </TabsContent>
           </CardContent>
-          <CardFooter className="flex justify-between border-t px-6 py-4">
-            <Button variant="outline" onClick={onNewAnalysis}>
-              New Analysis
-            </Button>
-            
-            <div className="flex space-x-2">
-              <Button variant="outline" size="icon">
-                <Download className="h-4 w-4" />
-              </Button>
-              <Button variant="outline" size="icon">
-                <Share2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardFooter>
         </Card>
       </div>
     </div>

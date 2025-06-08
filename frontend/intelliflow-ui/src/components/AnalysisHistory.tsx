@@ -1,27 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "./ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { apiClient } from '../lib/api';
-import { motion } from "framer-motion";
 import { 
   Search, 
   Filter, 
   Clock, 
   Calendar, 
   CheckCircle, 
-  XCircle, 
-  AlertCircle, 
   ChevronRight,
   BarChart2,
   LineChart,
   PieChart,
   ThumbsUp,
-  MessageSquare,
-  Loader2
+  MessageSquare
 } from "lucide-react";
 
 interface AnalysisHistoryProps {

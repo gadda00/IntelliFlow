@@ -1,139 +1,103 @@
 import { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useParams } from 'react-router-dom';
-import { Dashboard } from './components/Dashboard';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs";
 import { AnalysisConfig } from './components/AnalysisConfig';
 import { AnalysisResults } from './components/AnalysisResults';
 import { AnalysisHistory } from './components/AnalysisHistory';
 import { Layout } from './components/Layout';
-import { apiClient } from './lib/api';
-import './App.css';
-
-// Define interfaces for better type safety
-interface AnalysisConfigType {
-  type: string;
-  data_source: {
-    source_type: string;
-    project_id?: string;
-    dataset_id?: string;
-    table_id?: string;
-  };
-  objectives: string[];
-  parameters: {
-    time_period: string;
-    include_recommendations: boolean;
-    insight_threshold: number;
-    visualization_config: {
-      theme: string;
-      use_data_studio: boolean;
-    };
-  };
-}
+import { apiClient, AnalysisType } from './lib/api';
+import { useToast } from './hooks/use-toast';
 
 function App() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [activeTab, setActiveTab] = useState("configure");
   const [analysisId, setAnalysisId] = useState<string | null>(null);
+  const [analysisTypes, setAnalysisTypes] = useState<AnalysisType[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [analysisTypes, setAnalysisTypes] = useState([]);
-  const navigate = useNavigate();
-  
-  // Fetch data sources and analysis types on component mount
+  const [darkMode, setDarkMode] = useState(false);
+  const { toast } = useToast();
+
   useEffect(() => {
-    const fetchInitialData = async () => {
+    // Fetch analysis types when component mounts
+    const fetchAnalysisTypes = async () => {
       try {
-        setIsLoading(true);
-        
-        // Check API health
-        await apiClient.healthCheck();
-        
-        // Fetch analysis types
-        const analysisTypesResponse = await apiClient.getAnalysisTypes();
-        if (analysisTypesResponse.status === 'success') {
-          setAnalysisTypes(analysisTypesResponse.analysis_types);
+        const response = await apiClient.getAnalysisTypes();
+        if (response.status === 'success') {
+          setAnalysisTypes(response.analysis_types);
         }
-        
-        setIsLoading(false);
-      } catch (error: any) {
-        console.error('Failed to fetch initial data:', error);
-        setError('Failed to connect to the IntelliFlow API. Please ensure the backend is running.');
-        setIsLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch analysis types:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch analysis types. Using default types.",
+          variant: "destructive",
+        });
       }
     };
-    
-    fetchInitialData();
-  }, []);
-  
-  // Handle starting a new analysis
-  const handleStartAnalysis = async (analysisConfig: AnalysisConfigType) => {
+
+    fetchAnalysisTypes();
+  }, [toast]);
+
+  const handleStartAnalysis = async (config: any) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const response = await apiClient.startAnalysis(analysisConfig);
-      
+      const response = await apiClient.startAnalysis(config);
       if (response.status === 'success') {
         setAnalysisId(response.analysis_id);
-        navigate(`/results/${response.analysis_id}`);
+        setActiveTab("results");
+        toast({
+          title: "Analysis Started",
+          description: "Your analysis has been started successfully.",
+        });
       } else {
-        setError(response.message || 'Failed to start analysis');
+        throw new Error(response.message || 'Failed to start analysis');
       }
-      
-      setIsLoading(false);
     } catch (error: any) {
       console.error('Failed to start analysis:', error);
-      setError(error.message || 'Failed to start analysis');
+      toast({
+        title: "Error",
+        description: error.message || "Failed to start analysis. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
     }
   };
 
-  // Results component with route parameters
-  const ResultsWithParams = () => {
-    const { id } = useParams();
-    
-    useEffect(() => {
-      if (id) {
-        setAnalysisId(id);
-      }
-    }, [id]);
-    
-    return (
-      <AnalysisResults 
-        analysisId={id || analysisId}
-        onNewAnalysis={() => navigate('/configure')}
-      />
-    );
+  const handleViewAnalysis = (id: string) => {
+    setAnalysisId(id);
+    setActiveTab("results");
   };
-  
+
+  const handleNewAnalysis = () => {
+    setActiveTab("configure");
+  };
+
   return (
     <Layout darkMode={darkMode} setDarkMode={setDarkMode}>
-      {error ? (
-        <div className="rounded-md bg-destructive/15 p-4 text-destructive">
-          <p>{error}</p>
-        </div>
-      ) : isLoading && !analysisId ? (
-        <div className="flex flex-col items-center justify-center h-[80vh]">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-          <p className="mt-4 text-muted-foreground">Loading IntelliFlow...</p>
-        </div>
-      ) : (
-        <Routes>
-          <Route path="/" element={<Dashboard onStartAnalysis={() => navigate('/configure')} />} />
-          <Route path="/configure" element={
+      <div className="container mx-auto py-6 space-y-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="configure">Configure</TabsTrigger>
+            <TabsTrigger value="results" disabled={!analysisId}>Results</TabsTrigger>
+            <TabsTrigger value="history">History</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="configure" className="mt-6">
             <AnalysisConfig 
               analysisTypes={analysisTypes}
               onStartAnalysis={handleStartAnalysis}
               isLoading={isLoading}
             />
-          } />
-          <Route path="/results/:id?" element={<ResultsWithParams />} />
-          <Route path="/history" element={
-            <AnalysisHistory 
-              onViewAnalysis={(id: string) => {
-                setAnalysisId(id);
-                navigate(`/results/${id}`);
-              }}
-            />
-          } />
-        </Routes>
-      )}
+          </TabsContent>
+          
+          <TabsContent value="results" className="mt-6">
+            {analysisId && <AnalysisResults analysisId={analysisId} onNewAnalysis={handleNewAnalysis} />}
+          </TabsContent>
+          
+          <TabsContent value="history" className="mt-6">
+            <AnalysisHistory onViewAnalysis={handleViewAnalysis} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </Layout>
   );
 }
