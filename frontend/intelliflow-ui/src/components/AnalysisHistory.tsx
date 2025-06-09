@@ -1,255 +1,250 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "./ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { apiClient } from '../lib/api';
 import { 
   Search, 
-  Filter, 
-  Clock, 
   Calendar, 
-  CheckCircle, 
-  ChevronRight,
-  BarChart2,
-  LineChart,
-  PieChart,
-  ThumbsUp,
-  MessageSquare
+  Database, 
+  MoreVertical, 
+  Eye, 
+  Trash2, 
+  Download, 
+  Share2,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+  Filter,
+  SortAsc,
+  SortDesc,
+  FileText,
+  BarChart3,
+  TrendingUp,
+  Users,
+  ShoppingCart,
+  MessageSquare,
+  RefreshCw
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 interface AnalysisHistoryProps {
+  analysisHistory: any[];
   onViewAnalysis: (id: string) => void;
+  onDeleteAnalysis: (id: string) => void;
 }
 
-interface AnalysisHistoryItem {
-  id: string;
+interface FilterOptions {
   status: string;
   type: string;
-  created_at: string;
-  completed_at: string | null;
-  sentiment?: number;
-  insights?: number;
-  records?: number;
+  dateRange: string;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
 }
 
-export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
-  const [history, setHistory] = useState<AnalysisHistoryItem[]>([]);
-  const [filteredHistory, setFilteredHistory] = useState<AnalysisHistoryItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [activeTab, setActiveTab] = useState("list");
-  
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiClient.getAnalysisHistory();
-        
-        if (response.status === 'success') {
-          setHistory(response.history || mockHistory);
-          setFilteredHistory(response.history || mockHistory);
-        } else {
-          setError(response.message || 'Failed to fetch analysis history');
-          // Use mock data for demonstration
-          setHistory(mockHistory);
-          setFilteredHistory(mockHistory);
-        }
-        
-        setIsLoading(false);
-      } catch (error: any) {
-        console.error('Failed to fetch analysis history:', error);
-        setError(error.message || 'Failed to fetch analysis history');
-        // Use mock data for demonstration
-        setHistory(mockHistory);
-        setFilteredHistory(mockHistory);
-        setIsLoading(false);
-      }
-    };
-    
-    fetchHistory();
-  }, []);
-  
-  // Apply filters when search query or filters change
-  useEffect(() => {
-    let filtered = [...history];
-    
-    // Apply search filter
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(item => 
-        item.type.toLowerCase().includes(query) || 
-        item.id.toLowerCase().includes(query)
-      );
-    }
-    
-    // Apply status filter
-    if (statusFilter !== "all") {
-      filtered = filtered.filter(item => item.status === statusFilter);
-    }
-    
-    // Apply type filter
-    if (typeFilter !== "all") {
-      filtered = filtered.filter(item => item.type === typeFilter);
-    }
-    
-    setFilteredHistory(filtered);
-  }, [searchQuery, statusFilter, typeFilter, history]);
-  
-  // Mock data for demonstration
-  const mockHistory: AnalysisHistoryItem[] = [
-    {
-      id: "a1b2c3",
-      status: "completed",
-      type: "customer_feedback",
-      created_at: "2025-06-05 14:30:22",
-      completed_at: "2025-06-05 14:35:47",
-      sentiment: 0.72,
-      insights: 12,
-      records: 10000
-    },
-    {
-      id: "d4e5f6",
-      status: "completed",
-      type: "sales_trends",
-      created_at: "2025-06-03 09:15:33",
-      completed_at: "2025-06-03 09:22:18",
-      sentiment: 0.58,
-      insights: 8,
-      records: 5000
-    },
-    {
-      id: "g7h8i9",
-      status: "failed",
-      type: "product_performance",
-      created_at: "2025-05-28 16:45:12",
-      completed_at: null,
-      insights: 0,
-      records: 3000
-    },
-    {
-      id: "j0k1l2",
-      status: "completed",
-      type: "customer_feedback",
-      created_at: "2025-05-25 11:20:45",
-      completed_at: "2025-05-25 11:28:33",
-      sentiment: 0.45,
-      insights: 10,
-      records: 8000
-    },
-    {
-      id: "m3n4o5",
-      status: "running",
-      type: "sales_trends",
-      created_at: "2025-06-06 10:05:17",
-      completed_at: null,
-      records: 12000
-    }
-  ];
-  
-  const getAnalysisTypeLabel = (type: string) => {
-    switch (type) {
-      case "customer_feedback":
-        return "Customer Feedback";
-      case "sales_trends":
-        return "Sales Trends";
-      case "product_performance":
-        return "Product Performance";
-      default:
-        return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-    }
-  };
-  
-  const getAnalysisTypeIcon = (type: string) => {
-    switch (type) {
-      case "customer_feedback":
-        return <MessageSquare className="h-4 w-4 text-blue-500" />;
-      case "sales_trends":
-        return <LineChart className="h-4 w-4 text-green-500" />;
-      case "product_performance":
-        return <BarChart2 className="h-4 w-4 text-purple-500" />;
-      default:
-        return <PieChart className="h-4 w-4 text-amber-500" />;
-    }
-  };
-  
+export function AnalysisHistory({ analysisHistory, onViewAnalysis, onDeleteAnalysis }: AnalysisHistoryProps) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<FilterOptions>({
+    status: "all",
+    type: "all",
+    dateRange: "all",
+    sortBy: "createdAt",
+    sortOrder: 'desc'
+  });
+
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "completed":
-        return <Badge variant="default" className="bg-green-500">Completed</Badge>;
-      case "failed":
+      case 'completed':
+        return <Badge className="bg-green-500 hover:bg-green-600">Completed</Badge>;
+      case 'running':
+        return <Badge className="bg-blue-500 hover:bg-blue-600">Running</Badge>;
+      case 'failed':
         return <Badge variant="destructive">Failed</Badge>;
-      case "running":
-        return <Badge variant="secondary" className="animate-pulse">Running</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
-  
+
+  const getAnalysisTypeIcon = (type: string) => {
+    switch (type) {
+      case 'customer_feedback':
+        return <MessageSquare className="h-4 w-4 text-purple-500" />;
+      case 'sales_trends':
+        return <TrendingUp className="h-4 w-4 text-green-500" />;
+      case 'product_performance':
+        return <ShoppingCart className="h-4 w-4 text-blue-500" />;
+      case 'user_behavior':
+        return <Users className="h-4 w-4 text-orange-500" />;
+      default:
+        return <BarChart3 className="h-4 w-4 text-gray-500" />;
+    }
+  };
+
+  const getAnalysisTypeName = (type: string) => {
+    const typeNames: { [key: string]: string } = {
+      'customer_feedback': 'Customer Feedback',
+      'sales_trends': 'Sales Trends',
+      'product_performance': 'Product Performance',
+      'user_behavior': 'User Behavior',
+      'custom': 'Custom Analysis'
+    };
+    return typeNames[type] || 'Data Analysis';
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    const now = new Date();
+    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
+    } else if (diffInHours < 48) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString();
+    }
   };
-  
-  if (isLoading) {
+
+  const getProcessingTime = (analysis: any) => {
+    if (analysis.status === 'running') {
+      const startTime = new Date(analysis.createdAt);
+      const now = new Date();
+      const diffInMinutes = Math.floor((now.getTime() - startTime.getTime()) / (1000 * 60));
+      return `${diffInMinutes}m elapsed`;
+    }
+    return analysis.processingTime || 'N/A';
+  };
+
+  // Filter and sort analysis history
+  const filteredAndSortedHistory = analysisHistory
+    .filter(analysis => {
+      // Search filter
+      if (searchTerm && !analysis.name.toLowerCase().includes(searchTerm.toLowerCase())) {
+        return false;
+      }
+      
+      // Status filter
+      if (filters.status !== 'all' && analysis.status !== filters.status) {
+        return false;
+      }
+      
+      // Type filter
+      if (filters.type !== 'all' && analysis.type !== filters.type) {
+        return false;
+      }
+      
+      // Date range filter
+      if (filters.dateRange !== 'all') {
+        const analysisDate = new Date(analysis.createdAt);
+        const now = new Date();
+        const diffInDays = Math.floor((now.getTime() - analysisDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        switch (filters.dateRange) {
+          case 'today':
+            if (diffInDays > 0) return false;
+            break;
+          case 'week':
+            if (diffInDays > 7) return false;
+            break;
+          case 'month':
+            if (diffInDays > 30) return false;
+            break;
+        }
+      }
+      
+      return true;
+    })
+    .sort((a, b) => {
+      let aValue, bValue;
+      
+      switch (filters.sortBy) {
+        case 'name':
+          aValue = a.name.toLowerCase();
+          bValue = b.name.toLowerCase();
+          break;
+        case 'type':
+          aValue = a.type;
+          bValue = b.type;
+          break;
+        case 'status':
+          aValue = a.status;
+          bValue = b.status;
+          break;
+        default: // createdAt
+          aValue = new Date(a.createdAt).getTime();
+          bValue = new Date(b.createdAt).getTime();
+      }
+      
+      if (filters.sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+
+  // Get unique analysis types for filter dropdown
+  const uniqueTypes = [...new Set(analysisHistory.map(a => a.type))];
+
+  // Statistics
+  const stats = {
+    total: analysisHistory.length,
+    completed: analysisHistory.filter(a => a.status === 'completed').length,
+    running: analysisHistory.filter(a => a.status === 'running').length,
+    failed: analysisHistory.filter(a => a.status === 'failed').length
+  };
+
+  if (analysisHistory.length === 0) {
     return (
       <div className="space-y-4">
-        <Card>
+        <Card className="border-dashed border-2">
           <CardHeader>
-            <CardTitle>Analysis History</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Clock className="h-5 w-5" />
+              No Analysis History
+            </CardTitle>
             <CardDescription>
-              Loading your previous analyses...
+              Your analysis history will appear here once you start running analyses.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="flex flex-col items-center justify-center py-8 space-y-4">
-              <div className="h-10 w-10 rounded-full border-4 border-muted border-t-primary animate-spin"></div>
-              <p className="text-sm text-muted-foreground">
-                Retrieving your analysis history...
+          <CardContent className="flex flex-col items-center justify-center space-y-6 py-10">
+            <div className="p-8 rounded-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
+              <FileText className="h-16 w-16 text-gray-400" />
+            </div>
+            <div className="space-y-2 text-center">
+              <p className="text-xl font-semibold">Start Your First Analysis</p>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Configure and run an analysis to see it appear in your history. All analyses are stored temporarily in your browser.
               </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-  
-  if (error && history.length === 0) {
-    return (
-      <div className="space-y-4">
-        <Card>
-          <CardHeader>
-            <CardTitle>Analysis History</CardTitle>
-            <CardDescription>
-              There was an error loading your analysis history.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="rounded-md bg-destructive/15 p-4 text-destructive">
-              <p>{error}</p>
-            </div>
-            <Button className="mt-4" onClick={() => window.location.reload()}>
-              Retry
+            <Button onClick={() => window.location.hash = '#configure'} size="lg" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Create Analysis
             </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
-  
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div>
         <Card className="border-none shadow-none bg-transparent">
           <CardHeader className="px-0 pt-0">
@@ -257,184 +252,284 @@ export function AnalysisHistory({ onViewAnalysis }: AnalysisHistoryProps) {
               Analysis History
             </CardTitle>
             <CardDescription className="text-base">
-              View and manage your previous analyses.
+              View and manage your analysis history. All data is stored locally in your browser.
             </CardDescription>
           </CardHeader>
         </Card>
       </div>
-      
-      <div>
+
+      {/* Statistics Cards */}
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
-          <CardHeader className="pb-0">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search analyses..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-[130px]">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <span>Status</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="running">Running</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
-                  </SelectContent>
-                </Select>
-                
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <Filter className="mr-2 h-4 w-4" />
-                    <span>Analysis Type</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="customer_feedback">Customer Feedback</SelectItem>
-                    <SelectItem value="sales_trends">Sales Trends</SelectItem>
-                    <SelectItem value="product_performance">Product Performance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Total Analyses</CardTitle>
+            <FileText className="h-4 w-4 text-blue-500" />
           </CardHeader>
-          
-          <CardContent className="pt-6">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="list">List View</TabsTrigger>
-                <TabsTrigger value="calendar">Calendar View</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="list" className="space-y-4">
-                {filteredHistory.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
-                      <Calendar className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-medium">No analyses found</h3>
-                    <p className="text-sm text-muted-foreground mt-1 mb-6">
-                      {searchQuery || statusFilter !== "all" || typeFilter !== "all" 
-                        ? "Try adjusting your filters to see more results." 
-                        : "You haven't run any analyses yet."}
-                    </p>
-                    <Button onClick={() => window.location.href = "/configure"}>
-                      Start Your First Analysis
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {filteredHistory.map((analysis) => (
-                      <Card 
-                        key={analysis.id}
-                        className="overflow-hidden hover:border-primary transition-colors"
-                      >
-                        <div className="flex flex-col md:flex-row">
-                          <div className="flex-1 p-4 md:p-6">
-                            <div className="flex items-center space-x-2 mb-2">
-                              <div className="p-1.5 rounded-full bg-muted">
-                                {getAnalysisTypeIcon(analysis.type)}
-                              </div>
-                              <h3 className="font-medium">{getAnalysisTypeLabel(analysis.type)}</h3>
-                              {getStatusBadge(analysis.status)}
-                            </div>
-                            
-                            <div className="flex flex-col md:flex-row md:items-center text-sm text-muted-foreground space-y-1 md:space-y-0 md:space-x-4 mb-4">
-                              <div className="flex items-center">
-                                <Clock className="h-3.5 w-3.5 mr-1.5" />
-                                <span>Created: {formatDate(analysis.created_at)}</span>
-                              </div>
-                              {analysis.completed_at && (
-                                <div className="flex items-center">
-                                  <CheckCircle className="h-3.5 w-3.5 mr-1.5" />
-                                  <span>Completed: {formatDate(analysis.completed_at)}</span>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {analysis.status === "completed" && (
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                                {analysis.sentiment !== undefined && (
-                                  <div className="flex items-center space-x-2">
-                                    <div className="p-1.5 rounded-full bg-blue-500/10">
-                                      <ThumbsUp className="h-3.5 w-3.5 text-blue-500" />
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Sentiment</p>
-                                      <p className="text-sm font-medium">{(analysis.sentiment * 100).toFixed(0)}%</p>
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {analysis.insights !== undefined && (
-                                  <div className="flex items-center space-x-2">
-                                    <div className="p-1.5 rounded-full bg-amber-500/10">
-                                      <PieChart className="h-3.5 w-3.5 text-amber-500" />
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Insights</p>
-                                      <p className="text-sm font-medium">{analysis.insights}</p>
-                                    </div>
-                                  </div>
-                                )}
-                                
-                                {analysis.records !== undefined && (
-                                  <div className="flex items-center space-x-2">
-                                    <div className="p-1.5 rounded-full bg-green-500/10">
-                                      <BarChart2 className="h-3.5 w-3.5 text-green-500" />
-                                    </div>
-                                    <div>
-                                      <p className="text-xs text-muted-foreground">Records</p>
-                                      <p className="text-sm font-medium">{analysis.records.toLocaleString()}</p>
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                          
-                          <div className="flex items-center justify-center p-4 md:p-6 bg-muted/10 md:border-l">
-                            <Button 
-                              variant="outline" 
-                              className="w-full md:w-auto"
-                              onClick={() => onViewAnalysis(analysis.id)}
-                            >
-                              View Results
-                              <ChevronRight className="ml-2 h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="calendar" className="space-y-4">
-                <div className="text-center py-12">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-4">
-                    <Calendar className="h-6 w-6 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-medium">Calendar View Coming Soon</h3>
-                  <p className="text-sm text-muted-foreground mt-1 mb-6">
-                    We're working on a calendar view to help you visualize your analysis history.
-                  </p>
-                  <Button variant="outline" onClick={() => setActiveTab("list")}>
-                    Switch to List View
-                  </Button>
-                </div>
-              </TabsContent>
-            </Tabs>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Completed</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Running</CardTitle>
+            <Loader2 className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-blue-600">{stats.running}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Failed</CardTitle>
+            <AlertCircle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">{stats.failed}</div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Search and Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search analyses..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Filters */}
+            <div className="flex gap-2">
+              <Select value={filters.status} onValueChange={(value) => setFilters(prev => ({ ...prev, status: value }))}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                  <SelectItem value="running">Running</SelectItem>
+                  <SelectItem value="failed">Failed</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={filters.type} onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  {uniqueTypes.map(type => (
+                    <SelectItem key={type} value={type}>
+                      {getAnalysisTypeName(type)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={filters.dateRange} onValueChange={(value) => setFilters(prev => ({ ...prev, dateRange: value }))}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Date" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Time</SelectItem>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="week">This Week</SelectItem>
+                  <SelectItem value="month">This Month</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFilters(prev => ({ 
+                  ...prev, 
+                  sortOrder: prev.sortOrder === 'asc' ? 'desc' : 'asc' 
+                }))}
+                className="gap-1"
+              >
+                {filters.sortOrder === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+                Sort
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Analysis List */}
+      <div className="space-y-4">
+        {filteredAndSortedHistory.length === 0 ? (
+          <Card>
+            <CardContent className="py-10 text-center">
+              <div className="space-y-2">
+                <Filter className="h-12 w-12 mx-auto text-muted-foreground" />
+                <p className="text-lg font-medium">No analyses found</p>
+                <p className="text-sm text-muted-foreground">
+                  Try adjusting your search or filter criteria.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredAndSortedHistory.map((analysis) => (
+            <Card key={analysis.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-4 flex-1">
+                    {/* Analysis Type Icon */}
+                    <div className="p-2 rounded-lg bg-muted">
+                      {getAnalysisTypeIcon(analysis.type)}
+                    </div>
+                    
+                    {/* Analysis Info */}
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="font-semibold text-lg">{analysis.name}</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">
+                              {getAnalysisTypeName(analysis.type)}
+                            </Badge>
+                            {getStatusBadge(analysis.status)}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="grid gap-2 md:grid-cols-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1">
+                          <Database className="h-3 w-3" />
+                          <span>{analysis.dataSource}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatDate(analysis.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>{getProcessingTime(analysis)}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Progress bar for running analyses */}
+                      {analysis.status === 'running' && (
+                        <div className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span>Processing...</span>
+                            <span>In progress</span>
+                          </div>
+                          <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
+                            <div className="h-full bg-blue-500 rounded-full w-2/3 animate-pulse"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Actions */}
+                  <div className="flex items-center gap-2">
+                    {analysis.status === 'completed' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onViewAnalysis(analysis.id)}
+                        className="gap-1"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Button>
+                    )}
+                    
+                    {analysis.status === 'running' && (
+                      <Button variant="outline" size="sm" disabled className="gap-1">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Processing
+                      </Button>
+                    )}
+                    
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {analysis.status === 'completed' && (
+                          <>
+                            <DropdownMenuItem onClick={() => onViewAnalysis(analysis.id)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Results
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Download className="h-4 w-4 mr-2" />
+                              Export Report
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Share2 className="h-4 w-4 mr-2" />
+                              Share
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                          </>
+                        )}
+                        {analysis.status === 'running' && (
+                          <>
+                            <DropdownMenuItem>
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Refresh Status
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                          </>
+                        )}
+                        <DropdownMenuItem 
+                          onClick={() => onDeleteAnalysis(analysis.id)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        )}
+      </div>
+      
+      {/* Footer Info */}
+      <Card className="bg-muted/50">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between text-sm text-muted-foreground">
+            <div className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              <span>
+                Showing {filteredAndSortedHistory.length} of {analysisHistory.length} analyses
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              <span>Data stored locally in your browser</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

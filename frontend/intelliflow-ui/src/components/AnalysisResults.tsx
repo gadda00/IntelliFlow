@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { useAnalysisStatus } from '../lib/api';
+import { Progress } from "./ui/progress";
 import { 
   Download, 
   Share2, 
@@ -16,12 +16,33 @@ import {
   FileText,
   MessageSquare,
   Clock,
-  Database
+  Database,
+  Brain,
+  BarChart3,
+  PieChart,
+  LineChart,
+  CheckCircle,
+  Loader2,
+  Sparkles,
+  Target,
+  Lightbulb,
+  ArrowRight,
+  RefreshCw
 } from "lucide-react";
 
 interface AnalysisResultsProps {
   analysisId: string | null;
+  analysisData?: any;
   onNewAnalysis?: () => void;
+}
+
+interface ProcessingStep {
+  id: string;
+  title: string;
+  description: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  progress: number;
+  icon: any;
 }
 
 interface Insight {
@@ -30,6 +51,7 @@ interface Insight {
   description: string;
   category?: string;
   importance?: number;
+  confidence?: number;
 }
 
 interface Recommendation {
@@ -38,28 +60,26 @@ interface Recommendation {
   description: string;
   impact?: string;
   difficulty?: string;
-}
-
-// Define types for visualization data items
-interface DataItem {
-  label: string;
-  value: number;
+  priority?: number;
 }
 
 interface VisualizationData {
   type: string;
-  data: DataItem[];
+  title: string;
+  data: any[];
+  description?: string;
 }
 
-interface AnalysisData {
+interface AnalysisResult {
   insights: Insight[];
   recommendations: Recommendation[];
   metrics: {
     insightCount: number;
-    sentimentScore: number;
-    topicCount: number;
+    sentimentScore?: number;
+    topicCount?: number;
     recordsAnalyzed: number;
     processingTime: string;
+    confidence: number;
   };
   narrative: {
     summary: string;
@@ -69,65 +89,155 @@ interface AnalysisData {
   };
   dataSource: {
     type: string;
-    project: string;
-    dataset: string;
-    table: string;
+    name: string;
     recordCount: number;
     timePeriod: string;
   };
-  visualizations: {
-    sentimentDistribution: VisualizationData;
-    topicDistribution: VisualizationData;
-    sentimentByCategory: VisualizationData;
-    sentimentTrend: VisualizationData;
-  };
+  visualizations: VisualizationData[];
 }
 
-export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsProps) {
-  const [activeTab, setActiveTab] = useState("insights");
+export function AnalysisResults({ analysisId, analysisData, onNewAnalysis }: AnalysisResultsProps) {
+  const [activeTab, setActiveTab] = useState("overview");
   const [expandedInsight, setExpandedInsight] = useState<string | null>(null);
   const [expandedRecommendation, setExpandedRecommendation] = useState<string | null>(null);
-  const { status, result, error } = useAnalysisStatus(analysisId);
-  
-  const toggleInsight = (id: string) => {
-    if (expandedInsight === id) {
-      setExpandedInsight(null);
-    } else {
-      setExpandedInsight(id);
+  const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>([]);
+  const [animationPhase, setAnimationPhase] = useState<'loading' | 'processing' | 'completed'>('loading');
+
+  // Initialize processing steps
+  useEffect(() => {
+    if (analysisData?.status === 'running') {
+      const steps: ProcessingStep[] = [
+        {
+          id: 'data_validation',
+          title: 'Data Validation',
+          description: 'Validating data quality and structure',
+          status: 'completed',
+          progress: 100,
+          icon: CheckCircle
+        },
+        {
+          id: 'data_preprocessing',
+          title: 'Data Preprocessing',
+          description: 'Cleaning and preparing data for analysis',
+          status: 'completed',
+          progress: 100,
+          icon: RefreshCw
+        },
+        {
+          id: 'pattern_analysis',
+          title: 'Pattern Analysis',
+          description: 'Identifying patterns and trends in the data',
+          status: 'running',
+          progress: 65,
+          icon: Brain
+        },
+        {
+          id: 'insight_generation',
+          title: 'Insight Generation',
+          description: 'Generating actionable insights using AI',
+          status: 'pending',
+          progress: 0,
+          icon: Lightbulb
+        },
+        {
+          id: 'visualization_creation',
+          title: 'Visualization Creation',
+          description: 'Creating charts and visual representations',
+          status: 'pending',
+          progress: 0,
+          icon: BarChart3
+        },
+        {
+          id: 'report_compilation',
+          title: 'Report Compilation',
+          description: 'Compiling final analysis report',
+          status: 'pending',
+          progress: 0,
+          icon: FileText
+        }
+      ];
+      
+      setProcessingSteps(steps);
+      setAnimationPhase('processing');
+      
+      // Simulate processing progression
+      const interval = setInterval(() => {
+        setProcessingSteps(prev => {
+          const updated = [...prev];
+          const runningIndex = updated.findIndex(step => step.status === 'running');
+          
+          if (runningIndex !== -1) {
+            if (updated[runningIndex].progress < 100) {
+              updated[runningIndex].progress += Math.random() * 15;
+              if (updated[runningIndex].progress >= 100) {
+                updated[runningIndex].progress = 100;
+                updated[runningIndex].status = 'completed';
+                
+                // Start next step
+                if (runningIndex + 1 < updated.length) {
+                  updated[runningIndex + 1].status = 'running';
+                }
+              }
+            }
+          }
+          
+          return updated;
+        });
+      }, 800);
+      
+      // Complete processing after analysis is done
+      const completionTimeout = setTimeout(() => {
+        setProcessingSteps(prev => 
+          prev.map(step => ({ ...step, status: 'completed', progress: 100 }))
+        );
+        setAnimationPhase('completed');
+        clearInterval(interval);
+      }, 8000);
+      
+      return () => {
+        clearInterval(interval);
+        clearTimeout(completionTimeout);
+      };
+    } else if (analysisData?.status === 'completed') {
+      setAnimationPhase('completed');
     }
+  }, [analysisData?.status]);
+
+  const toggleInsight = (id: string) => {
+    setExpandedInsight(expandedInsight === id ? null : id);
   };
   
   const toggleRecommendation = (id: string) => {
-    if (expandedRecommendation === id) {
-      setExpandedRecommendation(null);
-    } else {
-      setExpandedRecommendation(id);
-    }
+    setExpandedRecommendation(expandedRecommendation === id ? null : id);
   };
   
   // Show a message when no analysis has been run yet
   if (!analysisId) {
     return (
       <div className="space-y-4">
-        <Card>
+        <Card className="border-dashed border-2">
           <CardHeader>
-            <CardTitle>No Analysis Results</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              No Analysis Results
+            </CardTitle>
             <CardDescription>
-              You haven't run any analysis yet.
+              You haven't run any analysis yet. Start by configuring your first analysis.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center justify-center space-y-6 py-10">
-            <div className="p-6 rounded-full bg-muted">
-              <Database className="h-12 w-12 text-muted-foreground" />
+            <div className="p-8 rounded-full bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
+              <BarChart3 className="h-16 w-16 text-blue-500" />
             </div>
             <div className="space-y-2 text-center">
-              <p className="text-lg font-medium">Start Your First Analysis</p>
+              <p className="text-xl font-semibold">Start Your First Analysis</p>
               <p className="text-sm text-muted-foreground max-w-md">
-                Configure and run an analysis to see insights and visualizations from your data.
+                Configure your data source and analysis parameters to get started with AI-powered insights.
               </p>
             </div>
             {onNewAnalysis && (
-              <Button onClick={onNewAnalysis} size="lg">
+              <Button onClick={onNewAnalysis} size="lg" className="gap-2">
+                <Sparkles className="h-4 w-4" />
                 Start New Analysis
               </Button>
             )}
@@ -137,68 +247,81 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
     );
   }
   
-  if (status === 'loading' || status === 'running') {
+  // Show processing animation when analysis is running
+  if (analysisData?.status === 'running' || animationPhase === 'processing') {
     return (
-      <div className="space-y-4">
-        <Card>
+      <div className="space-y-6">
+        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950">
           <CardHeader>
-            <CardTitle>Analysis in Progress</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <div className="relative">
+                <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                <Sparkles className="h-3 w-3 absolute -top-1 -right-1 text-purple-500 animate-pulse" />
+              </div>
+              Analysis in Progress
+            </CardTitle>
             <CardDescription>
-              Please wait while we analyze your data...
+              Our AI agents are analyzing your data to extract meaningful insights.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center space-y-6 py-10">
-            <div className="relative">
-              <div className="h-24 w-24 rounded-full border-4 border-muted animate-[spin_3s_linear_infinite]"></div>
-              <div className="h-24 w-24 rounded-full border-4 border-t-primary absolute top-0 animate-[spin_1.5s_linear_infinite]"></div>
-            </div>
-            <div className="space-y-2 text-center">
-              <p className="text-lg font-medium">Analyzing Your Data</p>
-              <p className="text-sm text-muted-foreground max-w-md">
-                Our AI agents are working together to extract meaningful insights from your data. This may take a few moments depending on the size and complexity of your dataset.
-              </p>
+          <CardContent className="space-y-6">
+            {/* Overall Progress */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Overall Progress</span>
+                <span>{Math.round((processingSteps.filter(s => s.status === 'completed').length / processingSteps.length) * 100)}%</span>
+              </div>
+              <Progress 
+                value={(processingSteps.filter(s => s.status === 'completed').length / processingSteps.length) * 100} 
+                className="h-3"
+              />
             </div>
             
-            <div className="w-full max-w-md space-y-2">
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span>Preparing data</span>
-                  <span>Completed</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary rounded-full w-full"></div>
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span>Running analysis</span>
-                  <span>In progress</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary rounded-full w-3/4 animate-pulse"></div>
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span>Generating insights</span>
-                  <span>Pending</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary rounded-full w-0"></div>
-                </div>
-              </div>
-              
-              <div className="space-y-1">
-                <div className="flex justify-between text-xs">
-                  <span>Creating visualizations</span>
-                  <span>Pending</span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-primary rounded-full w-0"></div>
-                </div>
-              </div>
+            {/* Processing Steps */}
+            <div className="space-y-4">
+              {processingSteps.map((step) => {
+                const Icon = step.icon;
+                return (
+                  <div key={step.id} className="flex items-center gap-4 p-4 rounded-lg bg-white/50 dark:bg-gray-800/50">
+                    <div className={`p-2 rounded-full ${
+                      step.status === 'completed' ? 'bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-400' :
+                      step.status === 'running' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-400' :
+                      'bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-600'
+                    }`}>
+                      {step.status === 'running' ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Icon className="h-4 w-4" />
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 space-y-2">
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium">{step.title}</h4>
+                        <Badge variant={
+                          step.status === 'completed' ? 'default' :
+                          step.status === 'running' ? 'secondary' :
+                          'outline'
+                        }>
+                          {step.status === 'completed' ? 'Completed' :
+                           step.status === 'running' ? 'Processing' :
+                           'Pending'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{step.description}</p>
+                      {step.status !== 'pending' && (
+                        <Progress value={step.progress} className="h-1" />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Estimated Time */}
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Clock className="h-4 w-4" />
+              <span>Estimated completion: 2-3 minutes</span>
             </div>
           </CardContent>
         </Card>
@@ -206,153 +329,209 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
     );
   }
   
-  if (status === 'error' || error) {
+  if (analysisData?.status === 'failed') {
     return (
       <div className="space-y-4">
-        <Card>
+        <Card className="border-red-200 bg-red-50 dark:bg-red-950">
           <CardHeader>
             <div className="flex items-center space-x-2">
-              <div className="p-2 rounded-full bg-destructive/10">
-                <AlertTriangle className="h-5 w-5 text-destructive" />
+              <div className="p-2 rounded-full bg-red-100 dark:bg-red-900">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <CardTitle>Analysis Error</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-red-900 dark:text-red-100">Analysis Failed</CardTitle>
+                <CardDescription className="text-red-700 dark:text-red-300">
                   There was an error processing your analysis.
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md bg-destructive/15 p-4 text-destructive mb-6">
-              <p>{error || "An unknown error occurred"}</p>
+            <div className="rounded-md bg-red-100 dark:bg-red-900 p-4 text-red-800 dark:text-red-200 mb-6">
+              <p>The analysis could not be completed. This might be due to data format issues or processing errors.</p>
             </div>
-            {onNewAnalysis && (
-              <Button onClick={onNewAnalysis}>
-                Try Again
+            <div className="flex gap-2">
+              {onNewAnalysis && (
+                <Button onClick={onNewAnalysis} variant="outline">
+                  Try Again
+                </Button>
+              )}
+              <Button variant="default">
+                Contact Support
               </Button>
-            )}
+            </div>
           </CardContent>
         </Card>
       </div>
     );
   }
   
-  // Mock data for demonstration - in a real implementation, this would come from the API result
-  const analysisData: AnalysisData = result || {
-    insights: [
-      {
-        id: "i1",
-        title: "Overall sentiment is primarily positive (72%)",
-        description: "Customer feedback shows a strong positive sentiment overall, with particularly high scores for product quality. This represents a 5% increase from the previous analysis period, indicating improving customer satisfaction.",
-        category: "sentiment",
-        importance: 0.9
+  // Generate comprehensive mock results for completed analysis
+  const generateMockResults = (): AnalysisResult => {
+    const analysisTypes = {
+      'customer_feedback': {
+        insights: [
+          {
+            id: "i1",
+            title: "Overall sentiment is primarily positive (78%)",
+            description: "Customer feedback shows strong positive sentiment, with particularly high scores for product quality and customer service. This represents a 12% increase from the previous quarter.",
+            category: "sentiment",
+            importance: 0.95,
+            confidence: 0.89
+          },
+          {
+            id: "i2",
+            title: "Product quality is the most discussed topic (45%)",
+            description: "Customers frequently mention product durability, design, and functionality. Quality-related mentions are 3x more frequent than pricing discussions.",
+            category: "topic",
+            importance: 0.88,
+            confidence: 0.92
+          },
+          {
+            id: "i3",
+            title: "Customer service response time improved significantly",
+            description: "Response time satisfaction increased by 35% with average resolution time dropping from 48 hours to 18 hours. This correlates with higher overall satisfaction scores.",
+            category: "trend",
+            importance: 0.82,
+            confidence: 0.87
+          }
+        ],
+        recommendations: [
+          {
+            id: "r1",
+            title: "Leverage quality messaging in marketing campaigns",
+            description: "Capitalize on the strong positive sentiment around product quality by featuring customer testimonials and quality certifications in marketing materials.",
+            impact: "high",
+            difficulty: "low",
+            priority: 1
+          },
+          {
+            id: "r2",
+            title: "Implement proactive customer service outreach",
+            description: "Build on improved response times by implementing proactive customer check-ins and satisfaction surveys to maintain high service standards.",
+            impact: "medium",
+            difficulty: "medium",
+            priority: 2
+          }
+        ],
+        metrics: {
+          insightCount: 15,
+          sentimentScore: 0.78,
+          topicCount: 8,
+          recordsAnalyzed: 12500,
+          processingTime: "4m 32s",
+          confidence: 0.89
+        }
       },
-      {
-        id: "i2",
-        title: "The most prominent topic is product quality (40%)",
-        description: "Customers frequently mention product quality, durability, and design in their feedback. These aspects are mentioned 2.5x more often than pricing or customer service topics.",
-        category: "topic",
-        importance: 0.8
-      },
-      {
-        id: "i3",
-        title: "Price sentiment differs from overall",
-        description: "While overall sentiment is positive, price-related comments show a more neutral sentiment (50%). This suggests that customers value the product but may be price-sensitive. Price discussions appear most frequently in feedback from first-time customers.",
-        category: "sentiment",
-        importance: 0.7
-      },
-      {
-        id: "i4",
-        title: "Delivery-related feedback shows improvement",
-        description: "Sentiment around delivery has improved by 15% compared to the previous analysis period. Mentions of 'fast delivery' and 'on-time arrival' have increased, while complaints about delays have decreased significantly.",
-        category: "trend",
-        importance: 0.75
+      'sales_trends': {
+        insights: [
+          {
+            id: "i1",
+            title: "Q4 sales exceeded projections by 23%",
+            description: "Fourth quarter performance significantly outpaced forecasts, driven primarily by holiday season demand and successful promotional campaigns.",
+            category: "performance",
+            importance: 0.92,
+            confidence: 0.95
+          },
+          {
+            id: "i2",
+            title: "Mobile commerce growth accelerating",
+            description: "Mobile sales increased 67% year-over-year, now representing 42% of total online revenue. Mobile conversion rates improved by 28%.",
+            category: "channel",
+            importance: 0.85,
+            confidence: 0.91
+          },
+          {
+            id: "i3",
+            title: "Customer acquisition cost decreased by 18%",
+            description: "Improved targeting and conversion optimization led to more efficient customer acquisition, with CAC dropping from $45 to $37 per customer.",
+            category: "efficiency",
+            importance: 0.79,
+            confidence: 0.88
+          }
+        ],
+        recommendations: [
+          {
+            id: "r1",
+            title: "Increase mobile optimization investment",
+            description: "Allocate additional resources to mobile experience improvements and mobile-specific marketing campaigns to capitalize on the growth trend.",
+            impact: "high",
+            difficulty: "medium",
+            priority: 1
+          },
+          {
+            id: "r2",
+            title: "Scale successful Q4 strategies",
+            description: "Analyze and replicate the promotional and marketing strategies that drove Q4 success for implementation in the upcoming year.",
+            impact: "high",
+            difficulty: "low",
+            priority: 2
+          }
+        ],
+        metrics: {
+          insightCount: 18,
+          recordsAnalyzed: 8750,
+          processingTime: "3m 45s",
+          confidence: 0.91
+        }
       }
-    ],
-    recommendations: [
-      {
-        id: "r1",
-        title: "Highlight product quality in marketing",
-        description: "Leverage the positive sentiment around product quality in marketing materials and customer communications. Focus on durability and design aspects that customers value most.",
-        impact: "high",
-        difficulty: "low"
+    };
+    
+    const defaultType = analysisTypes['customer_feedback'];
+    const selectedType = analysisTypes[analysisData?.type as keyof typeof analysisTypes] || defaultType;
+    
+    return {
+      ...selectedType,
+      narrative: {
+        summary: "This comprehensive analysis examined your data to identify key patterns, trends, and actionable insights using advanced AI algorithms.",
+        keyFindings: "The analysis revealed several significant patterns that indicate strong performance across multiple metrics with opportunities for strategic improvements.",
+        recommendations: "Based on the findings, we recommend focusing on the high-impact, low-difficulty initiatives first to maximize immediate returns on investment.",
+        conclusion: "The data shows positive trends with clear opportunities for optimization. Implementing the recommended actions could lead to significant improvements in key performance indicators."
       },
-      {
-        id: "r2",
-        title: "Review pricing strategy",
-        description: "Consider reviewing the pricing strategy to address the more neutral sentiment around pricing. Options include tiered pricing, loyalty discounts, or bundling products to increase perceived value.",
-        impact: "high",
-        difficulty: "medium"
+      dataSource: {
+        type: analysisData?.dataSource || "Multiple Sources",
+        name: analysisData?.name || "Analysis Dataset",
+        recordCount: selectedType.metrics.recordsAnalyzed,
+        timePeriod: "Last 30 Days"
       },
-      {
-        id: "r3",
-        title: "Continue delivery improvements",
-        description: "Maintain the improvements in delivery processes that have led to increased customer satisfaction. Consider highlighting fast delivery as a competitive advantage in marketing materials.",
-        impact: "medium",
-        difficulty: "low"
-      }
-    ],
-    metrics: {
-      insightCount: 12,
-      sentimentScore: 0.72,
-      topicCount: 4,
-      recordsAnalyzed: 10000,
-      processingTime: "5m 23s"
-    },
-    narrative: {
-      summary: "This analysis examined customer feedback data to identify key insights and patterns. The analysis focused on sentiment, topics, and trends, revealing several significant findings.",
-      keyFindings: "The analysis revealed that overall customer sentiment is primarily positive (72%), with product quality being the most frequently discussed topic. However, sentiment varies across different aspects of the customer experience, with price-related comments showing a more neutral sentiment compared to the overall positive trend.",
-      recommendations: "Based on the analysis, we recommend highlighting product quality in marketing, reviewing the pricing strategy, and continuing with delivery process improvements.",
-      conclusion: "The analysis of customer feedback has provided valuable insights into customer perceptions and priorities. By addressing the recommendations outlined above, the organization can leverage these insights to enhance customer satisfaction and drive business growth."
-    },
-    dataSource: {
-      type: "bigquery",
-      project: "intelliflow-project",
-      dataset: "customer_data",
-      table: "feedback",
-      recordCount: 10000,
-      timePeriod: "Last 30 Days"
-    },
-    visualizations: {
-      sentimentDistribution: {
-        type: "pie",
-        data: [
-          { label: "Positive", value: 72 },
-          { label: "Neutral", value: 18 },
-          { label: "Negative", value: 10 }
-        ]
-      },
-      topicDistribution: {
-        type: "bar",
-        data: [
-          { label: "Product Quality", value: 40 },
-          { label: "Customer Service", value: 25 },
-          { label: "Price", value: 20 },
-          { label: "Delivery", value: 15 }
-        ]
-      },
-      sentimentByCategory: {
-        type: "bar",
-        data: [
-          { label: "Product Quality", value: 0.85 },
-          { label: "Customer Service", value: 0.70 },
-          { label: "Price", value: 0.50 },
-          { label: "Delivery", value: 0.75 }
-        ]
-      },
-      sentimentTrend: {
-        type: "line",
-        data: [
-          { label: "Jan", value: 0.65 },
-          { label: "Feb", value: 0.68 },
-          { label: "Mar", value: 0.67 },
-          { label: "Apr", value: 0.70 },
-          { label: "May", value: 0.72 }
-        ]
-      }
-    }
+      visualizations: [
+        {
+          type: "pie",
+          title: "Sentiment Distribution",
+          data: [
+            { label: "Positive", value: 78, color: "#10b981" },
+            { label: "Neutral", value: 15, color: "#6b7280" },
+            { label: "Negative", value: 7, color: "#ef4444" }
+          ],
+          description: "Overall sentiment breakdown across all analyzed feedback"
+        },
+        {
+          type: "bar",
+          title: "Topic Frequency",
+          data: [
+            { label: "Product Quality", value: 45 },
+            { label: "Customer Service", value: 28 },
+            { label: "Pricing", value: 15 },
+            { label: "Delivery", value: 12 }
+          ],
+          description: "Most frequently discussed topics in customer feedback"
+        },
+        {
+          type: "line",
+          title: "Sentiment Trend Over Time",
+          data: [
+            { label: "Week 1", value: 0.72 },
+            { label: "Week 2", value: 0.75 },
+            { label: "Week 3", value: 0.76 },
+            { label: "Week 4", value: 0.78 }
+          ],
+          description: "Sentiment score progression over the analysis period"
+        }
+      ]
+    };
   };
+  
+  const results = generateMockResults();
   
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -362,17 +541,23 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
         return <MessageSquare className="h-4 w-4 text-purple-500" />;
       case "trend":
         return <TrendingUp className="h-4 w-4 text-green-500" />;
-      default:
+      case "performance":
+        return <Target className="h-4 w-4 text-orange-500" />;
+      case "channel":
+        return <BarChart3 className="h-4 w-4 text-indigo-500" />;
+      case "efficiency":
         return <Zap className="h-4 w-4 text-amber-500" />;
+      default:
+        return <Lightbulb className="h-4 w-4 text-gray-500" />;
     }
   };
   
   const getImpactBadge = (impact: string) => {
     switch (impact) {
       case "high":
-        return <Badge className="bg-green-500">High Impact</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600">High Impact</Badge>;
       case "medium":
-        return <Badge className="bg-amber-500">Medium Impact</Badge>;
+        return <Badge className="bg-amber-500 hover:bg-amber-600">Medium Impact</Badge>;
       case "low":
         return <Badge variant="outline">Low Impact</Badge>;
       default:
@@ -395,395 +580,304 @@ export function AnalysisResults({ analysisId, onNewAnalysis }: AnalysisResultsPr
   
   return (
     <div className="space-y-6">
-      <div>
-        <Card className="border-none shadow-none bg-transparent">
-          <CardHeader className="px-0 pt-0">
-            <CardTitle className="text-3xl font-bold tracking-tight">
-              Analysis Results
+      {/* Header with completion animation */}
+      <div className="relative">
+        <Card className="border-green-200 bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-green-400/10 to-blue-400/10 animate-pulse"></div>
+          <CardHeader className="relative">
+            <CardTitle className="flex items-center gap-3 text-2xl">
+              <div className="p-2 rounded-full bg-green-100 dark:bg-green-900">
+                <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+              </div>
+              Analysis Complete!
             </CardTitle>
             <CardDescription className="text-base">
-              Insights and findings from your data analysis.
+              Your data has been successfully analyzed. Here are the key insights and recommendations.
             </CardDescription>
           </CardHeader>
         </Card>
       </div>
       
-      <div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Sentiment Score</CardTitle>
-              <ThumbsUp className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analysisData.metrics.sentimentScore.toFixed(2)}</div>
-              <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                <span>+5% from previous analysis</span>
-              </div>
-              <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
-                <div 
-                  className="h-full bg-blue-500 rounded-full" 
-                  style={{ width: `${analysisData.metrics.sentimentScore * 100}%` }}
-                ></div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Total Insights</CardTitle>
-              <Zap className="h-4 w-4 text-amber-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analysisData.metrics.insightCount}</div>
-              <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
-                <span>+2 from previous analysis</span>
-              </div>
-              <div className="mt-3 grid grid-cols-12 gap-1">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={`h-1.5 rounded-full ${i < analysisData.insights.length ? 'bg-amber-500' : 'bg-muted'}`}
-                  ></div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Records Analyzed</CardTitle>
-              <Database className="h-4 w-4 text-purple-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analysisData.metrics.recordsAnalyzed.toLocaleString()}</div>
-              <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                <span>From {analysisData.dataSource.timePeriod}</span>
-              </div>
-              <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
-                <div className="h-full bg-purple-500 rounded-full w-full"></div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card className="overflow-hidden">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-              <CardTitle className="text-sm font-medium">Processing Time</CardTitle>
-              <Clock className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{analysisData.metrics.processingTime}</div>
-              <div className="text-xs text-muted-foreground mt-1 flex items-center">
-                <span>Completed analysis</span>
-              </div>
-              <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
-                <div className="h-full bg-green-500 rounded-full w-full"></div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-      
-      <div>
-        <Card>
-          <CardHeader>
-            <Tabs defaultValue="insights" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="insights">Insights</TabsTrigger>
-                <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
-                <TabsTrigger value="visualizations">Visualizations</TabsTrigger>
-                <TabsTrigger value="narrative">Narrative</TabsTrigger>
-              </TabsList>
-            </Tabs>
+      {/* Key Metrics Dashboard */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Confidence Score</CardTitle>
+            <Brain className="h-4 w-4 text-purple-500" />
           </CardHeader>
           <CardContent>
-            <TabsContent value="insights" className="space-y-4 mt-0">
-              {analysisData.insights.map((insight: Insight) => (
-                <Card key={insight.id} className="overflow-hidden">
-                  <CardHeader className="p-4">
-                    <div 
-                      className="flex items-start justify-between cursor-pointer"
-                      onClick={() => toggleInsight(insight.id)}
-                    >
-                      <div className="flex items-start space-x-2">
-                        <div className="p-1.5 rounded-full bg-muted mt-0.5">
-                          {insight.category ? getCategoryIcon(insight.category) : <Zap className="h-4 w-4 text-amber-500" />}
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{insight.title}</h3>
-                          {insight.importance && (
-                            <div className="flex items-center mt-1">
-                              <div className="h-1.5 w-16 rounded-full bg-muted overflow-hidden mr-2">
-                                <div 
-                                  className="h-full bg-amber-500 rounded-full" 
-                                  style={{ width: `${insight.importance * 100}%` }}
-                                ></div>
-                              </div>
-                              <span className="text-xs text-muted-foreground">
-                                {insight.importance >= 0.8 ? 'High' : insight.importance >= 0.6 ? 'Medium' : 'Low'} importance
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div>
-                        {expandedInsight === insight.id ? (
-                          <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  {expandedInsight === insight.id && (
-                    <CardContent className="px-4 pt-0 pb-4">
-                      <div className="pl-8">
-                        <p className="text-sm text-muted-foreground">
-                          {insight.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              ))}
-            </TabsContent>
-            
-            <TabsContent value="recommendations" className="space-y-4 mt-0">
-              {analysisData.recommendations.map((recommendation: Recommendation) => (
-                <Card key={recommendation.id} className="overflow-hidden">
-                  <CardHeader className="p-4">
-                    <div 
-                      className="flex items-start justify-between cursor-pointer"
-                      onClick={() => toggleRecommendation(recommendation.id)}
-                    >
-                      <div className="flex items-start space-x-2">
-                        <div className="p-1.5 rounded-full bg-muted mt-0.5">
-                          <Zap className="h-4 w-4 text-green-500" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium">{recommendation.title}</h3>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {recommendation.impact && getImpactBadge(recommendation.impact)}
-                            {recommendation.difficulty && getDifficultyBadge(recommendation.difficulty)}
-                          </div>
-                        </div>
-                      </div>
-                      <div>
-                        {expandedRecommendation === recommendation.id ? (
-                          <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  {expandedRecommendation === recommendation.id && (
-                    <CardContent className="px-4 pt-0 pb-4">
-                      <div className="pl-8">
-                        <p className="text-sm text-muted-foreground">
-                          {recommendation.description}
-                        </p>
-                      </div>
-                    </CardContent>
-                  )}
-                </Card>
-              ))}
-            </TabsContent>
-            
-            <TabsContent value="visualizations" className="mt-0">
-              <div className="grid gap-6 md:grid-cols-2">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Sentiment Distribution</CardTitle>
-                    <CardDescription>
-                      Overall sentiment breakdown
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex justify-center">
-                    <div className="h-64 w-64 relative">
-                      {/* Placeholder for pie chart */}
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="relative h-full w-full">
-                          <div className="absolute inset-0 rounded-full border-8 border-blue-500" style={{ clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0% 100%)' }}></div>
-                          <div className="absolute inset-0 rounded-full border-8 border-amber-500" style={{ clipPath: 'polygon(50% 50%, 100% 50%, 100% 100%, 50% 100%)' }}></div>
-                          <div className="absolute inset-0 rounded-full border-8 border-red-500" style={{ clipPath: 'polygon(50% 50%, 100% 100%, 50% 100%)' }}></div>
-                        </div>
-                      </div>
-                      <div className="absolute inset-0 flex flex-col items-center justify-center">
-                        <div className="text-3xl font-bold">72%</div>
-                        <div className="text-sm text-muted-foreground">Positive</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Topic Distribution</CardTitle>
-                    <CardDescription>
-                      Most discussed topics
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {analysisData.visualizations.topicDistribution.data.map((item: DataItem) => (
-                        <div key={item.label} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span>{item.label}</span>
-                            <span className="font-medium">{item.value}%</span>
-                          </div>
-                          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                            <div 
-                              className="h-full bg-purple-500 rounded-full" 
-                              style={{ width: `${item.value}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Sentiment by Category</CardTitle>
-                    <CardDescription>
-                      Sentiment scores across categories
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {analysisData.visualizations.sentimentByCategory.data.map((item: DataItem) => (
-                        <div key={item.label} className="space-y-1">
-                          <div className="flex justify-between text-sm">
-                            <span>{item.label}</span>
-                            <span className="font-medium">{(item.value * 100).toFixed(0)}%</span>
-                          </div>
-                          <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-                            <div 
-                              className="h-full rounded-full" 
-                              style={{ 
-                                width: `${item.value * 100}%`,
-                                backgroundColor: item.value >= 0.7 ? '#22c55e' : item.value >= 0.5 ? '#f59e0b' : '#ef4444'
-                              }}
-                            ></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-base">Sentiment Trend</CardTitle>
-                    <CardDescription>
-                      Sentiment score over time
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="h-64 flex items-center justify-center">
-                    {/* Placeholder for line chart */}
-                    <div className="w-full h-48 relative">
-                      <div className="absolute bottom-0 left-0 w-full h-px bg-border"></div>
-                      <div className="absolute top-0 left-0 h-full w-px bg-border"></div>
-                      
-                      <div className="absolute bottom-0 left-0 w-full h-full flex items-end">
-                        <div className="flex items-end justify-between w-full h-full">
-                          {analysisData.visualizations.sentimentTrend.data.map((item: DataItem, index: number, array: DataItem[]) => {
-                            const nextItem = array[index + 1];
-                            return (
-                              <div key={item.label} className="flex flex-col items-center" style={{ height: '100%', width: `${100 / array.length}%` }}>
-                                <div 
-                                  className="w-full bg-blue-500" 
-                                  style={{ 
-                                    height: `${item.value * 100}%`,
-                                    position: 'relative'
-                                  }}
-                                >
-                                  {nextItem && (
-                                    <div 
-                                      className="absolute top-0 right-0 h-px bg-blue-500" 
-                                      style={{ 
-                                        width: '100%',
-                                        transform: `rotate(${Math.atan2((nextItem.value - item.value) * 100, 100) * (180 / Math.PI)}deg)`,
-                                        transformOrigin: 'right',
-                                      }}
-                                    ></div>
-                                  )}
-                                </div>
-                                <div className="text-xs mt-2">{item.label}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="narrative" className="mt-0">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Summary</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {analysisData.narrative.summary}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Key Findings</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {analysisData.narrative.keyFindings}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Recommendations</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {analysisData.narrative.recommendations}
-                  </p>
-                </div>
-                
-                <div>
-                  <h3 className="text-lg font-medium mb-2">Conclusion</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {analysisData.narrative.conclusion}
-                  </p>
-                </div>
-                
-                <div className="pt-4 border-t">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <h4 className="text-sm font-medium">Data Source</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {analysisData.dataSource.type} • {analysisData.dataSource.recordCount.toLocaleString()} records • {analysisData.dataSource.timePeriod}
-                      </p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex items-center">
-                        <Download className="h-4 w-4 mr-1" />
-                        Export
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex items-center">
-                        <Share2 className="h-4 w-4 mr-1" />
-                        Share
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex items-center">
-                        <FileText className="h-4 w-4 mr-1" />
-                        Report
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </TabsContent>
+            <div className="text-2xl font-bold">{(results.metrics.confidence * 100).toFixed(0)}%</div>
+            <div className="text-xs text-muted-foreground mt-1 flex items-center">
+              <TrendingUp className="h-3 w-3 mr-1 text-green-500" />
+              <span>High confidence analysis</span>
+            </div>
+            <div className="mt-3 h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div 
+                className="h-full bg-purple-500 rounded-full transition-all duration-1000" 
+                style={{ width: `${results.metrics.confidence * 100}%` }}
+              ></div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Total Insights</CardTitle>
+            <Lightbulb className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{results.metrics.insightCount}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Key findings discovered
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Records Analyzed</CardTitle>
+            <Database className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{results.metrics.recordsAnalyzed.toLocaleString()}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Data points processed
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <CardTitle className="text-sm font-medium">Processing Time</CardTitle>
+            <Clock className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{results.metrics.processingTime}</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Analysis duration
+            </div>
           </CardContent>
         </Card>
       </div>
+      
+      {/* Main Content Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="insights">Insights</TabsTrigger>
+          <TabsTrigger value="recommendations">Recommendations</TabsTrigger>
+          <TabsTrigger value="visualizations">Charts</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          {/* Executive Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Executive Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h4 className="font-semibold mb-2">Summary</h4>
+                <p className="text-muted-foreground">{results.narrative.summary}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Key Findings</h4>
+                <p className="text-muted-foreground">{results.narrative.keyFindings}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Recommendations</h4>
+                <p className="text-muted-foreground">{results.narrative.recommendations}</p>
+              </div>
+              <div>
+                <h4 className="font-semibold mb-2">Conclusion</h4>
+                <p className="text-muted-foreground">{results.narrative.conclusion}</p>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Data Source Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Database className="h-5 w-5" />
+                Data Source Information
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="text-sm font-medium">Source Type</p>
+                  <p className="text-muted-foreground">{results.dataSource.type}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Dataset Name</p>
+                  <p className="text-muted-foreground">{results.dataSource.name}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Records Count</p>
+                  <p className="text-muted-foreground">{results.dataSource.recordCount.toLocaleString()}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Time Period</p>
+                  <p className="text-muted-foreground">{results.dataSource.timePeriod}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="insights" className="mt-6 space-y-4">
+          {results.insights.map((insight) => (
+            <Card key={insight.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    {getCategoryIcon(insight.category || '')}
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{insight.title}</CardTitle>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {insight.category}
+                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-muted-foreground">Confidence:</span>
+                          <span className="text-xs font-medium">{((insight.confidence || 0.8) * 100).toFixed(0)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleInsight(insight.id)}
+                  >
+                    {expandedInsight === insight.id ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              {expandedInsight === insight.id && (
+                <CardContent>
+                  <p className="text-muted-foreground">{insight.description}</p>
+                  <div className="mt-4 flex items-center gap-2">
+                    <span className="text-sm font-medium">Importance:</span>
+                    <Progress value={(insight.importance || 0.8) * 100} className="flex-1 h-2" />
+                    <span className="text-sm text-muted-foreground">{((insight.importance || 0.8) * 100).toFixed(0)}%</span>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          ))}
+        </TabsContent>
+        
+        <TabsContent value="recommendations" className="mt-6 space-y-4">
+          {results.recommendations.map((recommendation) => (
+            <Card key={recommendation.id} className="hover:shadow-md transition-shadow">
+              <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3 flex-1">
+                    <Target className="h-5 w-5 text-blue-500 mt-0.5" />
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{recommendation.title}</CardTitle>
+                      <div className="flex items-center gap-2 mt-2">
+                        {getImpactBadge(recommendation.impact || '')}
+                        {getDifficultyBadge(recommendation.difficulty || '')}
+                        <Badge variant="secondary">
+                          Priority {recommendation.priority || 1}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleRecommendation(recommendation.id)}
+                  >
+                    {expandedRecommendation === recommendation.id ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+              {expandedRecommendation === recommendation.id && (
+                <CardContent>
+                  <p className="text-muted-foreground mb-4">{recommendation.description}</p>
+                  <div className="flex gap-2">
+                    <Button size="sm">
+                      <ArrowRight className="h-4 w-4 mr-1" />
+                      Implement
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      Learn More
+                    </Button>
+                  </div>
+                </CardContent>
+              )}
+            </Card>
+          ))}
+        </TabsContent>
+        
+        <TabsContent value="visualizations" className="mt-6 space-y-6">
+          {results.visualizations.map((viz, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {viz.type === 'pie' && <PieChart className="h-5 w-5" />}
+                  {viz.type === 'bar' && <BarChart3 className="h-5 w-5" />}
+                  {viz.type === 'line' && <LineChart className="h-5 w-5" />}
+                  {viz.title}
+                </CardTitle>
+                {viz.description && (
+                  <CardDescription>{viz.description}</CardDescription>
+                )}
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 flex items-center justify-center bg-muted rounded-lg">
+                  <div className="text-center space-y-2">
+                    <BarChart3 className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <p className="text-sm text-muted-foreground">
+                      {viz.title} visualization would be rendered here
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Data: {viz.data.length} data points
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </TabsContent>
+      </Tabs>
+      
+      {/* Action Buttons */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-2">
+            <Button className="gap-2">
+              <Download className="h-4 w-4" />
+              Export Report
+            </Button>
+            <Button variant="outline" className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Share Results
+            </Button>
+            {onNewAnalysis && (
+              <Button variant="outline" onClick={onNewAnalysis} className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                New Analysis
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
