@@ -7,7 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { Wizard, WizardContent, WizardNavigation } from "./ui/wizard";
 import { FileUpload } from "./ui/file-upload";
 import { AnalysisType } from '../lib/api';
-import { LineChart, BarChart2, PieChart, ChevronRight, Loader2, Link as LinkIcon, Globe, Database, FileText, CheckCircle, AlertCircle, X } from "lucide-react";
+import { ChevronRight, Loader2, Link as LinkIcon, Globe, Database, FileText, CheckCircle, AlertCircle, X } from "lucide-react";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
 import { Textarea } from "./ui/textarea";
@@ -32,7 +32,6 @@ interface URLValidation {
 }
 
 export function AnalysisConfig({ 
-  analysisTypes = [], 
   onStartAnalysis, 
   isLoading 
 }: AnalysisConfigProps) {
@@ -40,10 +39,8 @@ export function AnalysisConfig({
   const [currentStep, setCurrentStep] = useState(0);
   const [isNextDisabled, setIsNextDisabled] = useState(false);
   
-  // Form state
-  const [analysisType, setAnalysisType] = useState("customer_feedback");
+  // Form state - simplified for intelligent auto-analysis
   const [dataSource, setDataSource] = useState("bigquery");
-  const [objectives, setObjectives] = useState<string[]>(["analyze_text", "discover_patterns", "detect_anomalies"]);
   const [projectId, setProjectId] = useState("intelliflow-project");
   const [datasetId, setDatasetId] = useState("customer_data");
   const [tableId, setTableId] = useState("feedback");
@@ -70,34 +67,20 @@ export function AnalysisConfig({
   const [dbConnectionString, setDbConnectionString] = useState("");
   const [dbQuery, setDbQuery] = useState("");
   
-  // Wizard steps
+  // Wizard steps - simplified to only data source and review
   const wizardSteps = [
-    { id: "analysis-type", title: "Analysis Type", description: "Select the type of analysis" },
-    { id: "data-source", title: "Data Source", description: "Configure your data source" },
-    { id: "objectives", title: "Objectives", description: "Define analysis objectives" },
-    { id: "advanced", title: "Advanced", description: "Configure advanced options" },
+    { id: "data-source", title: "Data Source", description: "Upload your data" },
     { id: "review", title: "Review", description: "Review and start analysis" }
   ];
-  
-  // Update objectives when analysis type changes
-  useEffect(() => {
-    const selectedType = analysisTypes.find(type => type.id === analysisType);
-    if (selectedType && selectedType.default_objectives) {
-      setObjectives(selectedType.default_objectives);
-    }
-  }, [analysisType, analysisTypes]);
   
   // Validate current step
   useEffect(() => {
     validateCurrentStep();
-  }, [currentStep, analysisType, dataSource, projectId, datasetId, tableId, objectives, selectedFiles, urlList, sheetsUrl, dbConnectionString]);
+  }, [currentStep, dataSource, projectId, datasetId, tableId, selectedFiles, urlList, sheetsUrl, dbConnectionString]);
   
   const validateCurrentStep = () => {
     switch (currentStep) {
-      case 0: // Analysis Type
-        setIsNextDisabled(!analysisType);
-        break;
-      case 1: // Data Source
+      case 0: // Data Source
         if (dataSource === "bigquery") {
           setIsNextDisabled(!projectId || !datasetId || !tableId);
         } else if (dataSource === "file_upload") {
@@ -112,13 +95,7 @@ export function AnalysisConfig({
           setIsNextDisabled(false);
         }
         break;
-      case 2: // Objectives
-        setIsNextDisabled(objectives.length === 0);
-        break;
-      case 3: // Advanced Options
-        setIsNextDisabled(false);
-        break;
-      case 4: // Review
+      case 1: // Review
         setIsNextDisabled(false);
         break;
       default:
@@ -292,17 +269,12 @@ export function AnalysisConfig({
       return;
     }
     
-    if (objectives.length === 0) {
-      setError("Please select at least one analysis objective");
-      return;
-    }
-    
     // Clear any previous errors
     setError("");
     
-    // Prepare analysis configuration
+    // Prepare analysis configuration with intelligent defaults
     const analysisConfig = {
-      type: analysisType,
+      type: "intelligent_analysis", // Let the system determine the best analysis type
       data_source: {
         source_type: dataSource,
         ...(dataSource === "bigquery" && {
@@ -333,7 +305,7 @@ export function AnalysisConfig({
           query: dbQuery
         })
       },
-      objectives: objectives,
+      objectives: ["auto_detect"], // Let the system determine objectives based on data
       parameters: {
         time_period: timePeriod,
         include_recommendations: includeRecommendations,
@@ -341,7 +313,8 @@ export function AnalysisConfig({
         visualization_config: {
           theme: visualizationTheme,
           use_data_studio: useDataStudio
-        }
+        },
+        auto_analysis: true // Enable intelligent analysis mode
       }
     };
     
@@ -393,116 +366,12 @@ export function AnalysisConfig({
               <CardHeader>
                 <div className="flex items-center space-x-2">
                   <div className="p-2 rounded-full bg-primary/10">
-                    <LineChart className="h-5 w-5 text-primary" />
-                  </div>
-                  <CardTitle>Analysis Type</CardTitle>
-                </div>
-                <CardDescription>
-                  Select the type of analysis you want to perform on your data.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${analysisType === 'customer_feedback' ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setAnalysisType('customer_feedback')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="rounded-full w-10 h-10 flex items-center justify-center bg-blue-500/10 mb-2">
-                        <PieChart className="h-5 w-5 text-blue-500" />
-                      </div>
-                      <CardTitle className="text-base">Customer Feedback</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Analyze customer comments and feedback to identify sentiment and key themes.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${analysisType === 'sales_trends' ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setAnalysisType('sales_trends')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="rounded-full w-10 h-10 flex items-center justify-center bg-green-500/10 mb-2">
-                        <LineChart className="h-5 w-5 text-green-500" />
-                      </div>
-                      <CardTitle className="text-base">Sales Trends</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Identify patterns and trends in sales data across different time periods.
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card 
-                    className={`cursor-pointer transition-all hover:border-primary ${analysisType === 'product_performance' ? 'border-primary bg-primary/5' : ''}`}
-                    onClick={() => setAnalysisType('product_performance')}
-                  >
-                    <CardHeader className="pb-2">
-                      <div className="rounded-full w-10 h-10 flex items-center justify-center bg-purple-500/10 mb-2">
-                        <BarChart2 className="h-5 w-5 text-purple-500" />
-                      </div>
-                      <CardTitle className="text-base">Product Performance</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <p className="text-sm text-muted-foreground">
-                        Evaluate product metrics and performance indicators to identify strengths and weaknesses.
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="analysis-type-select">Other Analysis Types</Label>
-                  <Select 
-                    value={analysisType} 
-                    onValueChange={setAnalysisType}
-                  >
-                    <SelectTrigger id="analysis-type-select" className="h-11">
-                      <SelectValue placeholder="Select analysis type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {analysisTypes.length > 0 ? (
-                        analysisTypes.map(type => (
-                          <SelectItem key={type.id} value={type.id}>
-                            {type.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <>
-                          <SelectItem value="customer_feedback">Customer Feedback Analysis</SelectItem>
-                          <SelectItem value="sales_trends">Sales Trends Analysis</SelectItem>
-                          <SelectItem value="product_performance">Product Performance Analysis</SelectItem>
-                          <SelectItem value="custom">Custom Analysis</SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {analysisTypes.find(type => type.id === analysisType)?.description || 
-                     "Analyze data to extract insights and patterns."}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {currentStep === 1 && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 rounded-full bg-primary/10">
                     <Database className="h-5 w-5 text-primary" />
                   </div>
                   <CardTitle>Data Source</CardTitle>
                 </div>
                 <CardDescription>
-                  Configure the data source for your analysis.
+                  Upload your data and let IntelliFlow intelligently analyze it for you.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -568,8 +437,8 @@ export function AnalysisConfig({
                       maxSizeInMB={50}
                       acceptedFileTypes={[".csv", ".xlsx", ".xls", ".json", ".txt", ".tsv", ".parquet"]}
                       label="Upload Data Files"
-                      description="Drag and drop your data files here, or click to browse. Supports CSV, Excel, JSON, and more."
-                      analysisType={analysisType}
+                      description="Drag and drop your data files here, or click to browse. IntelliFlow will automatically determine the best analysis approach for your data."
+                      analysisType="intelligent_analysis"
                     />
                   </div>
                 )}
@@ -729,113 +598,30 @@ export function AnalysisConfig({
           </div>
         )}
         
-        {currentStep === 2 && (
+        {currentStep === 1 && (
           <div className="space-y-6">
             <Card>
               <CardHeader>
                 <div className="flex items-center space-x-2">
                   <div className="p-2 rounded-full bg-primary/10">
-                    <BarChart2 className="h-5 w-5 text-primary" />
+                    <CheckCircle className="h-5 w-5 text-primary" />
                   </div>
-                  <CardTitle>Analysis Objectives</CardTitle>
+                  <CardTitle>Review & Start Analysis</CardTitle>
                 </div>
                 <CardDescription>
-                  Define what you want to discover from your data analysis.
+                  IntelliFlow will intelligently analyze your data and determine the best insights to extract.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { id: "analyze_text", label: "Text Analysis", description: "Extract insights from text data" },
-                    { id: "discover_patterns", label: "Pattern Discovery", description: "Find hidden patterns and trends" },
-                    { id: "detect_anomalies", label: "Anomaly Detection", description: "Identify unusual data points" },
-                    { id: "sentiment_analysis", label: "Sentiment Analysis", description: "Analyze emotional tone" },
-                    { id: "trend_analysis", label: "Trend Analysis", description: "Track changes over time" },
-                    { id: "correlation_analysis", label: "Correlation Analysis", description: "Find relationships between variables" }
-                  ].map((objective) => (
-                    <Card 
-                      key={objective.id}
-                      className={`cursor-pointer transition-all hover:border-primary ${
-                        objectives.includes(objective.id) ? 'border-primary bg-primary/5' : ''
-                      }`}
-                      onClick={() => {
-                        if (objectives.includes(objective.id)) {
-                          setObjectives(objectives.filter(o => o !== objective.id));
-                        } else {
-                          setObjectives([...objectives, objective.id]);
-                        }
-                      }}
-                    >
-                      <CardHeader className="pb-2">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm">{objective.label}</CardTitle>
-                          {objectives.includes(objective.id) && (
-                            <CheckCircle className="h-4 w-4 text-primary" />
-                          )}
-                        </div>
-                      </CardHeader>
-                      <CardContent className="pt-0">
-                        <p className="text-xs text-muted-foreground">
-                          {objective.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-                
-                <div className="mt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Selected objectives: {objectives.length > 0 ? objectives.join(', ') : 'None'}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {currentStep === 3 && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Advanced Options</CardTitle>
-                <CardDescription>
-                  Configure advanced analysis parameters (optional).
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-muted-foreground">
-                  Advanced options are automatically configured based on your analysis type and data source.
-                  You can proceed to review your configuration.
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-        
-        {currentStep === 4 && (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Review Configuration</CardTitle>
-                <CardDescription>
-                  Review your analysis configuration before starting.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="font-medium mb-2">Analysis Type</h4>
-                    <p className="text-sm text-muted-foreground">{analysisType.replace('_', ' ')}</p>
-                  </div>
-                  
                   <div>
                     <h4 className="font-medium mb-2">Data Source</h4>
                     <p className="text-sm text-muted-foreground">{dataSource.replace('_', ' ')}</p>
                   </div>
                   
                   <div>
-                    <h4 className="font-medium mb-2">Objectives</h4>
-                    <p className="text-sm text-muted-foreground">{objectives.length} selected</p>
+                    <h4 className="font-medium mb-2">Analysis Mode</h4>
+                    <p className="text-sm text-muted-foreground">Intelligent Auto-Analysis</p>
                   </div>
                   
                   <div>
@@ -846,7 +632,35 @@ export function AnalysisConfig({
                       {dataSource === "bigquery" && `${projectId}.${datasetId}.${tableId}`}
                       {dataSource === "google_sheets" && "Google Sheets"}
                       {dataSource === "database" && "Database query"}
+                      {dataSource === "cloud_storage" && "Cloud Storage"}
                     </p>
+                  </div>
+                  
+                  <div>
+                    <h4 className="font-medium mb-2">Features</h4>
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <div>• Automatic pattern detection</div>
+                      <div>• Smart insight generation</div>
+                      <div>• Interactive visualizations</div>
+                      <div>• Comprehensive reporting</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <div className="flex items-start space-x-3">
+                    <div className="p-1 rounded-full bg-blue-500/10">
+                      <Database className="h-4 w-4 text-blue-500" />
+                    </div>
+                    <div>
+                      <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                        Intelligent Analysis
+                      </h5>
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
+                        IntelliFlow will automatically determine the nature of your data, identify the most relevant analysis types, 
+                        and generate insights tailored to your specific dataset. No manual configuration required.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </CardContent>

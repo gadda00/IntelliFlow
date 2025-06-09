@@ -114,18 +114,19 @@ function App() {
       // Create a new analysis session using the session manager
       const session = sessionManager.createSession(config);
       
-      // Update session state with analysis context
+      // Update session state with enhanced analysis context
       sessionManager.updateSession(session.id, {
         state: {
           ...session.state,
           analysisConfig: config,
           processingSteps: [
-            { id: 'validation', status: 'pending', progress: 0 },
-            { id: 'preprocessing', status: 'pending', progress: 0 },
-            { id: 'analysis', status: 'pending', progress: 0 },
-            { id: 'insights', status: 'pending', progress: 0 },
-            { id: 'visualization', status: 'pending', progress: 0 },
-            { id: 'compilation', status: 'pending', progress: 0 }
+            { id: 'validation', status: 'pending', progress: 0, name: 'Data Validation & Upload Processing' },
+            { id: 'data_detection', status: 'pending', progress: 0, name: 'Intelligent Data Nature Detection' },
+            { id: 'preprocessing', status: 'pending', progress: 0, name: 'Data Preprocessing & Cleaning' },
+            { id: 'analysis', status: 'pending', progress: 0, name: 'Advanced Pattern Analysis' },
+            { id: 'insights', status: 'pending', progress: 0, name: 'AI-Powered Insight Generation' },
+            { id: 'visualization', status: 'pending', progress: 0, name: 'Dynamic Visualization Creation' },
+            { id: 'compilation', status: 'pending', progress: 0, name: 'Comprehensive Report Compilation' }
           ]
         }
       });
@@ -144,14 +145,15 @@ function App() {
       const response = await apiClient.startAnalysis(config);
       if (response.status === 'success') {
         
-        // Simulate progressive analysis steps
+        // Enhanced progressive analysis steps with intelligent data detection
         const steps = [
-          { id: 'validation', duration: 1000, name: 'Data Validation' },
-          { id: 'preprocessing', duration: 1500, name: 'Data Preprocessing' },
-          { id: 'analysis', duration: 2500, name: 'Pattern Analysis' },
-          { id: 'insights', duration: 2000, name: 'Insight Generation' },
-          { id: 'visualization', duration: 1500, name: 'Visualization Creation' },
-          { id: 'compilation', duration: 1000, name: 'Report Compilation' }
+          { id: 'validation', duration: 1200, name: 'Data Validation & Upload Processing' },
+          { id: 'data_detection', duration: 2000, name: 'Intelligent Data Nature Detection' },
+          { id: 'preprocessing', duration: 1800, name: 'Data Preprocessing & Cleaning' },
+          { id: 'analysis', duration: 3000, name: 'Advanced Pattern Analysis' },
+          { id: 'insights', duration: 2500, name: 'AI-Powered Insight Generation' },
+          { id: 'visualization', duration: 2000, name: 'Dynamic Visualization Creation' },
+          { id: 'compilation', duration: 1500, name: 'Comprehensive Report Compilation' }
         ];
         
         let totalProgress = 0;
