@@ -41,14 +41,7 @@ export function AnalysisConfig({
   
   // Form state - simplified for intelligent auto-analysis
   const [dataSource, setDataSource] = useState("bigquery");
-  const [projectId, setProjectId] = useState("intelliflow-project");
-  const [datasetId, setDatasetId] = useState("customer_data");
-  const [tableId, setTableId] = useState("feedback");
-  const [timePeriod] = useState("last_30_days");
-  const [visualizationTheme] = useState("light");
-  const [insightThreshold] = useState(0.7);
-  const [includeRecommendations] = useState(true);
-  const [useDataStudio] = useState(false);
+  const [analysisName, setAnalysisName] = useState("");
   const [error, setError] = useState("");
   
   // File upload state
@@ -76,23 +69,23 @@ export function AnalysisConfig({
   // Validate current step
   useEffect(() => {
     validateCurrentStep();
-  }, [currentStep, dataSource, projectId, datasetId, tableId, selectedFiles, urlList, sheetsUrl, dbConnectionString]);
+  }, [currentStep, dataSource, analysisName, selectedFiles, urlList, sheetsUrl, dbConnectionString]);
   
   const validateCurrentStep = () => {
     switch (currentStep) {
       case 0: // Data Source
         if (dataSource === "bigquery") {
-          setIsNextDisabled(!projectId || !datasetId || !tableId);
+          setIsNextDisabled(!analysisName);
         } else if (dataSource === "file_upload") {
-          setIsNextDisabled(selectedFiles.length === 0);
+          setIsNextDisabled(selectedFiles.length === 0 || !analysisName);
         } else if (dataSource === "url") {
-          setIsNextDisabled(urlList.filter(u => u.isValid).length === 0);
+          setIsNextDisabled(urlList.filter(u => u.isValid).length === 0 || !analysisName);
         } else if (dataSource === "google_sheets") {
-          setIsNextDisabled(!sheetsUrl);
+          setIsNextDisabled(!sheetsUrl || !analysisName);
         } else if (dataSource === "database") {
-          setIsNextDisabled(!dbConnectionString || !dbQuery);
+          setIsNextDisabled(!dbConnectionString || !dbQuery || !analysisName);
         } else {
-          setIsNextDisabled(false);
+          setIsNextDisabled(!analysisName);
         }
         break;
       case 1: // Review
@@ -244,8 +237,8 @@ export function AnalysisConfig({
       return;
     }
     
-    if (dataSource === "bigquery" && (!projectId || !datasetId || !tableId)) {
-      setError("Please fill in all BigQuery details");
+    if (!analysisName.trim()) {
+      setError("Please provide an analysis name");
       return;
     }
     
@@ -275,12 +268,14 @@ export function AnalysisConfig({
     // Prepare analysis configuration with intelligent defaults
     const analysisConfig = {
       type: "intelligent_analysis", // Let the system determine the best analysis type
+      analysisName: analysisName.trim(),
       data_source: {
         source_type: dataSource,
+        // Use predefined BigQuery settings for demo
         ...(dataSource === "bigquery" && {
-          project_id: projectId,
-          dataset_id: datasetId,
-          table_id: tableId
+          project_id: "intelliflow-project",
+          dataset_id: "customer_data",
+          table_id: "feedback"
         }),
         ...(dataSource === "file_upload" && {
           files: selectedFiles.map(file => ({
@@ -307,12 +302,12 @@ export function AnalysisConfig({
       },
       objectives: ["auto_detect"], // Let the system determine objectives based on data
       parameters: {
-        time_period: timePeriod,
-        include_recommendations: includeRecommendations,
-        insight_threshold: insightThreshold,
+        time_period: "last_30_days",
+        include_recommendations: true,
+        insight_threshold: 0.7,
         visualization_config: {
-          theme: visualizationTheme,
-          use_data_studio: useDataStudio
+          theme: "light",
+          use_data_studio: false
         },
         auto_analysis: true // Enable intelligent analysis mode
       }
@@ -398,39 +393,46 @@ export function AnalysisConfig({
                 {dataSource === "bigquery" && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="project-id">Project ID</Label>
+                      <Label htmlFor="analysis-name">Analysis Name</Label>
                       <Input
-                        id="project-id"
-                        value={projectId}
-                        onChange={(e) => setProjectId(e.target.value)}
-                        placeholder="Enter your BigQuery project ID"
+                        id="analysis-name"
+                        value={analysisName}
+                        onChange={(e) => setAnalysisName(e.target.value)}
+                        placeholder="Enter a name for this analysis"
+                        className="h-11"
                       />
                     </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="dataset-id">Dataset ID</Label>
-                      <Input
-                        id="dataset-id"
-                        value={datasetId}
-                        onChange={(e) => setDatasetId(e.target.value)}
-                        placeholder="Enter your BigQuery dataset ID"
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="table-id">Table ID</Label>
-                      <Input
-                        id="table-id"
-                        value={tableId}
-                        onChange={(e) => setTableId(e.target.value)}
-                        placeholder="Enter your BigQuery table ID"
-                      />
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-start space-x-3">
+                        <div className="p-1 rounded-full bg-blue-100">
+                          <Database className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-blue-900">Pre-configured BigQuery Connection</h4>
+                          <p className="text-sm text-blue-700 mt-1">
+                            Using: intelliflow-project.customer_data.feedback
+                          </p>
+                          <p className="text-xs text-blue-600 mt-1">
+                            IntelliFlow will automatically connect to the demo dataset for analysis.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
                 
                 {dataSource === "file_upload" && (
                   <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="analysis-name-file">Analysis Name</Label>
+                      <Input
+                        id="analysis-name-file"
+                        value={analysisName}
+                        onChange={(e) => setAnalysisName(e.target.value)}
+                        placeholder="Enter a name for this analysis"
+                        className="h-11"
+                      />
+                    </div>
                     <FileUpload
                       onFilesSelected={handleFilesSelected}
                       maxFiles={10}
@@ -445,6 +447,16 @@ export function AnalysisConfig({
                 
                 {dataSource === "url" && (
                   <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="analysis-name-url">Analysis Name</Label>
+                      <Input
+                        id="analysis-name-url"
+                        value={analysisName}
+                        onChange={(e) => setAnalysisName(e.target.value)}
+                        placeholder="Enter a name for this analysis"
+                        className="h-11"
+                      />
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="data-url">Data URL</Label>
                       <div className="flex space-x-2">
@@ -629,7 +641,7 @@ export function AnalysisConfig({
                     <p className="text-sm text-muted-foreground">
                       {dataSource === "file_upload" && `${selectedFiles.length} files`}
                       {dataSource === "url" && `${urlList.filter(u => u.isValid).length} URLs`}
-                      {dataSource === "bigquery" && `${projectId}.${datasetId}.${tableId}`}
+                      {dataSource === "bigquery" && "intelliflow-project.customer_data.feedback"}
                       {dataSource === "google_sheets" && "Google Sheets"}
                       {dataSource === "database" && "Database query"}
                       {dataSource === "cloud_storage" && "Cloud Storage"}

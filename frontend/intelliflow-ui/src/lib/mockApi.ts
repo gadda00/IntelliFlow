@@ -208,14 +208,18 @@ export const mockApiClient = {
     
     try {
       // Generate sample data based on configuration
-      const sampleData = generateSampleData(analysisConfig.dataSource);
+      const sampleData = generateSampleData(analysisConfig.data_source?.source_type || 'bigquery');
       
-      // Execute real AI analysis using enhanced agents
+      // Use analysis name for better tracking
+      const analysisName = analysisConfig.analysisName || `Analysis ${new Date().toLocaleDateString()}`;
+      
       // Generate enhanced analysis result with mock data
       const analysisResult = {
         status: 'completed',
         confidence: 0.92,
         processingTime: 45000,
+        analysisName: analysisName,
+        dataSource: analysisConfig.data_source?.source_type || 'bigquery',
         agentResults: {
           'data-scout': {
             agent: 'Data Scout',
@@ -238,7 +242,7 @@ export const mockApiClient = {
           recommendationCount: 5,
           visualizationCount: 4
         },
-        executiveSummary: 'Comprehensive analysis reveals strong data patterns with high-confidence insights for strategic decision-making.',
+        executiveSummary: `Comprehensive analysis of "${analysisName}" reveals strong data patterns with high-confidence insights for strategic decision-making.`,
         keyFindings: [
           {
             title: 'Significant Growth Trend Identified',

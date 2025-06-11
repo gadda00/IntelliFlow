@@ -1,239 +1,235 @@
-# IntelliFlow
+# IntelliFlow - Multi-Agent Data Analysis Platform
 
-IntelliFlow is an intelligent data analysis platform that leverages agent-based architecture and Google Cloud services to provide powerful, automated data analysis capabilities.
+IntelliFlow is a sophisticated multi-agent data analysis and insights platform that orchestrates seven specialized AI agents to extract, process, analyze, and visualize data from diverse sources. The platform transforms raw information into actionable business intelligence with minimal human intervention, enabling organizations to make data-driven decisions quickly and effectively.
 
-## Table of Contents
+## 🚀 Features
 
-- [Overview](#overview)
-- [Features](#features)
-- [Architecture](#architecture)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Development](#development)
-- [Contributing](#contributing)
-- [ADK Contributions](#adk-contributions)
-- [Team](#team)
-- [License](#license)
+### 🤖 Seven Specialized AI Agents
+- **Data Scout Agent**: Intelligent data discovery, validation, and quality assessment
+- **Data Engineer Agent**: Advanced data preprocessing, cleaning, and transformation
+- **Analysis Strategist Agent**: Strategic analysis planning and methodology selection
+- **Pattern Detective Agent**: Complex pattern recognition and trend identification
+- **Insight Generator Agent**: AI-powered insight generation using machine learning
+- **Visualization Specialist Agent**: Dynamic chart creation and visual representation
+- **Narrative Composer Agent**: Comprehensive report compilation and storytelling
 
-## Overview
+### 🧠 Intelligent Analysis Features
+- **Auto-Detection**: Automatically determines data nature and optimal analysis approach
+- **Real-time Processing**: Live agent coordination with progress tracking
+- **High-Quality Results**: Consistent, accurate analysis regardless of input data
+- **Multi-format Support**: CSV, Excel, JSON, BigQuery, Google Sheets, APIs, and databases
+- **Professional Reporting**: APA format PDF export with IntelliFlow branding
 
-IntelliFlow combines the power of the Agent Development Kit (ADK) with Google Cloud services to create a flexible, scalable platform for data analysis. The system uses multiple specialized agents that work together to ingest, process, analyze, and visualize data, providing valuable insights to users.
+### 🔧 Google ADK Integration
+- **Enhanced Agent Communication**: Secure, reliable message passing between agents
+- **Advanced Planning System**: Hierarchical planning for complex analytical workflows
+- **Intelligent Memory Management**: Short-term, long-term, and working memory for agents
+- **Real-time Monitoring**: Live agent performance tracking and visualization
+- **Optimized Performance**: Google Cloud-native patterns for maximum efficiency
 
-## Features
+### 🎨 Modern User Experience
+- **Streamlined Workflow**: Simple data upload → intelligent analysis → comprehensive results
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Interactive Visualizations**: Dynamic charts and graphs for data exploration
+- **Professional UI**: Clean, intuitive interface with accessibility compliance
 
-### Agent-Based Architecture
-- **Orchestrator Agent**: Coordinates the overall workflow and communication between agents
-- **Data Ingestion Agent**: Handles data loading, cleaning, and preprocessing
-- **Analysis Agent**: Performs statistical analysis and modeling
-- **Visualization Agent**: Creates charts and graphs
-- **Insight Generation Agent**: Extracts insights and generates reports
+## 🏗️ Architecture
 
-### Enhanced ADK Integration
-- **Robust Agent Communication**: Secure, reliable message passing between agents
-- **Planning and Goal Setting**: Hierarchical planning system for complex workflows
-- **Memory Management**: Short-term, long-term, and working memory for agents
-- **Agent Monitoring**: Real-time monitoring and visualization of agent activities
-- **Data Analysis**: Comprehensive data preprocessing, analysis, and visualization capabilities
-
-### Google Cloud Integration
-- **BigQuery Integration**: Powerful data querying and analysis
-- **Vertex AI Integration**: Advanced machine learning capabilities
-- **Gemini API Integration**: State-of-the-art language model integration
-- **Cloud Storage Integration**: Scalable data storage
-- **Pub/Sub Integration**: Real-time messaging and event handling
-- **Cloud Functions Integration**: Serverless compute for specific tasks
-
-### Modern UI/UX
-- **Intuitive Dashboard**: Clear overview of analyses and insights
-- **Multi-Step Wizard**: Guided analysis configuration
-- **Interactive Visualizations**: Explore data through dynamic charts
-- **Responsive Design**: Works on desktop and mobile devices
-- **Accessibility**: WCAG 2.1 compliant interface
-
-## Architecture
-
-IntelliFlow follows a modular, microservices-based architecture:
+IntelliFlow follows a sophisticated multi-agent architecture powered by Google ADK:
 
 ```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│   Frontend UI   │◄────┤   API Gateway   │◄────┤  Authentication │
-└────────┬────────┘     └────────┬────────┘     └─────────────────┘
-         │                       │
-         ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Orchestration  │◄────┤  Message Bus    │◄────┤  Agent Registry │
-└────────┬────────┘     └─────────────────┘     └─────────────────┘
-         │
-         ▼
-┌───────────────────────────────────────────────────────────────────┐
-│                           Agent Pool                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐  │
-│  │ Data Agent  │  │Analysis Agent│  │  Viz Agent  │  │ Insights │  │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘  │
-└───────────────────────────────────────────────────────────────────┘
-         │                │                │               │
-         ▼                ▼                ▼               ▼
-┌───────────────────────────────────────────────────────────────────┐
-│                       Google Cloud Services                       │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐  │
-│  │  BigQuery   │  │  Vertex AI  │  │   Storage   │  │  Pub/Sub │  │
-│  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘  │
-└───────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│                        IntelliFlow Frontend                         │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐   │
+│  │ Data Upload │  │ Agent Status│  │ Results View│  │ PDF Export│   │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘   │
+└─────────────────────────┬───────────────────────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────────────────────┐
+│                   Agent Orchestration Layer                         │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                 Orchestrator Agent                          │   │
+│  │  • Workflow coordination  • Agent communication            │   │
+│  │  • Task distribution     • Progress monitoring             │   │
+│  └─────────────────────────────────────────────────────────────┘   │
+└─────────────────────────┬───────────────────────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────────────────────┐
+│                    Specialized Agent Pool                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐   │
+│  │ Data Scout  │  │Data Engineer│  │ Strategist  │  │ Detective│   │
+│  │ • Discovery │  │ • Cleaning  │  │ • Planning  │  │ • Patterns│   │
+│  │ • Validation│  │ • Transform │  │ • Strategy  │  │ • Trends  │   │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘   │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                 │
+│  │ Insight Gen │  │ Viz Special │  │ Narrative   │                 │
+│  │ • ML Insights│  │ • Charts   │  │ • Reports   │                 │
+│  │ • Predictions│  │ • Graphs   │  │ • Stories   │                 │
+│  └─────────────┘  └─────────────┘  └─────────────┘                 │
+└─────────────────────────┬───────────────────────────────────────────┘
+                          │
+┌─────────────────────────▼───────────────────────────────────────────┐
+│                    Google Cloud Services                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌──────────┐   │
+│  │ Gemini API  │  │  BigQuery   │  │ Vertex AI   │  │ Storage  │   │
+│  │ • AI Analysis│  │ • Data Query│  │ • ML Models │  │ • Files  │   │
+│  │ • Insights  │  │ • Processing│  │ • Predictions│  │ • Cache  │   │
+│  └─────────────┘  └─────────────┘  └─────────────┘  └──────────┘   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## Installation
+## 🛠️ Installation & Setup
 
 ### Prerequisites
-- Python 3.8 or higher
-- Node.js 14 or higher
-- Google Cloud account with required services enabled
-- ADK 0.0.5 or higher
+- Node.js 18+ and npm
+- Google Cloud account (for production features)
+- Modern web browser
 
-### Backend Setup
+### Quick Start
 
-1. Clone the repository:
+1. **Clone the repository:**
 ```bash
 git clone https://github.com/gadda00/IntelliFlow.git
 cd IntelliFlow
 ```
 
-2. Create and activate a virtual environment:
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\\Scripts\\activate
-```
-
-3. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-4. Set up Google Cloud credentials:
-```bash
-export GOOGLE_APPLICATION_CREDENTIALS="path/to/your/credentials.json"
-```
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
+2. **Frontend Setup:**
 ```bash
 cd frontend/intelliflow-ui
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
-
-3. Create a `.env` file with your configuration:
-```
-VITE_API_URL=http://localhost:5000/api
-VITE_GOOGLE_CLIENT_ID=your-google-client-id
-```
-
-## Usage
-
-### Running the Backend
-
-```bash
-cd IntelliFlow
-python main.py
-```
-
-### Running the Frontend
-
-```bash
-cd frontend/intelliflow-ui
 npm run dev
 ```
 
-### Accessing the Application
+3. **Access the application:**
+Open your browser to `http://localhost:5173`
 
-Open your browser and navigate to `http://localhost:3000`
+### Production Deployment
 
-### Live Demo
+The application is deployed on Vercel and accessible at:
+**🌐 [https://intelli-flow-brown.vercel.app/](https://intelli-flow-brown.vercel.app/)**
 
-You can access the live demo of IntelliFlow at:
-- [https://intelli-flow-brown.vercel.app/](https://intelli-flow-brown.vercel.app/)
+## 📖 Usage Guide
 
-## Development
+### Simple 3-Step Process
 
-### Project Structure
+1. **📁 Upload Data**: Choose your data source (BigQuery, files, URLs, Google Sheets, or databases)
+2. **🤖 AI Analysis**: Watch as 7 specialized agents intelligently analyze your data
+3. **📊 Get Results**: Receive comprehensive insights with professional PDF reports
+
+### Supported Data Sources
+
+- **Google BigQuery**: Pre-configured demo dataset
+- **File Upload**: CSV, Excel, JSON, TSV, Parquet files
+- **URLs**: Direct links to data files or APIs
+- **Google Sheets**: Public or shared spreadsheets
+- **Databases**: SQL connections with custom queries
+- **Cloud Storage**: Various cloud storage providers
+
+### Analysis Features
+
+- **Automatic Data Type Detection**: Agents automatically identify data patterns
+- **Quality Assessment**: Comprehensive data quality scoring and recommendations
+- **Pattern Recognition**: Advanced statistical and ML-based pattern detection
+- **Insight Generation**: AI-powered insights using Gemini API
+- **Visual Analytics**: Dynamic charts, graphs, and interactive visualizations
+- **Professional Reporting**: APA format reports with executive summaries
+
+## 🏆 Google Cloud Multi-Agents Hackathon
+
+IntelliFlow is designed for the [Google Cloud Multi-Agents Hackathon](https://googlecloudmultiagents.devpost.com/), showcasing:
+
+### 🎯 Hackathon Highlights
+- **Multi-Agent Orchestration**: Seven specialized agents working in harmony
+- **Google ADK Integration**: Advanced agent development patterns
+- **Gemini API Usage**: Real AI-powered analysis and insights
+- **Production Ready**: Deployed and accessible platform
+- **Business Value**: Transforms data into actionable intelligence
+
+### 🔧 Technical Excellence
+- **Scalable Architecture**: Microservices-based agent system
+- **Real-time Coordination**: Live agent communication and monitoring
+- **Intelligent Automation**: Minimal human intervention required
+- **Professional Output**: Enterprise-grade reports and visualizations
+- **Cloud-Native**: Optimized for Google Cloud services
+
+## 🤝 Contributing
+
+We welcome contributions to IntelliFlow! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and add tests
+4. **Commit your changes**: `git commit -m 'Add amazing feature'`
+5. **Push to the branch**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request**
+
+### Development Guidelines
+- Follow the existing code style and patterns
+- Add tests for new features
+- Update documentation as needed
+- Ensure all agents work harmoniously
+
+## 📁 Project Structure
 
 ```
 IntelliFlow/
-├── agents/                 # Agent implementations
-│   ├── orchestrator/       # Orchestrator agent
-│   ├── data_ingestion/     # Data ingestion agent
-│   ├── analysis/           # Analysis agent
-│   ├── visualization/      # Visualization agent
-│   └── insight_generation/ # Insight generation agent
-├── common/                 # Shared utilities and helpers
+├── agents/                 # 7 Specialized AI Agents
+│   ├── orchestrator/       # Main coordination agent
+│   ├── data_scout/         # Data discovery & validation
+│   ├── data_engineer/      # Data processing & cleaning
+│   ├── analysis_strategist/# Analysis planning & strategy
+│   ├── pattern_detective/  # Pattern recognition & trends
+│   ├── insight_generator/  # AI-powered insights
+│   ├── visualization_specialist/ # Charts & visualizations
+│   └── narrative_composer/ # Report generation
+├── common/                 # Shared utilities
 │   ├── enhanced_adk/       # Enhanced ADK implementation
-│   │   ├── data_analysis/  # Data analysis module
-│   │   ├── planning/       # Planning module
-│   │   ├── memory/         # Memory module
-│   │   ├── monitoring/     # Monitoring module
-│   │   └── communication/  # Communication module
-│   └── utils/              # Utility functions
+│   └── utils/              # Helper functions
 ├── integrations/           # External service integrations
-│   └── google_cloud/       # Google Cloud integrations
-├── orchestration/          # Orchestration system
-│   ├── message_bus/        # Message bus implementation
-│   └── workflow_manager/   # Workflow management
-├── frontend/               # Frontend application
-│   └── intelliflow-ui/     # React application
-├── examples/               # Example implementations
-├── adk_contributions/      # ADK open source contributions
-├── tests/                  # Test suite
+│   └── google_cloud/       # Google Cloud services
+├── orchestration/          # Agent coordination system
+│   ├── message_bus/        # Inter-agent communication
+│   └── workflow_manager/   # Workflow orchestration
+├── frontend/               # React application
+│   └── intelliflow-ui/     # Main UI application
 ├── docs/                   # Documentation
 └── main.py                 # Application entry point
 ```
 
-### Development Workflow
+## 🎖️ ADK Contributions
 
-1. Create a new branch for your feature or bugfix:
-```bash
-git checkout -b feature/your-feature-name
-```
+IntelliFlow actively contributes to the Google ADK ecosystem:
 
-2. Make your changes and write tests
+### Enhanced Agent Templates
+- **Data Analysis Agent**: Comprehensive data preprocessing and analysis
+- **Visualization Agent**: Advanced charting and graph generation
+- **Insight Generation Agent**: ML-powered insight extraction
+- **Orchestration Patterns**: Multi-agent coordination strategies
 
-3. Run the test suite:
-```bash
-pytest
-```
+### Open Source Contributions
+- **Agent Communication Protocols**: Secure, reliable message passing
+- **Memory Management Systems**: Efficient agent memory handling
+- **Monitoring & Analytics**: Real-time agent performance tracking
+- **Planning Algorithms**: Hierarchical task planning for agents
 
-4. Submit a pull request
+## 👨‍💻 Team
 
-## Contributing
+- **Victor Ndunda** - Lead Developer & AI Architect
+- **IntelliFlow Team** - Multi-Agent System Specialists
 
-We welcome contributions to IntelliFlow! Please see our [Contributing Guide](CONTRIBUTING.md) for more details.
+## 📄 License
 
-## ADK Contributions
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-IntelliFlow actively contributes to the Google ADK Python repository. Our contributions include:
+## 🌟 Acknowledgments
 
-### Data Analysis Module
+- Google Cloud team for the Multi-Agents Hackathon
+- Google ADK community for the excellent agent development framework
+- Open source contributors who made this project possible
 
-We've implemented comprehensive data preprocessing tools for the Data Analysis Agent template, enabling it to handle common data quality issues and prepare data for analysis. These tools include:
+---
 
-- **Missing Value Handling**: Methods for detecting, removing, or imputing missing values using various strategies (drop, fill with mean/median/mode/constant, forward/backward fill, interpolation).
-- **Outlier Detection and Treatment**: Methods for identifying and handling outliers using different approaches (z-score, IQR, percentile) and treatments (remove, cap, replace with null).
-- **Feature Engineering**: Tools for creating new features from existing ones, including polynomial features, interaction terms, binning, and date/time feature extraction.
-- **Categorical Encoding**: Methods for encoding categorical variables using various techniques (one-hot, label, ordinal, target encoding).
-- **Data Normalization**: Tools for normalizing or standardizing numeric data using different methods (min-max, z-score, robust scaling, log transformation).
-- **Duplicate Removal**: Methods for identifying and removing duplicate records.
-- **Data Type Conversion**: Tools for converting column data types (numeric, datetime, category).
+**🚀 Ready to transform your data into intelligence? Try IntelliFlow today!**
 
-For more details, see our [ADK Contributions README](adk_contributions/README.md).
-
-## Team
-
-- **Victor Ndunda** - Lead Developer
-
-## License
-
-IntelliFlow is licensed under the MIT License. See [LICENSE](LICENSE) for more information.
-
+[**🌐 Live Demo**](https://intelli-flow-brown.vercel.app/) | [**📖 Documentation**](docs/) | [**🤝 Contribute**](CONTRIBUTING.md)
 
