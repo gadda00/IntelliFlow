@@ -454,7 +454,63 @@ class VisualizationSpecialistAgent(Agent):
         insight_type = insight.get("type")
         description = insight.get("description", "")
         
-        if insight_type == "statistical":
+        if insight_type == "descriptive_summary":
+            # Create box plot for descriptive statistics showing distribution
+            return await self.execute_tool(
+                "ChartGenerationTool",
+                data=data,
+                chart_type="box",
+                parameters={
+                    "title": "Data Distribution Analysis",
+                    "x_axis_title": "Groups",
+                    "y_axis_title": "Values",
+                    "show_outliers": True,
+                    "description": description
+                }
+            )
+        elif insight_type == "correlation_insight":
+            # Create correlation heatmap
+            return await self.execute_tool(
+                "ChartGenerationTool",
+                data=data,
+                chart_type="heatmap",
+                parameters={
+                    "title": "Variable Correlation Matrix",
+                    "x_axis_title": "Variables",
+                    "y_axis_title": "Variables",
+                    "color_scheme": "correlation",
+                    "description": description
+                }
+            )
+        elif insight_type == "clustering_insight":
+            # Create scatter plot for clusters
+            return await self.execute_tool(
+                "ChartGenerationTool",
+                data=data,
+                chart_type="scatter",
+                parameters={
+                    "title": "Data Segmentation Clusters",
+                    "x_axis_title": "Component 1",
+                    "y_axis_title": "Component 2",
+                    "color_by": "cluster",
+                    "description": description
+                }
+            )
+        elif insight_type == "predictive_insight":
+            # Create regression plot
+            return await self.execute_tool(
+                "ChartGenerationTool",
+                data=data,
+                chart_type="line",
+                parameters={
+                    "title": "Predictive Model Performance",
+                    "x_axis_title": "Actual Values",
+                    "y_axis_title": "Predicted Values",
+                    "show_trend_line": True,
+                    "description": description
+                }
+            )
+        elif insight_type == "statistical":
             if "distribution" in description.lower():
                 return await self.execute_tool(
                     "ChartGenerationTool",
