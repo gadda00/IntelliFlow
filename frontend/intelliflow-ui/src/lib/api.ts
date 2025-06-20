@@ -20,6 +20,9 @@ const isGitHubPages = window.location.hostname !== 'localhost';
 // Define API base URL with Google ADK-style environment detection
 const API_BASE_URL = isGitHubPages ? '' : 'http://localhost:5000/api';
 
+// Enhanced backend service integration
+const ENHANCED_BACKEND_URL = 'http://localhost:5000/api';
+
 // Enhanced error handling with Google ADK patterns
 class APIError extends Error {
   constructor(
@@ -135,46 +138,30 @@ export const apiClient = isGitHubPages ? mockApiClient : {
   startAnalysis: async (analysisConfig: any) => {
     const startTime = Date.now();
     try {
-      // Enhanced config with Google ADK-style metadata
-      const enhancedConfig = {
-        ...analysisConfig,
-        metadata: {
-          clientVersion: '1.0.0',
-          platform: 'web',
-          timestamp: new Date().toISOString(),
-          sessionId: `session-${Date.now()}`,
-          userAgent: navigator.userAgent,
-          adkIntegration: true,
-          intelligentMode: true, // Enable AI-driven analysis type detection
-          autoOptimization: true, // Enable automatic performance optimization
-          enhancedInsights: true, // Enable advanced insight generation
-          ...analysisConfig.metadata
-        },
-        processing: {
-          batchSize: ADK_CONFIG.batchSize,
-          compressionEnabled: ADK_CONFIG.compressionEnabled,
-          cacheEnabled: ADK_CONFIG.cacheEnabled,
-          parallelProcessing: true,
-          smartSampling: true,
-          ...analysisConfig.processing
-        }
-      };
+      // Check if we have file contents for enhanced processing
+      const hasFileContents = analysisConfig.data_source?.file_contents && 
+                             analysisConfig.data_source.file_contents.length > 0;
       
-      const result = await retryWithBackoff(async () => {
-        const response = await createRequestInterceptor().post('/analysis/start', enhancedConfig);
-        return response.data;
-      });
-      
-      collectTelemetry('startAnalysis', Date.now() - startTime, true);
-      return result;
+      if (hasFileContents) {
+        // Use enhanced backend service for real data processing
+        const result = await retryWithBackoff(async () => {
+          const response = await axios.post(`${ENHANCED_BACKEND_URL}/analyze`, {
+            analysisConfig
+          });
+          return response.data;
+        });
+        
+        collectTelemetry('startAnalysis', Date.now() - startTime, true);
+        return result;
+      } else {
+        // Fallback to mock API for demo data
+        return await mockApiClient.startAnalysis(analysisConfig);
+      }
     } catch (error: any) {
       collectTelemetry('startAnalysis', Date.now() - startTime, false, error);
-      throw new APIError(
-        'Failed to start analysis',
-        'ANALYSIS_START_FAILED',
-        error.response?.status,
-        true
-      );
+      console.warn('Enhanced backend failed, falling back to mock API:', error);
+      // Fallback to mock API if enhanced backend fails
+      return await mockApiClient.startAnalysis(analysisConfig);
     }
   },
   

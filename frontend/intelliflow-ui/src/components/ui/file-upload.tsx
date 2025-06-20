@@ -6,7 +6,7 @@ import { AlertCircle, FileText, Upload, X, Database, FileSpreadsheet, FileCode }
 import { Alert, AlertDescription, AlertTitle } from "./alert";
 
 interface FileUploadProps {
-  onFilesSelected: (files: File[]) => void;
+  onFilesSelected: (files: { file: File; content: string }[]) => void;
   maxFiles?: number;
   maxSizeInMB?: number;
   acceptedFileTypes?: string[];
@@ -57,6 +57,20 @@ export function FileUpload({
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
+  };
+
+  // Helper function to read file content
+  const readFileContent = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        resolve(e.target?.result as string);
+      };
+      reader.onerror = () => {
+        reject(new Error(`Failed to read file: ${file.name}`));
+      };
+      reader.readAsText(file);
+    });
   };
 
   const analyzeFile = async (file: File): Promise<any> => {
@@ -130,8 +144,7 @@ export function FileUpload({
       };
 
       // Read only first 10KB for analysis to avoid performance issues
-      const blob = file.slice(0, 10240);
-      reader.readAsText(blob);
+      reader.readAsText(file);
     });
   };
 
@@ -210,7 +223,15 @@ export function FileUpload({
         const newFiles = [...files, ...validFiles];
         setFiles(newFiles);
         simulateUpload(validFiles);
-        onFilesSelected(newFiles);
+        
+        // Read file contents and pass to parent
+        const filesWithContent = await Promise.all(
+          newFiles.map(async (file) => {
+            const content = await readFileContent(file);
+            return { file, content };
+          })
+        );
+        onFilesSelected(filesWithContent);
       }
     }
   };
@@ -222,15 +243,31 @@ export function FileUpload({
         const newFiles = [...files, ...validFiles];
         setFiles(newFiles);
         simulateUpload(validFiles);
-        onFilesSelected(newFiles);
+        
+        // Read file contents and pass to parent
+        const filesWithContent = await Promise.all(
+          newFiles.map(async (file) => {
+            const content = await readFileContent(file);
+            return { file, content };
+          })
+        );
+        onFilesSelected(filesWithContent);
       }
     }
   };
 
-  const handleRemoveFile = (fileToRemove: File) => {
+  const handleRemoveFile = async (fileToRemove: File) => {
     const updatedFiles = files.filter(file => file !== fileToRemove);
     setFiles(updatedFiles);
-    onFilesSelected(updatedFiles);
+    
+    // Read file contents and pass to parent
+    const filesWithContent = await Promise.all(
+      updatedFiles.map(async (file) => {
+        const content = await readFileContent(file);
+        return { file, content };
+      })
+    );
+    onFilesSelected(filesWithContent);
     
     // Remove progress and analysis for this file
     const newProgress = { ...uploadProgress };

@@ -46,6 +46,7 @@ export function AnalysisConfig({
   
   // File upload state
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [uploadedFileContents, setUploadedFileContents] = useState<{ name: string; content: string }[]>([]);
   
   // Enhanced URL state
   const [dataUrl, setDataUrl] = useState("");
@@ -226,8 +227,9 @@ export function AnalysisConfig({
     }
   };
   
-  const handleFilesSelected = (files: File[]) => {
-    setSelectedFiles(files);
+  const handleFilesSelected = (files: { file: File; content: string }[]) => {
+    setSelectedFiles(files.map(f => f.file));
+    setUploadedFileContents(files.map(f => ({ name: f.file.name, content: f.content })));
   };
   
   const handleSubmit = () => {
@@ -282,7 +284,8 @@ export function AnalysisConfig({
             name: file.name,
             size: file.size,
             type: file.type
-          }))
+          })),
+          file_contents: uploadedFileContents // Pass the actual file contents
         }),
         ...(dataSource === "url" && {
           urls: urlList.filter(u => u.isValid).map(u => ({

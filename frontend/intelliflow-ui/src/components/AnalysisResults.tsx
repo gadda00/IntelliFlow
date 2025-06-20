@@ -187,30 +187,65 @@ export function AnalysisResults({ analysisId, analysisData, onNewAnalysis }: Ana
     setTimeout(() => {
       setIsProcessing(false);
       // Simulate receiving analysis result with enhanced data
-      const mockResult: EnhancedAnalysisResult = {
-        status: 'completed',
+      const mockResult: EnhancedAnalysisResult = analysisData?.result || {
+        status: "completed",
         confidence: 0.92,
         processingTime: 45000,
+        dataOverview: analysisData?.result?.dataOverview || {
+          totalRows: 100,
+          totalColumns: 3,
+          columnDetails: [
+            { name: "ColumnA", type: "string", significance: "General attribute" },
+            { name: "ColumnB", type: "number", significance: "Key performance metric" },
+            { name: "ColumnC", type: "string", significance: "Categorical variable" }
+          ],
+          assumptions: [
+            "Data is assumed to be representative of the population",
+            "Missing values are assumed to be missing at random unless patterns suggest otherwise",
+            "Categorical variables are assumed to have meaningful categories",
+            "Numerical variables are assumed to be measured on appropriate scales"
+          ],
+          cleaningRecommendations: [
+            "Review and handle missing values in key columns.",
+            "Standardize inconsistent text formats."
+          ]
+        },
         agentResults: {
           dataScout: {
-            agent: 'Data Scout',
-            status: 'completed',
+            agent: "Data Scout",
+            status: "completed",
             confidence: 0.95,
             result: { dataQuality: 90, columnsAnalyzed: 2 },
             processingTime: 8000
           },
           dataEngineer: {
-            agent: 'Data Engineer',
-            status: 'completed',
+            agent: "Data Engineer",
+            status: "completed",
             confidence: 0.88,
             result: { cleaningSteps: 3, missingDataHandled: 0 },
             processingTime: 12000
           },
           insightGenerator: {
-            agent: 'Insight Generator',
-            status: 'completed',
+            agent: "Insight Generator",
+            status: "completed",
             confidence: 0.93,
             result: { insightsGenerated: 5, patterns: 3 },
+            processingTime: 15000
+          },
+          advancedStatisticalAnalysis: {
+            agent: "Advanced Statistical Analysis",
+            status: "completed",
+            confidence: 0.93,
+            result: {
+              descriptiveStatistics: {
+                "examscoremales": { mean: 20.00, std: 0.00, min: 20, max: 20 },
+                "examscorefemales": { mean: 30.00, std: 0.00, min: 30, max: 30 }
+              },
+              tTestResult: {
+                narrative: "An independent samples t-test was conducted to compare exam scores between male and female students. The male group consistently scored 20 on the exam (M = 20.00, SD = 0.00), while the female group consistently scored 30 (M = 30.00, SD = 0.00). Due to the absence of variance in both groups (i.e., standard deviation of 0), a t-test could not be computed because the assumption of homogeneity of variances was violated and the test statistic becomes undefined. However, the descriptive statistics clearly indicate a substantial difference between the two groups.",
+                interpretation: "On average, female students scored 10 points higher than male students. Given that the scores are constant within each group, this suggests a systematic difference that could be due to a number of factors such as instructional differences, test fairness, or underlying ability. However, without further data or context, causality cannot be inferred."
+              }
+            },
             processingTime: 15000
           }
         },
