@@ -53,6 +53,10 @@ export function AnalysisConfig({
   const [urlList, setUrlList] = useState<URLValidation[]>([]);
   const [isValidatingUrl, setIsValidatingUrl] = useState(false);
   
+  // Auto-start state
+  const [autoStartCountdown, setAutoStartCountdown] = useState<number | null>(null);
+  const [isAutoStartEnabled, setIsAutoStartEnabled] = useState(true);
+  
   // Google Sheets state
   const [sheetsUrl, setSheetsUrl] = useState("");
   const [sheetsRange, setSheetsRange] = useState("A1:Z1000");
@@ -71,6 +75,33 @@ export function AnalysisConfig({
   useEffect(() => {
     validateCurrentStep();
   }, [currentStep, dataSource, analysisName, selectedFiles, urlList, sheetsUrl, dbConnectionString]);
+  
+  // Auto-start countdown effect
+  useEffect(() => {
+    if (currentStep === 1 && isAutoStartEnabled && !isLoading) {
+      // Start countdown when reaching review step
+      setAutoStartCountdown(5);
+      
+      const countdownInterval = setInterval(() => {
+        setAutoStartCountdown(prev => {
+          if (prev === null || prev <= 1) {
+            clearInterval(countdownInterval);
+            // Auto-start analysis
+            handleSubmit();
+            return null;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(countdownInterval);
+    }
+  }, [currentStep, isAutoStartEnabled, isLoading]);
+  
+  const cancelAutoStart = () => {
+    setAutoStartCountdown(null);
+    setIsAutoStartEnabled(false);
+  };
   
   const validateCurrentStep = () => {
     switch (currentStep) {
@@ -628,56 +659,77 @@ export function AnalysisConfig({
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h4 className="font-medium mb-2">Data Source</h4>
                     <p className="text-sm text-muted-foreground">{dataSource.replace('_', ' ')}</p>
                   </div>
-                  
                   <div>
                     <h4 className="font-medium mb-2">Analysis Mode</h4>
                     <p className="text-sm text-muted-foreground">Intelligent Auto-Analysis</p>
                   </div>
-                  
                   <div>
                     <h4 className="font-medium mb-2">Data Items</h4>
                     <p className="text-sm text-muted-foreground">
                       {dataSource === "file_upload" && `${selectedFiles.length} files`}
                       {dataSource === "url" && `${urlList.filter(u => u.isValid).length} URLs`}
-                      {dataSource === "bigquery" && "intelliflow-project.customer_data.feedback"}
-                      {dataSource === "google_sheets" && "Google Sheets"}
-                      {dataSource === "database" && "Database query"}
-                      {dataSource === "cloud_storage" && "Cloud Storage"}
+                      {dataSource === "google_sheets" && "1 spreadsheet"}
+                      {dataSource === "database" && "1 database query"}
+                      {dataSource === "bigquery" && "1 BigQuery table"}
+                      {dataSource === "cloud_storage" && "Cloud storage data"}
                     </p>
                   </div>
-                  
                   <div>
                     <h4 className="font-medium mb-2">Features</h4>
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <div>• Automatic pattern detection</div>
-                      <div>• Smart insight generation</div>
-                      <div>• Interactive visualizations</div>
-                      <div>• Comprehensive reporting</div>
-                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Automatic pattern detection</li>
+                      <li>• Smart insight generation</li>
+                      <li>• Interactive visualizations</li>
+                      <li>• Comprehensive reporting</li>
+                    </ul>
                   </div>
                 </div>
                 
-                <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-start space-x-3">
-                    <div className="p-1 rounded-full bg-blue-500/10">
-                      <Database className="h-4 w-4 text-blue-500" />
+                    <div className="p-1 rounded-full bg-blue-100">
+                      <Database className="h-4 w-4 text-blue-600" />
                     </div>
                     <div>
-                      <h5 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
-                        Intelligent Analysis
-                      </h5>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">
-                        IntelliFlow will automatically determine the nature of your data, identify the most relevant analysis types, 
-                        and generate insights tailored to your specific dataset. No manual configuration required.
+                      <h4 className="font-medium text-blue-900">Intelligent Analysis</h4>
+                      <p className="text-sm text-blue-700 mt-1">
+                        IntelliFlow will automatically determine the nature of your data, identify the most relevant analysis types, and generate insights tailored to your specific dataset. No manual configuration required.
                       </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Auto-start countdown */}
+                {autoStartCountdown !== null && (
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-start space-x-3">
+                        <div className="p-1 rounded-full bg-green-100">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-green-900">Auto-Start Analysis</h4>
+                          <p className="text-sm text-green-700 mt-1">
+                            Analysis will begin automatically in <span className="font-bold">{autoStartCountdown}</span> seconds, or click "Start Analysis" to begin immediately.
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={cancelAutoStart}
+                        className="text-green-700 border-green-300 hover:bg-green-100"
+                      >
+                        Cancel Auto-Start
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -705,8 +757,12 @@ export function AnalysisConfig({
             </Button>
           ) : (
             <Button
-              onClick={handleSubmit}
+              onClick={() => {
+                cancelAutoStart();
+                handleSubmit();
+              }}
               disabled={isLoading}
+              className="bg-primary hover:bg-primary/90"
             >
               {isLoading ? (
                 <>
