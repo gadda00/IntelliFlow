@@ -1,4 +1,6 @@
 // Mock API client for GitHub Pages deployment
+import * as XLSX from 'xlsx';
+
 function parseCsvData(csvContent: string) {
   const lines = csvContent.trim().split('\n');
   if (lines.length === 0) return { headers: [], data: [] };
@@ -14,6 +16,48 @@ function parseCsvData(csvContent: string) {
   });
 
   return { headers, data };
+}
+
+function parseExcelData(fileContent: string | ArrayBuffer) {
+  try {
+    // Convert base64 string to ArrayBuffer if needed
+    let buffer: ArrayBuffer;
+    if (typeof fileContent === 'string') {
+      // Assume it's base64 encoded
+      const binaryString = atob(fileContent.split(',')[1] || fileContent);
+      buffer = new ArrayBuffer(binaryString.length);
+      const view = new Uint8Array(buffer);
+      for (let i = 0; i < binaryString.length; i++) {
+        view[i] = binaryString.charCodeAt(i);
+      }
+    } else {
+      buffer = fileContent;
+    }
+
+    const workbook = XLSX.read(buffer, { type: 'array' });
+    const firstSheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[firstSheetName];
+    
+    // Convert to JSON
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+    if (jsonData.length === 0) return { headers: [], data: [] };
+    
+    const headers = (jsonData[0] as any[]).map(h => String(h).trim());
+    const data = jsonData.slice(1).map((row: any) => {
+      const rowData: { [key: string]: any } = {};
+      headers.forEach((header, index) => {
+        const value = row[index];
+        rowData[header] = isNaN(Number(value)) ? value : Number(value);
+      });
+      return rowData;
+    });
+
+    return { headers, data };
+  } catch (error) {
+    console.error('Error parsing Excel file:', error);
+    return { headers: [], data: [] };
+  }
 }
 
 function calculateDescriptiveStatistics(data: any[], column: string) {
@@ -323,6 +367,47 @@ export const mockApiClient = {
             } catch (jsonError) {
               console.error("Error parsing JSON file:", jsonError);
             }
+          } else if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+            try {
+              const parsedData = parseExcelData(file.content);
+              const data = parsedData.data;
+              const headers = parsedData.headers;
+
+              if (headers.length > 0 && data.length > 0) {
+                columnInfo = headers.map(header => ({
+                  name: header,
+                  type: typeof data[0][header],
+                  significance: "Excel column data"
+                }));
+                processedData = data;
+                totalRows = data.length;
+              } else {
+                // Fallback for Excel files
+                columnInfo = [
+                  { name: "Column1", type: "number", significance: "Numeric data from Excel" },
+                  { name: "Column2", type: "string", significance: "Text data from Excel" }
+                ];
+                processedData = [
+                  { Column1: 100, Column2: "Sample A" },
+                  { Column1: 200, Column2: "Sample B" },
+                  { Column1: 150, Column2: "Sample C" }
+                ];
+                totalRows = processedData.length;
+              }
+            } catch (excelError) {
+              console.error("Error parsing Excel file:", excelError);
+              // Fallback for Excel files
+              columnInfo = [
+                { name: "Column1", type: "number", significance: "Numeric data from Excel" },
+                { name: "Column2", type: "string", significance: "Text data from Excel" }
+              ];
+              processedData = [
+                { Column1: 100, Column2: "Sample A" },
+                { Column1: 200, Column2: "Sample B" },
+                { Column1: 150, Column2: "Sample C" }
+              ];
+              totalRows = processedData.length;
+            }
           }
         }
       } else {
@@ -388,6 +473,39 @@ export const mockApiClient = {
               dynamicExecutiveSummary = "Descriptive statistics generated for all numeric columns.";
               dynamicKeyFindings.push({ title: "Descriptive Statistics Generated", description: "Basic descriptive statistics calculated for all numeric columns.", confidence: 0.90 });
               dynamicNarrativeKeyFindings = "Descriptive statistics generated for all numeric columns.";
+            }
+          } else if (file.name.endsWith(".xlsx") || file.name.endsWith(".xls")) {
+            const parsedData = parseExcelData(file.content);
+            const data = parsedData.data;
+            const headers = parsedData.headers;
+
+            // Populate descriptive statistics for all numeric columns in Excel
+            const allDescriptiveStats: { [key: string]: any } = {};
+            headers.forEach(header => {
+              const stats = calculateDescriptiveStatistics(data, header);
+              if (stats) {
+                allDescriptiveStats[header] = stats;
+              }
+            });
+            statisticalAnalysis.descriptiveStatistics = allDescriptiveStats;
+
+            if (Object.keys(allDescriptiveStats).length > 0) {
+              dynamicExecutiveSummary = `Excel file analysis completed. Descriptive statistics generated for ${Object.keys(allDescriptiveStats).length} numeric columns.`;
+              dynamicKeyFindings.push({ 
+                title: "Excel Data Analysis", 
+                description: `Successfully processed Excel file with ${headers.length} columns and ${data.length} rows.`, 
+                confidence: 0.95 
+              });
+              dynamicNarrativeKeyFindings = `Excel file contained ${headers.length} columns and ${data.length} rows. Statistical analysis performed on numeric columns.`;
+              dynamicNarrativeConclusion = "Excel data successfully processed and analyzed.";
+            } else {
+              dynamicExecutiveSummary = "Excel file processed successfully.";
+              dynamicKeyFindings.push({ 
+                title: "Excel File Processed", 
+                description: `Excel file with ${headers.length} columns and ${data.length} rows was successfully processed.`, 
+                confidence: 0.90 
+              });
+              dynamicNarrativeKeyFindings = "Excel file processed successfully.";
             }
           }
 
