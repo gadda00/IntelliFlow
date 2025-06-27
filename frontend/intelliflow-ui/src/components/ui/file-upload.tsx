@@ -69,7 +69,13 @@ export function FileUpload({
       reader.onerror = () => {
         reject(new Error(`Failed to read file: ${file.name}`));
       };
-      reader.readAsText(file);
+      
+      // Handle Excel files as binary data
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
     });
   };
 
@@ -144,7 +150,12 @@ export function FileUpload({
       };
 
       // Read only first 10KB for analysis to avoid performance issues
-      reader.readAsText(file);
+      // Handle Excel files as binary data
+      if (file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        reader.readAsDataURL(file);
+      } else {
+        reader.readAsText(file);
+      }
     });
   };
 
