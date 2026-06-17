@@ -1,39 +1,56 @@
-# Core dependencies
-adk==0.0.5
-google-cloud-bigquery==3.11.0
-google-cloud-storage==2.10.0
-google-cloud-pubsub==2.18.0
-google-cloud-firestore==2.11.0
-google-cloud-documentai==2.20.0
-google-cloud-functions==1.13.0
-google-cloud-workflows==1.10.0
+# IntelliFlow v2.0 Requirements
+# ================================
+# Core web framework
+flask>=3.0.0
+flask-cors>=4.0.0
+flask-socketio>=5.3.6
+python-socketio>=5.10.0
 
-# Web framework
-flask==2.3.3
-fastapi==0.103.1
-uvicorn==0.23.2
+# Async support
+eventlet>=0.35.2
+gevent>=24.2.1
+
+# Rate limiting
+flask-limiter>=3.5.0
+
+# Google Cloud & ADK
+google-adk>=0.1.0
+google-cloud-bigquery>=3.13.0
+google-cloud-storage>=2.14.0
+google-cloud-aiplatform>=1.43.0
+google-generativeai>=0.4.0
 
 # Data processing
-pandas==2.1.0
-numpy==1.25.2
-scikit-learn==1.3.0
-matplotlib==3.7.2
-seaborn==0.12.2
-plotly==5.16.1
+pandas>=2.1.4
+numpy>=1.26.3
+scipy>=1.11.4
 
-# Utilities
-pyyaml==6.0.1
-python-dotenv==1.0.0
-requests==2.31.0
-tqdm==4.66.1
+# ML / analysis (optional — agents fall back to pure Python)
+scikit-learn>=1.4.0
+
+# HTTP client (for Paystack, Gemini)
+requests>=2.31.0
+
+# Data validation
+pydantic>=2.5.3
+
+# Visualisation
+plotly>=5.18.0
+matplotlib>=3.8.2
+seaborn>=0.13.1
+
+# PDF generation
+reportlab>=4.0.9
+weasyprint>=61.0
+
+# Utils
+python-dotenv>=1.0.0
+python-dateutil>=2.8.2
 
 # Testing
-pytest==7.4.0
-pytest-cov==4.1.0
-pytest-mock==3.11.1
+pytest>=7.4.4
+pytest-asyncio>=0.23.3
+httpx>=0.26.0
 
-# Development
-black==23.7.0
-isort==5.12.0
-flake8==6.1.0
-mypy==1.5.1
+# Production server
+gunicorn>=21.2.0
