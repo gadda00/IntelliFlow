@@ -1,0 +1,138 @@
+// IntelliFlow v3 — Production-grade Prisma schema
+// 20-agent multi-agent data analysis platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  email        String        @unique
+  name         String?
+  passwordHash String?
+  plan         String        @default("free") // free | pro | team | enterprise
+  image        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  apiKeys      ApiKey[]
+  analyses     Analysis[]
+  payments     Payment[]
+  subscription Subscription?
+  usageRecords UsageRecord[]
+}
+
+model ApiKey {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  keyHash   String   @unique
+  prefix    String   // first 8 chars for display
+  lastUsedAt DateTime?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Analysis {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  dataSource  String    // JSON-stringified data source config
+  config      String    // JSON-stringified analysis config
+  status      String    @default("pending") // pending | running | completed | failed
+  result      String?   // JSON-stringified result
+  errorMessage String?
+  agentRuns   AgentRun[]
+  payment     Payment?
+  createdAt   DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model AgentRun {
+  id          String   @id @default(cuid())
+  analysisId  String
+  agentId     String
+  agentName   String
+  status      String   @default("pending") // pending | running | completed | failed | skipped
+  stage       Int
+  startedAt   DateTime?
+  completedAt DateTime?
+  durationMs  Int?
+  result      String?  // JSON-stringified
+  error       String?
+  analysis    Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
+  @@index([analysisId])
+  @@index([agentId])
+}
+
+model Payment {
+  id              String      @id @default(cuid())
+  userId          String
+  reference       String      @unique
+  amount          Int         // in smallest currency unit (kobo/cents)
+  currency        String      @default("NGN")
+  plan            String
+  status          String      @default("initialized") // initialized | success | failed | abandoned
+  paystackData    String?     // JSON-stringified full Paystack response
+  analysisId      String?     @unique
+  analysis        Analysis?   @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+  createdAt       DateTime    @default(now())
+  verifiedAt      DateTime?
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+}
+
+model Subscription {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  plan                  String
+  status                String   @default("active") // active | canceled | expired
+  paystackSubCode       String?  @unique
+  paystackPlanCode      String?
+  currentPeriodEnd      DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UsageRecord {
+  id             String   @id @default(cuid())
+  userId         String
+  month          String   // YYYY-MM format
+  analysesUsed   Int      @default(0)
+  tokensUsed     Int      @default(0)
+  agentsInvoked  Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@index([userId])
+}
+
+model AgentMetric {
+  id          String   @id @default(cuid())
+  agentId     String
+  analysisId  String?
+  durationMs  Int
+  success     Boolean
+  errorType   String?
+  createdAt   DateTime @default(now())
+
+  @@index([agentId])
+  @@index([createdAt])
+}

@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Database
+*.db
+*.db-journal
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+dev.log
+
+# Build artifacts
+*.tsbuildinfo
+next-env.d.ts
+
+# Cache
+.cache/
+.turbo/
+
+# Agent browser
+.agent-browser/
+
+# Misc
+.zscripts/

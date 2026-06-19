@@ -1,0 +1,16 @@
+{
+  "name": "intelliflow-pdf-service",
+  "version": "1.0.0",
+  "description": "PDF export service for IntelliFlow",
+  "main": "pdf-export-service.js",
+  "type": "module",
+  "scripts": {
+    "start": "node pdf-export-service.js",
+    "dev": "node pdf-export-service.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}
+
