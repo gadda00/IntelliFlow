@@ -133,5 +133,5 @@ jobs:
             1. Go to https://play.google.com/console
             2. Select Busara → Production → Create release
             3. Upload `busara-release.aab`
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
