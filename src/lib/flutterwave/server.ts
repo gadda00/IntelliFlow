@@ -26,7 +26,7 @@ export const PLANS: Record<string, Plan> = {
     analysesPerMonth: 5,
     features: [
       '5 analyses per month',
-      'All 20 agents',
+      'All 20+ AI agents',
       'CSV, JSON, Excel upload',
       'PDF & Excel export',
       '7-day history',
@@ -40,7 +40,7 @@ export const PLANS: Record<string, Plan> = {
     analysesPerMonth: 50,
     features: [
       '50 analyses per month',
-      'All 20 agents',
+      'All 20+ AI agents',
       'Forecasting & anomaly detection',
       'Causal analysis & explainability',
       'API access',
@@ -92,6 +92,7 @@ export interface InitTransactionArgs {
   metadata?: Record<string, any>;
   callbackUrl?: string;
   planId?: number;
+  paymentOptions?: string; // e.g., "card, googlepay, applepay, mobilemoneyghana, mobilemoneyrwanda"
 }
 
 export interface InitTransactionResult {
@@ -159,6 +160,8 @@ export class FlutterwaveService {
     if (args.customerPhone) payload.customer.phone_number = args.customerPhone;
     if (args.callbackUrl) payload.redirect_url = args.callbackUrl;
     if (args.planId) payload.payment_plan = args.planId;
+    // Default: enable card + Google Pay + Apple Pay + mobile money (Africa)
+    payload.payment_options = args.paymentOptions ?? 'card, googlepay, applepay, mobilemoneyghana, mobilemoneyrwanda, mobilemoneyuganda, mobilemoneyzambia, mpesa, accountbank';
 
     try {
       const resp = await fetch(`${FLW_BASE}/payments`, {

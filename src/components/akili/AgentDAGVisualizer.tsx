@@ -28,6 +28,8 @@ const STAGES: { stage: number; agents: { id: string; name: string }[] }[] = [
       { id: 'knowledge_graph_builder', name: 'KG Builder' },
       { id: 'benchmark_agent', name: 'Benchmark' },
       { id: 'auto_ml_agent', name: 'Auto-ML' },
+      { id: 'nlp_sentiment_analyst', name: 'NLP Sentiment' },
+      { id: 'graph_neural_network', name: 'Graph NN' },
     ],
   },
   {
@@ -38,6 +40,7 @@ const STAGES: { stage: number; agents: { id: string; name: string }[] }[] = [
       { id: 'visualization_specialist', name: 'Viz Specialist' },
       { id: 'synthetic_data_generator', name: 'Synthetic Gen' },
       { id: 'code_generator', name: 'Code Gen' },
+      { id: 'anomaly_forecasting', name: 'Anomaly Forecast' },
     ],
   },
   {

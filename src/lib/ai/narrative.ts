@@ -99,7 +99,7 @@ function buildPrompt(req: NarrativeRequest): string {
   const recs = req.recommendations.map(r => `- [${r.priority}] ${r.title}: ${r.description}`).join('\n');
   const topAnoms = req.anomalies.topAnomalies.map(a => `- ${a.column} row ${a.rowIndex}: value ${a.value} (${a.severity})`).join('\n');
 
-  return `You are analyzing the results of a 20-agent data analysis pipeline. Generate a comprehensive narrative report in markdown format.
+  return `You are analyzing the results of a 20+ AI agent data analysis pipeline. Generate a comprehensive narrative report in markdown format.
 
 ## Dataset Profile
 - ${req.datasetSummary.rowCount.toLocaleString()} rows × ${req.datasetSummary.columnCount} columns
@@ -136,7 +136,7 @@ A 3-4 paragraph executive summary that a C-suite executive would find valuable. 
 3-5 actionable recommendations ordered by priority. Each should have a clear rationale tied to the data.
 
 ## Methodology
-One paragraph explaining how the analysis was performed (the 20-agent DAG pipeline).
+One paragraph explaining how the analysis was performed (the 20+ AI agent DAG pipeline).
 
 ## Conclusion
 A single paragraph that ties everything together and suggests next steps.
@@ -171,7 +171,7 @@ function fallbackNarrative(req: NarrativeRequest): NarrativeResponse {
   const findings = req.keyFindings.slice(0, 5).map(f => `- ${f.title}: ${f.description}`);
   const recs = req.recommendations.slice(0, 4).map(r => `- [${r.priority}] ${r.title}: ${r.description}`);
 
-  const executiveSummary = `This analysis examined a dataset of ${req.datasetSummary.rowCount.toLocaleString()} records across ${req.datasetSummary.columnCount} columns in the ${req.datasetSummary.detectedDomain} domain. The data quality score was ${req.datasetSummary.qualityScore}/100. The 20-agent pipeline identified ${req.keyFindings.length} findings${req.anomalies.total > 0 ? `, ${req.anomalies.total} anomalies` : ''}${req.forecast ? `, and forecasted a ${req.forecast.trend} trend with ${req.forecast.accuracy}% accuracy` : ''}.`;
+  const executiveSummary = `This analysis examined a dataset of ${req.datasetSummary.rowCount.toLocaleString()} records across ${req.datasetSummary.columnCount} columns in the ${req.datasetSummary.detectedDomain} domain. The data quality score was ${req.datasetSummary.qualityScore}/100. The 20+ AI agent pipeline identified ${req.keyFindings.length} findings${req.anomalies.total > 0 ? `, ${req.anomalies.total} anomalies` : ''}${req.forecast ? `, and forecasted a ${req.forecast.trend} trend with ${req.forecast.accuracy}% accuracy` : ''}.`;
 
   return {
     executiveSummary,

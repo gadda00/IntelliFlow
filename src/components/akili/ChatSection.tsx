@@ -109,7 +109,7 @@ function findAnswer(question: string): { content: string; followups: string[]; s
   }
   if (/price|cost|plan|pay|subscription/.test(lower)) {
     return {
-      content: 'Akili has 4 plans: Free (5 analyses/month, all 20 agents, CSV/JSON/Excel), Professional (₦15,000/mo or $29 — 50 analyses, API access, priority support), Team (₦50,000/mo or $99 — 200 analyses, collaboration, synthetic data, custom branding), Enterprise (custom — unlimited, SSO, dedicated support). All paid plans use Flutterwave for secure payment processing. Scroll to the Pricing section to upgrade.',
+      content: 'Akili has 4 plans: Free (5 analyses/month, all 20+ AI agents, CSV/JSON/Excel), Professional (₦15,000/mo or $29 — 50 analyses, API access, priority support), Team (₦50,000/mo or $99 — 200 analyses, collaboration, synthetic data, custom branding), Enterprise (custom — unlimited, SSO, dedicated support). All paid plans use Flutterwave for secure payment processing. Scroll to the Pricing section to upgrade.',
       followups: ['What can Akili do?', 'How does Flutterwave work?'],
       source: 'knowledge_base',
     };

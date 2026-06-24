@@ -10,7 +10,7 @@ export interface AgentNode {
   timeoutMs: number;
 }
 
-// ─── The 20-Agent Execution DAG ────────────────────────────────────────────
+// ─── The 20+ AI Agent Execution DAG ────────────────────────────────────────────
 // Stages:
 //   0 – Independent intake agents (parallel)
 //   1 – Data engineering depends on scout
@@ -36,11 +36,13 @@ export const AGENT_DAG: Record<string, AgentNode> = {
   knowledge_graph_builder: { agentId: 'knowledge_graph_builder', dependsOn: ['data_engineer'], stage: 2, timeoutMs: 20000 },
   benchmark_agent: { agentId: 'benchmark_agent', dependsOn: ['data_scout', 'data_quality_guardian'], stage: 2, timeoutMs: 15000 },
   auto_ml_agent: { agentId: 'auto_ml_agent', dependsOn: ['data_engineer'], stage: 2, timeoutMs: 30000 },
+  nlp_sentiment_analyst: { agentId: 'nlp_sentiment_analyst', dependsOn: ['data_engineer'], stage: 2, timeoutMs: 25000 },
+  graph_neural_network: { agentId: 'graph_neural_network', dependsOn: ['knowledge_graph_builder'], stage: 2, timeoutMs: 25000 },
 
   // Stage 3 — Synthesis (parallel)
   insight_generator: {
     agentId: 'insight_generator',
-    dependsOn: ['analysis_strategist', 'anomaly_sentinel', 'forecasting_oracle', 'causal_architect', 'data_scout'],
+    dependsOn: ['analysis_strategist', 'anomaly_sentinel', 'forecasting_oracle', 'causal_architect', 'data_scout', 'nlp_sentiment_analyst'],
     stage: 3, timeoutMs: 30000,
   },
   explainability_agent: {
@@ -63,11 +65,16 @@ export const AGENT_DAG: Record<string, AgentNode> = {
     dependsOn: ['analysis_strategist'],
     stage: 3, timeoutMs: 15000,
   },
+  anomaly_forecasting: {
+    agentId: 'anomaly_forecasting',
+    dependsOn: ['forecasting_oracle', 'anomaly_sentinel'],
+    stage: 3, timeoutMs: 20000,
+  },
 
   // Stage 4 — Reporting
   narrative_composer: {
     agentId: 'narrative_composer',
-    dependsOn: ['insight_generator', 'visualization_specialist', 'explainability_agent', 'data_scout', 'data_quality_guardian'],
+    dependsOn: ['insight_generator', 'visualization_specialist', 'explainability_agent', 'data_scout', 'data_quality_guardian', 'anomaly_forecasting', 'graph_neural_network'],
     stage: 4, timeoutMs: 25000,
   },
   conversational_analyst: {

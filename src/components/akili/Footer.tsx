@@ -15,7 +15,7 @@ export function Footer() {
               <span className="font-bold">Akili</span>
             </div>
             <p className="text-xs text-muted-foreground">
-              20-agent parallel data analysis. TypeScript-native. Production-ready.
+              20+ AI agent parallel data analysis. TypeScript-native. Production-ready.
             </p>
           </div>
 

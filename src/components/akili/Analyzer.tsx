@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, FileText, Zap, AlertCircle, CheckCircle2, X, Sparkles, Database, Globe, Hash } from 'lucide-react';
+import { Upload, FileText, Zap, AlertCircle, CheckCircle2, X, Sparkles, Database, Globe, Hash, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +15,7 @@ import { api, AnalysisResult, storage } from '@/lib/api-client';
 import { parseCSVText } from '@/lib/parsers-client';
 import { AgentDAGVisualizer } from './AgentDAGVisualizer';
 import { AnalysisResultsView } from './AnalysisResultsView';
+import { WorkflowComposer } from './WorkflowComposer';
 
 const SAMPLE_DATA = `product,category,sales,quantity,region,date
 Widget A,Electronics,1200,30,North,2024-01-15
@@ -119,12 +120,16 @@ export function Analyzer() {
     }
   };
 
-  const runAnalysis = async () => {
+  const [selectedAgents, setSelectedAgents] = useState<string[] | null>(null);
+  const [composerOpen, setComposerOpen] = useState(false);
+
+  const runAnalysis = async (agentIds?: string[]) => {
     setError(null);
     if (!fileContents.length) {
       setError('No data loaded. Use a tab above to load data first.');
       return;
     }
+    const agentsToUse = agentIds ?? selectedAgents;
     setIsRunning(true);
     setProgress(0);
     setActiveAgents({});
@@ -134,8 +139,8 @@ export function Analyzer() {
     const stages = [
       { agents: ['data_scout', 'data_quality_guardian', 'nlq_interpreter', 'privacy_guardian'], duration: 600 },
       { agents: ['data_engineer'], duration: 800 },
-      { agents: ['analysis_strategist', 'anomaly_sentinel', 'forecasting_oracle', 'causal_architect', 'knowledge_graph_builder', 'benchmark_agent', 'auto_ml_agent'], duration: 1200 },
-      { agents: ['insight_generator', 'explainability_agent', 'visualization_specialist', 'synthetic_data_generator', 'code_generator'], duration: 1000 },
+      { agents: ['analysis_strategist', 'anomaly_sentinel', 'forecasting_oracle', 'causal_architect', 'knowledge_graph_builder', 'benchmark_agent', 'auto_ml_agent', 'nlp_sentiment_analyst', 'graph_neural_network'], duration: 1400 },
+      { agents: ['insight_generator', 'explainability_agent', 'visualization_specialist', 'synthetic_data_generator', 'code_generator', 'anomaly_forecasting'], duration: 1100 },
       { agents: ['narrative_composer', 'conversational_analyst'], duration: 800 },
       { agents: ['orchestrator'], duration: 500 },
     ];
@@ -164,6 +169,7 @@ export function Analyzer() {
           fileContents,
           analysisConfig: { fileName: rawFileName },
           nlqQuery: nlqQuery || undefined,
+          enabledAgents: agentsToUse && agentsToUse.length > 0 ? agentsToUse : undefined,
         }),
         visualPromise,
       ]);
@@ -224,7 +230,7 @@ export function Analyzer() {
           </h2>
           <p className="text-muted-foreground text-lg">
             Upload a CSV or JSON, paste data, fetch a URL, or use our sample.
-            All 20 agents run in parallel on real data — no mocks.
+            All 20+ AI agents run in parallel on real data — no mocks.
           </p>
         </motion.div>
 
@@ -403,15 +409,25 @@ export function Analyzer() {
                 </div>
               )}
 
-              <div className="mt-6 flex gap-3">
+              <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 <Button
                   size="lg"
                   className="flex-1 gap-2"
-                  onClick={runAnalysis}
+                  onClick={() => runAnalysis()}
                   disabled={isRunning || !fileContents.length}
                 >
                   <Zap className="h-4 w-4" />
-                  {isRunning ? 'Running 20 Agents...' : 'Run Full Analysis'}
+                  {isRunning ? 'Running 23 Agents...' : selectedAgents && selectedAgents.length > 0 ? `Run ${selectedAgents.length} Selected Agents` : 'Run Full Analysis'}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  onClick={() => setComposerOpen(true)}
+                  disabled={isRunning || !fileContents.length}
+                  className="gap-2"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  Compose
                 </Button>
                 {(fileContents.length > 0 || result) && (
                   <Button variant="outline" size="lg" onClick={reset} disabled={isRunning}>
@@ -419,6 +435,13 @@ export function Analyzer() {
                   </Button>
                 )}
               </div>
+
+              {selectedAgents && selectedAgents.length > 0 && !isRunning && (
+                <div className="mt-3 p-2 rounded-lg bg-primary/5 border border-primary/20 text-xs text-muted-foreground">
+                  <span className="text-primary font-medium">{selectedAgents.length} agents selected</span> via Workflow Composer · dependencies auto-included
+                  <button onClick={() => setSelectedAgents(null)} className="ml-2 text-primary hover:underline">clear</button>
+                </div>
+              )}
 
               {isRunning && (
                 <div className="mt-6 space-y-3">
@@ -440,6 +463,15 @@ export function Analyzer() {
           )}
         </div>
       </div>
+
+      <WorkflowComposer
+        open={composerOpen}
+        onClose={() => setComposerOpen(false)}
+        onApply={(agentIds) => {
+          setSelectedAgents(agentIds);
+          runAnalysis(agentIds);
+        }}
+      />
     </section>
   );
 }

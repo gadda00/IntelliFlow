@@ -155,6 +155,22 @@ export async function getUserFromRequest(req: Request): Promise<AuthUser | null>
   const authHeader = req.headers.get('Authorization') ?? '';
   if (authHeader.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
+
+    // 1. Try Supabase Auth first (if configured)
+    const { isSupabaseConfigured, getUserFromSupabase } = await import('@/lib/supabase/server');
+    if (isSupabaseConfigured()) {
+      const supabaseUser = await getUserFromSupabase(token);
+      if (supabaseUser) {
+        return {
+          id: supabaseUser.id,
+          email: supabaseUser.email,
+          name: supabaseUser.name,
+          plan: supabaseUser.plan,
+        };
+      }
+    }
+
+    // 2. Fall back to custom JWT
     const user = verifyToken(token);
     if (user) return user;
   }
