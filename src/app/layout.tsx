@@ -14,6 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title: "Akili — 20+ AI Agent Data Intelligence Platform",
   description: "Twenty agents. One mind. Akili orchestrates 20 specialized AI agents in a parallel DAG to extract every actionable insight from your data. Built in Nairobi for the world.",
   keywords: ["Akili", "multi-agent", "data analysis", "AI agents", "TypeScript", "Next.js", "Flutterwave", "anomaly detection", "forecasting", "causal inference", "Africa", "Nairobi"],
