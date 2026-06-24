@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, BarChart3, FileText, AlertTriangle, TrendingUp, GitBranch,
-  ShieldCheck, Code, Sparkles, Brain, Lightbulb, MessageCircle, Eye, Target, Share2, Cpu
+  ShieldCheck, Code, Sparkles, Brain, Lightbulb, MessageCircle, Eye, Target, Share2, Cpu,
+  Download, Loader2, Wand2,
 } from 'lucide-react';
 import {
   BarChart, Bar, LineChart, Line, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
@@ -14,7 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AnalysisResult } from '@/lib/api-client';
+import { api, AnalysisResult } from '@/lib/api-client';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -29,6 +30,9 @@ interface Props {
 export function AnalysisResultsView({ result, fileContents, onReset }: Props) {
   const results = result.results || {};
   const [activeTab, setActiveTab] = useState('overview');
+  const [aiNarrative, setAiNarrative] = useState<any>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   const orchestrator = results.orchestrator?.result || {};
   const insights = results.insight_generator?.result || {};
@@ -48,6 +52,77 @@ export function AnalysisResultsView({ result, fileContents, onReset }: Props) {
   const conversational = results.conversational_analyst?.result || {};
   const scout = results.data_scout?.result || {};
 
+  const handleGenerateAINarrative = async () => {
+    setAiLoading(true);
+    try {
+      const payload = {
+        datasetSummary: {
+          rowCount: scout.profile?.rowCount ?? 0,
+          columnCount: scout.profile?.columnCount ?? 0,
+          columnTypes: Object.fromEntries((scout.profile?.columns ?? []).map((c: any) => [c.name, c.stats.type])),
+          qualityScore: quality.overallScore ?? scout.profile?.qualityScore ?? 0,
+          detectedDomain: scout.detectedDomain ?? 'general',
+        },
+        keyFindings: (insights.insights ?? []).slice(0, 7).map((i: any) => ({
+          title: i.title, description: i.description, confidence: i.confidence,
+        })),
+        anomalies: {
+          total: anomalies.totalAnomalies ?? 0,
+          topAnomalies: (anomalies.anomalies ?? []).slice(0, 5),
+        },
+        forecast: forecast.forecast?.length ? {
+          method: forecast.method, accuracy: forecast.accuracy,
+          trend: forecast.trend, periods: forecast.forecastPeriods,
+        } : null,
+        causalRelationships: (causal.relationships ?? []).slice(0, 5).map((r: any) => ({
+          cause: r.cause, effect: r.effect, strength: r.strength, correlation: r.correlation,
+        })),
+        recommendations: (insights.recommendations ?? []).slice(0, 5).map((r: any) => ({
+          title: r.title, description: r.description, priority: r.priority,
+        })),
+      };
+      const aiResult = await api.generateAINarrative(payload);
+      setAiNarrative(aiResult);
+    } catch (err: any) {
+      console.error('AI narrative failed:', err);
+      alert('AI narrative generation failed: ' + err.message);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    setPdfLoading(true);
+    try {
+      const payload = {
+        analysisId: result.analysisId,
+        executiveSummary: aiNarrative?.executiveSummary ?? narrative.executiveSummary,
+        keyFindings: (insights.insights ?? []).slice(0, 7),
+        recommendations: insights.recommendations ?? [],
+        methodology: narrative.methodology,
+        fullReport: aiNarrative?.fullReport ?? narrative.fullReport,
+        metadata: {
+          rowCount: scout.profile?.rowCount,
+          columnCount: scout.profile?.columnCount,
+          qualityScore: quality.overallScore,
+          aiPowered: aiNarrative?.aiPowered ?? false,
+        },
+      };
+      const html = await api.exportPdf(payload);
+      // Open in new window for browser Print → Save as PDF
+      const w = window.open('', '_blank');
+      if (w) {
+        w.document.write(html);
+        w.document.close();
+        setTimeout(() => w.print(), 500);
+      }
+    } catch (err: any) {
+      alert('PDF export failed: ' + err.message);
+    } finally {
+      setPdfLoading(false);
+    }
+  };
+
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
       <Card className="p-6 md:p-8">
@@ -64,11 +139,64 @@ export function AnalysisResultsView({ result, fileContents, onReset }: Props) {
             </div>
             <h3 className="text-2xl font-bold">Analysis Complete</h3>
           </div>
-          <Button variant="outline" onClick={onReset} className="gap-2">
-            <ArrowLeft className="h-4 w-4" />
-            New Analysis
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={handleGenerateAINarrative} disabled={aiLoading} className="gap-2">
+              {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+              {aiLoading ? 'Generating...' : 'AI Narrative'}
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExportPdf} disabled={pdfLoading} className="gap-2">
+              {pdfLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5" />}
+              {pdfLoading ? 'Preparing...' : 'Export PDF'}
+            </Button>
+            <Button variant="outline" size="sm" onClick={onReset} className="gap-2">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              New
+            </Button>
+          </div>
         </div>
+
+        {aiNarrative && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mb-6 p-5 rounded-lg bg-gradient-to-br from-primary/5 to-accent/5 border border-primary/20"
+          >
+            <div className="flex items-center gap-2 mb-3">
+              <Wand2 className="h-4 w-4 text-primary" />
+              <h4 className="font-semibold text-sm">
+                AI-Powered Narrative
+                {aiNarrative.aiPowered && (
+                  <Badge variant="secondary" className="ml-2 text-[10px] bg-gradient-to-r from-primary to-accent text-white">
+                    {aiNarrative.model}
+                  </Badge>
+                )}
+              </h4>
+            </div>
+            <div className="text-sm text-muted-foreground leading-relaxed mb-3">
+              {aiNarrative.executiveSummary}
+            </div>
+            {aiNarrative.keyInsights?.length > 0 && (
+              <div className="mb-2">
+                <div className="text-xs font-medium text-foreground mb-1">AI Key Insights:</div>
+                <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                  {aiNarrative.keyInsights.slice(0, 5).map((insight: string, i: number) => (
+                    <li key={i}>{insight}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {aiNarrative.strategicRecommendations?.length > 0 && (
+              <div>
+                <div className="text-xs font-medium text-foreground mb-1">AI Strategic Recommendations:</div>
+                <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                  {aiNarrative.strategicRecommendations.slice(0, 4).map((rec: string, i: number) => (
+                    <li key={i}>{rec}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </motion.div>
+        )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3 md:grid-cols-6 mb-6 h-auto">

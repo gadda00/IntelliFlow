@@ -19,10 +19,10 @@ interface ChatMessage {
 
 const INITIAL_GREETING: ChatMessage = {
   role: 'assistant',
-  content: "Hi! I'm IntelliFlow's Conversational Analyst. I can answer questions about data analysis concepts, recommend approaches, or interpret results from your analysis. Try asking 'What is causal inference?' or 'How does IntelliFlow handle missing data?'",
+  content: "Hi! I'm Akili's Conversational Analyst. I can answer questions about data analysis concepts, recommend approaches, or interpret results from your analysis. Try asking 'What is causal inference?' or 'How does Akili handle missing data?'",
   source: 'greeting',
   followups: [
-    'What can IntelliFlow do?',
+    'What can Akili do?',
     'How does the agent pipeline work?',
     'What is causal inference?',
     'How do you handle missing data?',
@@ -31,8 +31,8 @@ const INITIAL_GREETING: ChatMessage = {
 };
 
 const KNOWLEDGE_BASE: Record<string, { content: string; followups: string[] }> = {
-  'what can intelliflow do': {
-    content: 'IntelliFlow is a multi-agent data analysis platform with 20 specialized AI agents organized in a 6-stage DAG. It can: profile datasets, detect anomalies (Z-score, IQR, EWMA), forecast time series (Holt-Winters), discover causal relationships, detect PII for privacy compliance, generate synthetic data, build knowledge graphs, compare against industry benchmarks, train ML models automatically, explain feature importance, generate Python/SQL/JS code, and produce executive narrative reports — all from a single CSV/JSON upload.',
+  'what can akili do': {
+    content: 'Akili is a multi-agent data analysis platform with 20 specialized AI agents organized in a 6-stage DAG. It can: profile datasets, detect anomalies (Z-score, IQR, EWMA), forecast time series (Holt-Winters), discover causal relationships, detect PII for privacy compliance, generate synthetic data, build knowledge graphs, compare against industry benchmarks, train ML models automatically, explain feature importance, generate Python/SQL/JS code, and produce executive narrative reports — all from a single CSV/JSON upload.',
     followups: ['How does the agent pipeline work?', 'What is synthetic data?', 'How accurate is the forecast?'],
   },
   'pipeline': {
@@ -44,7 +44,7 @@ const KNOWLEDGE_BASE: Record<string, { content: string; followups: string[] }> =
     followups: ['How are agents scheduled?', 'What is a circuit breaker?'],
   },
   'causal': {
-    content: 'Causal inference in IntelliFlow uses three signals: (1) Pearson correlation between variables, (2) Ordinary Least Squares regression to estimate effect sizes, (3) lagged correlation (Granger-style) to detect temporal precedence — if X at time t-1 correlates with Y at time t more strongly than simultaneous X-Y correlation, that suggests X might cause Y. We label relationships as strong/moderate/weak based on |r| thresholds (0.7/0.4/0.2) and report confidence as a blend of correlation strength and lag evidence. True causal inference requires controlled experiments; this is correlational evidence with temporal precedence.',
+    content: 'Causal inference in Akili uses three signals: (1) Pearson correlation between variables, (2) Ordinary Least Squares regression to estimate effect sizes, (3) lagged correlation (Granger-style) to detect temporal precedence — if X at time t-1 correlates with Y at time t more strongly than simultaneous X-Y correlation, that suggests X might cause Y. We label relationships as strong/moderate/weak based on |r| thresholds (0.7/0.4/0.2) and report confidence as a blend of correlation strength and lag evidence. True causal inference requires controlled experiments; this is correlational evidence with temporal precedence.',
     followups: ['How accurate is the forecast?', 'What is feature importance?'],
   },
   'forecast': {
@@ -109,14 +109,14 @@ function findAnswer(question: string): { content: string; followups: string[]; s
   }
   if (/price|cost|plan|pay|subscription/.test(lower)) {
     return {
-      content: 'IntelliFlow has 4 plans: Free (5 analyses/month, all 20 agents, CSV/JSON/Excel), Professional (₦15,000/mo or $29 — 50 analyses, API access, priority support), Team (₦50,000/mo or $99 — 200 analyses, collaboration, synthetic data, custom branding), Enterprise (custom — unlimited, SSO, dedicated support). All paid plans use Paystack for secure payment processing. Scroll to the Pricing section to upgrade.',
-      followups: ['What can IntelliFlow do?', 'How does Paystack work?'],
+      content: 'Akili has 4 plans: Free (5 analyses/month, all 20 agents, CSV/JSON/Excel), Professional (₦15,000/mo or $29 — 50 analyses, API access, priority support), Team (₦50,000/mo or $99 — 200 analyses, collaboration, synthetic data, custom branding), Enterprise (custom — unlimited, SSO, dedicated support). All paid plans use Flutterwave for secure payment processing. Scroll to the Pricing section to upgrade.',
+      followups: ['What can Akili do?', 'How does Flutterwave work?'],
       source: 'knowledge_base',
     };
   }
   return {
-    content: "I can help with: IntelliFlow features, the agent pipeline, causal inference, forecasting, anomaly detection, missing data, synthetic data, PII/privacy, explainability, Auto-ML, the orchestrator, benchmarks, code generation, or knowledge graphs. Try asking about any of these, or run an analysis and ask about the results!",
-    followups: ['What can IntelliFlow do?', 'How does the pipeline work?', 'What is causal inference?'],
+    content: "I can help with: Akili features, the agent pipeline, causal inference, forecasting, anomaly detection, missing data, synthetic data, PII/privacy, explainability, Auto-ML, the orchestrator, benchmarks, code generation, or knowledge graphs. Try asking about any of these, or run an analysis and ask about the results!",
+    followups: ['What can Akili do?', 'How does the pipeline work?', 'What is causal inference?'],
     source: 'default',
   };
 }
@@ -184,7 +184,7 @@ export function ChatSection() {
             <span className="gradient-text">Not the docs.</span>
           </h2>
           <p className="text-muted-foreground text-lg">
-            Ask about IntelliFlow's capabilities, the underlying math, or how to interpret your analysis results.
+            Ask about Akili's capabilities, the underlying math, or how to interpret your analysis results.
           </p>
         </motion.div>
 
@@ -246,7 +246,7 @@ export function ChatSection() {
 
             <div className="border-t border-border p-3 flex gap-2">
               <Input
-                placeholder="Ask anything about IntelliFlow, the agents, or your analysis..."
+                placeholder="Ask anything about Akili, the agents, or your analysis..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}

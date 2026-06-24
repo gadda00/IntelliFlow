@@ -1,19 +1,20 @@
-// Paystack integration — server-side only
-// Initialize transactions, verify payments, manage subscriptions, validate webhooks
+// Flutterwave payment integration — server-side only
+// Replaces Paystack. Supports NGN, USD, GHS, ZAR, KES, UGX, TZS, RWF, EUR, GBP.
+// https://developer.flutterwave.com
 
 import crypto from 'crypto';
 
-const PAYSTACK_BASE = 'https://api.paystack.co';
+const FLW_BASE = 'https://api.flutterwave.com/v3';
 
 export interface Plan {
   id: string;
   name: string;
-  priceNGN: number;  // in naira
+  priceNGN: number;
   priceUSD: number;
   analysesPerMonth: number;
   features: string[];
   highlight?: boolean;
-  paystackPlanCode?: string;
+  flwPlanId?: number; // Flutterwave plan ID for recurring
 }
 
 export const PLANS: Record<string, Plan> = {
@@ -47,7 +48,6 @@ export const PLANS: Record<string, Plan> = {
       'Unlimited history',
     ],
     highlight: true,
-    paystackPlanCode: process.env.PAYSTACK_PRO_PLAN_CODE,
   },
   team: {
     id: 'team',
@@ -64,7 +64,6 @@ export const PLANS: Record<string, Plan> = {
       'Priority support',
       'Custom branding',
     ],
-    paystackPlanCode: process.env.PAYSTACK_TEAM_PLAN_CODE,
   },
   enterprise: {
     id: 'enterprise',
@@ -86,18 +85,19 @@ export const PLANS: Record<string, Plan> = {
 
 export interface InitTransactionArgs {
   email: string;
-  amountKobo: number;
-  currency?: 'NGN' | 'USD' | 'GHS' | 'ZAR' | 'KES';
+  amountKobo: number; // Flutterwave also uses smallest currency unit
+  currency?: string;
+  customerName?: string;
+  customerPhone?: string;
   metadata?: Record<string, any>;
   callbackUrl?: string;
-  planCode?: string;
-  subscription?: boolean;
+  planId?: number;
 }
 
 export interface InitTransactionResult {
   success: boolean;
   authorizationUrl?: string;
-  accessCode?: string;
+  flwRef?: string;
   reference?: string;
   error?: string;
 }
@@ -105,49 +105,63 @@ export interface InitTransactionResult {
 export interface VerifyResult {
   success: boolean;
   reference?: string;
+  flwRef?: string;
   amount?: number;
   currency?: string;
   status?: string;
   metadata?: Record<string, any>;
-  customer?: { email: string };
+  customer?: { email: string; name?: string };
   error?: string;
 }
 
-export class PaystackService {
+export class FlutterwaveService {
   private secretKey: string;
   private publicKey: string;
+  private webhookHash: string;
 
   constructor() {
-    this.secretKey = process.env.PAYSTACK_SECRET_KEY ?? '';
-    this.publicKey = process.env.PAYSTACK_PUBLIC_KEY ?? '';
+    this.secretKey = process.env.FLW_SECRET_KEY ?? '';
+    this.publicKey = process.env.FLW_PUBLIC_KEY ?? '';
+    this.webhookHash = process.env.FLW_WEBHOOK_HASH ?? '';
   }
 
   isConfigured(): boolean {
-    return !!this.secretKey && this.secretKey.startsWith('sk_');
+    return !!this.secretKey && this.secretKey.startsWith('FLWSECK-');
   }
 
   async initializeTransaction(args: InitTransactionArgs): Promise<InitTransactionResult> {
     if (!this.isConfigured()) {
-      // Mock mode for development — generate a fake reference
-      const ref = `mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      // Mock mode for development
+      const ref = `akili_mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       return {
         success: true,
-        authorizationUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/payment/mock?ref=${ref}`,
-        accessCode: ref,
+        authorizationUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/billing?mock_ref=${ref}`,
+        flwRef: ref,
         reference: ref,
       };
     }
+
+    const txRef = `akili_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const payload: Record<string, any> = {
-      email: args.email,
-      amount: args.amountKobo,
+      tx_ref: txRef,
+      amount: args.amountKobo / 100, // Flutterwave uses major currency unit
       currency: args.currency ?? 'NGN',
-      metadata: args.metadata ?? {},
+      customer: {
+        email: args.email,
+        name: args.customerName ?? args.email,
+      },
+      customizations: {
+        title: 'Akili',
+        logo: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/icon-512.png`,
+      },
+      meta: args.metadata ?? {},
     };
-    if (args.callbackUrl) payload.callback_url = args.callbackUrl;
-    if (args.planCode) payload.plan = args.planCode;
+    if (args.customerPhone) payload.customer.phone_number = args.customerPhone;
+    if (args.callbackUrl) payload.redirect_url = args.callbackUrl;
+    if (args.planId) payload.payment_plan = args.planId;
 
     try {
-      const resp = await fetch(`${PAYSTACK_BASE}/transaction/initialize`, {
+      const resp = await fetch(`${FLW_BASE}/payments`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.secretKey}`,
@@ -156,47 +170,52 @@ export class PaystackService {
         body: JSON.stringify(payload),
       });
       const data = await resp.json();
-      if (data.status && data.data) {
+      if (data.status === 'success' && data.data) {
         return {
           success: true,
-          authorizationUrl: data.data.authorization_url,
-          accessCode: data.data.access_code,
-          reference: data.data.reference,
+          authorizationUrl: data.data.link,
+          flwRef: data.data.flw_ref,
+          reference: txRef,
         };
       }
-      return { success: false, error: data.message ?? 'Unknown Paystack error' };
+      return { success: false, error: data.message ?? 'Unknown Flutterwave error' };
     } catch (err: any) {
       return { success: false, error: err?.message ?? 'Network error' };
     }
   }
 
-  async verifyTransaction(reference: string): Promise<VerifyResult> {
+  async verifyTransaction(txRef: string): Promise<VerifyResult> {
     if (!this.isConfigured()) {
       // Mock mode — simulate success
       return {
         success: true,
-        reference,
-        amount: 1500000,
+        reference: txRef,
+        flwRef: txRef,
+        amount: 15000 * 100,
         currency: 'NGN',
-        status: 'success',
+        status: 'successful',
         metadata: { plan: 'pro' },
       };
     }
     try {
-      const resp = await fetch(`${PAYSTACK_BASE}/transaction/verify/${encodeURIComponent(reference)}`, {
+      const resp = await fetch(`${FLW_BASE}/transactions/${encodeURIComponent(txRef)}/verify`, {
         method: 'GET',
         headers: { 'Authorization': `Bearer ${this.secretKey}` },
       });
       const data = await resp.json();
-      if (data.status && data.data?.status === 'success') {
+      if (data.status === 'success' && data.data?.status === 'successful') {
         return {
           success: true,
-          reference,
-          amount: data.data.amount,
+          reference: txRef,
+          flwRef: data.data.flw_ref,
+          amount: data.data.amount * 100, // back to kobo
           currency: data.data.currency,
           status: data.data.status,
-          metadata: data.data.metadata ?? {},
-          customer: { email: data.data.customer?.email ?? '' },
+          metadata: data.data.meta ?? {},
+          customer: {
+            email: data.data.customer?.email ?? '',
+            name: data.data.customer?.name,
+          },
         };
       }
       return { success: false, error: data.message ?? 'Verification failed', status: data.data?.status };
@@ -205,25 +224,33 @@ export class PaystackService {
     }
   }
 
-  verifyWebhookSignature(rawBody: string, signature: string): boolean {
-    if (!this.isConfigured()) return true; // skip in dev
-    const hash = crypto.createHmac('sha512', this.secretKey).update(rawBody).digest('hex');
-    return hash === signature;
+  /**
+   * Flutterwave webhook verification uses a secret hash (verif-hash) that you set
+   * in the dashboard. The hash is sent in the `verif-hash` header.
+   */
+  verifyWebhookSignature(providedHash: string): boolean {
+    if (!this.webhookHash) return true; // skip in dev if not configured
+    return providedHash === this.webhookHash;
   }
 
-  async createPlan(name: string, amountKobo: number, interval: 'monthly' | 'yearly' | 'weekly' | 'daily' = 'monthly'): Promise<{ success: boolean; planCode?: string; error?: string }> {
+  async createPlan(name: string, amountNGN: number, interval: 'daily' | 'weekly' | 'monthly' | 'yearly' = 'monthly'): Promise<{ success: boolean; planId?: number; error?: string }> {
     if (!this.isConfigured()) return { success: false, error: 'Not configured' };
     try {
-      const resp = await fetch(`${PAYSTACK_BASE}/plan`, {
+      const resp = await fetch(`${FLW_BASE}/payment-plans`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.secretKey}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, amount: amountKobo, interval: interval === 'yearly' ? 'annually' : interval, currency: 'NGN' }),
+        body: JSON.stringify({
+          name,
+          amount: amountNGN,
+          interval,
+          currency: 'NGN',
+        }),
       });
       const data = await resp.json();
-      if (data.status) return { success: true, planCode: data.data.plan_code };
+      if (data.status === 'success') return { success: true, planId: data.data.id };
       return { success: false, error: data.message };
     } catch (err: any) {
       return { success: false, error: err.message };
@@ -232,8 +259,8 @@ export class PaystackService {
 }
 
 // Singleton
-let _paystack: PaystackService | null = null;
-export function getPaystack(): PaystackService {
-  if (!_paystack) _paystack = new PaystackService();
-  return _paystack;
+let _flw: FlutterwaveService | null = null;
+export function getFlutterwave(): FlutterwaveService {
+  if (!_flw) _flw = new FlutterwaveService();
+  return _flw;
 }

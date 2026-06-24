@@ -1,4 +1,4 @@
-// IntelliFlow WebSocket Mini-Service
+// Akili WebSocket Mini-Service
 // Real-time agent progress streaming for analysis runs.
 // Port: 3003 (must match the Caddyfile rule)
 
@@ -10,11 +10,11 @@ const PORT = 3003;
 const httpServer = createServer((req, res) => {
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ status: 'healthy', service: 'intelliflow-websocket', port: PORT }));
+    res.end(JSON.stringify({ status: 'healthy', service: 'akili-websocket', port: PORT }));
     return;
   }
   res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('IntelliFlow WebSocket Server');
+  res.end('Akili WebSocket Server');
 });
 
 const io = new Server(httpServer, {
@@ -71,7 +71,7 @@ io.on('connection', (socket) => {
 });
 
 httpServer.listen(PORT, () => {
-  console.log(`[IntelliFlow WebSocket] Listening on port ${PORT}`);
+  console.log(`[Akili WebSocket] Listening on port ${PORT}`);
 });
 
 // Clean up old buffered updates every 5 minutes

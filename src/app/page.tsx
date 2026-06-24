@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/intelliflow/Header';
-import { Hero } from '@/components/intelliflow/Hero';
-import { AgentGallery } from '@/components/intelliflow/AgentGallery';
-import { Analyzer } from '@/components/intelliflow/Analyzer';
-import { ChatSection } from '@/components/intelliflow/ChatSection';
-import { Pricing } from '@/components/intelliflow/Pricing';
-import { Footer } from '@/components/intelliflow/Footer';
-import { AuthModal, UserMenu } from '@/components/intelliflow/AuthModal';
+import { Header } from '@/components/akili/Header';
+import { Hero } from '@/components/akili/Hero';
+import { AgentGallery } from '@/components/akili/AgentGallery';
+import { Analyzer } from '@/components/akili/Analyzer';
+import { ChatSection } from '@/components/akili/ChatSection';
+import { Pricing } from '@/components/akili/Pricing';
+import { Footer } from '@/components/akili/Footer';
+import { AuthModal, UserMenu } from '@/components/akili/AuthModal';
+import { PWAInstallPrompt } from '@/components/akili/PWAInstallPrompt';
 import { storage } from '@/lib/api-client';
 
 export default function Home() {
@@ -34,8 +35,8 @@ export default function Home() {
 
   useEffect(() => {
     const refresh = () => setUser(storage.getUser());
-    window.addEventListener('intelliflow-auth-changed', refresh);
-    return () => window.removeEventListener('intelliflow-auth-changed', refresh);
+    window.addEventListener('akili-auth-changed', refresh);
+    return () => window.removeEventListener('akili-auth-changed', refresh);
   }, []);
 
   // Track active section based on scroll
@@ -108,6 +109,7 @@ export default function Home() {
       </div>
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} mode={authMode} />
+      <PWAInstallPrompt />
     </div>
   );
 }

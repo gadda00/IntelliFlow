@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest, getUsageForMonth } from '@/lib/auth/server';
 import { db } from '@/lib/db';
-import { PLANS } from '@/lib/paystack/server';
+import { PLANS } from '@/lib/flutterwave/server';
 
 export async function GET(req: NextRequest) {
   const user = await getUserFromRequest(req);

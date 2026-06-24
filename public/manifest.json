@@ -1,0 +1,68 @@
+{
+  "name": "Akili — 20-Agent Data Intelligence",
+  "short_name": "Akili",
+  "description": "Twenty agents. One mind. Upload your data, get instant insights from 20 specialized AI agents.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0a0f0d",
+  "theme_color": "#0a0f0d",
+  "categories": ["business", "productivity", "developer", "finance"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Analyze Data",
+      "short_name": "Analyze",
+      "description": "Upload data and run the 20-agent pipeline",
+      "url": "/?section=analyze",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Chat with Akili",
+      "short_name": "Chat",
+      "description": "Ask questions about data analysis",
+      "url": "/?section=chat",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "View Pricing",
+      "short_name": "Pricing",
+      "description": "See subscription plans",
+      "url": "/?section=pricing",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "features": [
+    "20 AI agents in parallel DAG",
+    "Anomaly detection (Z-score, IQR, EWMA)",
+    "Holt-Winters time series forecasting",
+    "Causal inference",
+    "PII detection with GDPR compliance",
+    "Synthetic data generation",
+    "Code generation (Python, SQL, JS)",
+    "Industry benchmarks"
+  ]
+}

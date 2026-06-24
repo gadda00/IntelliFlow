@@ -1,29 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?>
-<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 30 30" style="enable-background:new 0 0 30 30;" xml:space="preserve">
-<defs>
-  <style type="text/css">
-    .st194{fill:#2D2D2D;stroke:#FFFFFF;stroke-width:0.6317;stroke-miterlimit:10;}
-    .st23{fill:#FFFFFF;}
-
-    .z-breathe {
-      animation: breathe 2.5s ease-in-out infinite;
-    }
-
-    @keyframes breathe {
-      0%, 100% { opacity: 0.7; }
-      50% { opacity: 1; }
-    }
-  </style>
-</defs>
-
-<g>
-  <path class="st194" d="M24.51,28.51H5.49c-2.21,0-4-1.79-4-4V5.49c0-2.21,1.79-4,4-4h19.03c2.21,0,4,1.79,4,4v19.03
-    C28.51,26.72,26.72,28.51,24.51,28.51z"/>
-  <g class="z-breathe">
-    <path class="st23" d="M15.47,7.1l-1.3,1.85c-0.2,0.29-0.54,0.47-0.9,0.47h-7.1V7.09C6.16,7.1,15.47,7.1,15.47,7.1z"/>
-    <polygon class="st23" points="24.3,7.1 13.14,22.91 5.7,22.91 16.86,7.1"/>
-    <path class="st23" d="M14.53,22.91l1.31-1.86c0.2-0.29,0.54-0.47,0.9-0.47h7.09v2.33H14.53z"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0a0f0d"/>
+      <stop offset="1" stop-color="#0f1a17"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="80" y1="80" x2="432" y2="432" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10b981"/>
+      <stop offset="0.5" stop-color="#a855f7"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- Neural network nodes (the "intelligence") -->
+  <g filter="url(#glow)">
+    <!-- Central node (orchestrator) -->
+    <circle cx="256" cy="256" r="28" fill="url(#accent)"/>
+    <!-- Stage 0: 4 outer nodes -->
+    <circle cx="120" cy="120" r="18" fill="#10b981"/>
+    <circle cx="392" cy="120" r="18" fill="#10b981"/>
+    <circle cx="120" cy="392" r="18" fill="#10b981"/>
+    <circle cx="392" cy="392" r="18" fill="#10b981"/>
+    <!-- Stage 1: 2 mid nodes -->
+    <circle cx="256" cy="100" r="14" fill="#a855f7"/>
+    <circle cx="256" cy="412" r="14" fill="#a855f7"/>
+    <circle cx="100" cy="256" r="14" fill="#a855f7"/>
+    <circle cx="412" cy="256" r="14" fill="#a855f7"/>
   </g>
-</g>
+  <!-- Connecting lines (the DAG / axons) -->
+  <g stroke="url(#accent)" stroke-width="2.5" opacity="0.55" stroke-linecap="round">
+    <line x1="120" y1="120" x2="256" y2="256"/>
+    <line x1="392" y1="120" x2="256" y2="256"/>
+    <line x1="120" y1="392" x2="256" y2="256"/>
+    <line x1="392" y1="392" x2="256" y2="256"/>
+    <line x1="256" y1="100" x2="256" y2="256"/>
+    <line x1="256" y1="412" x2="256" y2="256"/>
+    <line x1="100" y1="256" x2="256" y2="256"/>
+    <line x1="412" y1="256" x2="256" y2="256"/>
+  </g>
+  <!-- Subtle outer ring -->
+  <circle cx="256" cy="256" r="220" stroke="url(#accent)" stroke-width="1.5" fill="none" opacity="0.2"/>
 </svg>

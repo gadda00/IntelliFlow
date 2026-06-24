@@ -1,94 +1,87 @@
-# IntelliFlow v3 — 20-Agent Data Analysis Platform
+# Akili — 20-Agent Data Intelligence Platform
 
-> **Twenty specialists. One orchestrated pipeline. Real math, real fast, in production.**
+> **Twenty agents. One mind.**
+>
+> *Akili* (Swahili for *intelligence* / *mind*) is a multi-agent data analysis platform that orchestrates **20 specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset. Built in Nairobi for the world.
 
-IntelliFlow v3 is a complete rewrite of the IntelliFlow platform — a TypeScript-native, multi-agent data analysis system that runs **20 specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset. No mocks. No toy demos. Real statistics, real forecasts, real causal inference — all in production.
-
-Built by **Victor Ndunda** & contributors.
+[![Deployed on Vercel](https://img.shields.io/badge/Deployed-Vercel-black)](https://vercel.com)
+[![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E)](https://supabase.com)
+[![Payments: Flutterwave](https://img.shields.io/badge/Payments-Flutterwave-FE5C2A)](https://flutterwave.com)
+[![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black)](https://nextjs.org)
+[![Language: TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6)](https://www.typescriptlang.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 ---
 
-## What's New in v3
+## What's New in v3.1
 
-| | v2 (Legacy) | v3 (This Release) |
+| | v3.0 | v3.1 (This Release) |
 |---|---|---|
-| **Agents** | 12 Python agents (Flask) | **20 TypeScript agents** (Next.js) |
-| **Live Demo** | Falls back to mock data in production | **Real analysis runs in production** |
-| **Backend** | Flask + SocketIO (not deployed) | Next.js API routes + Prisma |
-| **Persistence** | None (in-memory) | SQLite/Postgres via Prisma |
-| **Payments** | Paystack code exists but unused | **End-to-end Paystack flow with webhooks** |
-| **Auth** | Basic JWT mock | **JWT + API keys + usage tracking** |
-| **Real-time** | Promised, not delivered | WebSocket mini-service + in-memory pub/sub |
-| **UI** | Vite SPA, 3 tabs | **Modern Next.js 16 SPA with 6 sections** |
-
-### 8 NEW Novel Agents (not in v2)
-
-1. **Privacy Guardian** — PII detection with GDPR/CCPA/HIPAA/PCI-DSS compliance scoring
-2. **Knowledge Graph Builder** — Entity-relationship extraction with centrality analysis
-3. **Synthetic Data Generator** — Privacy-preserving fake data with statistical preservation
-4. **Code Generator** — Generates Python/SQL/JS code that reproduces the analysis
-5. **Benchmark Agent** — Compares metrics against industry benchmarks (finance, web, healthcare, IoT)
-6. **Explainability Agent** — Permutation feature importance with natural-language explanations
-7. **Auto-ML Agent** — Tries multiple model families and recommends the best
-8. **Conversational Analyst** — Chat-with-your-data with contextual Q&A
+| **Brand** | IntelliFlow | **Akili** (Swahili for *intelligence*) |
+| **Database** | SQLite (local only) | **PostgreSQL on Supabase** |
+| **Payments** | Paystack (had issues) | **Flutterwave** (pan-African, more currencies, webhook secret-hash) |
+| **AI Narrative** | Rule-based templates | **LLM-powered** via z-ai-web-dev-sdk |
+| **PWA** | No | **Yes** — installable, offline-capable |
+| **Android** | No | **APK + AAB** via Bubblewrap TWA |
+| **Real-time** | In-memory pub/sub | WebSocket mini-service (preserved) |
 
 ---
 
 ## The 20-Agent Pipeline
 
-The agents run in a **6-stage Directed Acyclic Graph (DAG)** with parallelism within each stage:
+Akili runs **20 specialized TypeScript agents** in a 6-stage parallel DAG with circuit breakers, timeouts, and topological scheduling.
 
 ```
-Stage 0 (Intake, parallel):
-  ├── Data Scout          — profiling, type detection, statistical summary
-  ├── Data Quality Guardian — completeness, uniqueness, validity scoring
-  ├── Privacy Guardian    — PII detection with regex + column-name heuristics
-  └── NLQ Interpreter     — natural language → structured analysis intent
+Stage 0 — Intake (parallel):
+  ├── Data Scout              — profiling, type detection, statistical summary
+  ├── Data Quality Guardian   — completeness, uniqueness, validity scoring
+  ├── Privacy Guardian        — PII detection with GDPR/CCPA/HIPAA/PCI-DSS
+  └── NLQ Interpreter         — natural language → structured analysis intent
 
-Stage 1 (Engineering):
-  └── Data Engineer       — dedup, imputation, type coercion, feature engineering
+Stage 1 — Engineering:
+  └── Data Engineer           — dedup, imputation, type coercion, feature engineering
 
-Stage 2 (Deep Analytics, parallel):
-  ├── Analysis Strategist — methodology selection, hypothesis generation
-  ├── Anomaly Sentinel    — Z-score + IQR + EWMA ensemble
-  ├── Forecasting Oracle  — Holt-Winters triple exponential smoothing
-  ├── Causal Architect    — correlation + regression + Granger-style lag
+Stage 2 — Deep Analytics (parallel):
+  ├── Analysis Strategist     — methodology selection, hypothesis generation
+  ├── Anomaly Sentinel        — Z-score + IQR + EWMA ensemble
+  ├── Forecasting Oracle      — Holt-Winters triple exponential smoothing
+  ├── Causal Architect        — correlation + regression + Granger-style lag
   ├── Knowledge Graph Builder — entity extraction + graph construction
-  ├── Benchmark Agent     — industry benchmark comparison
-  └── Auto-ML Agent       — model selection (linear regression + K-means)
+  ├── Benchmark Agent         — industry benchmark comparison
+  └── Auto-ML Agent           — model selection (linear regression + K-means)
 
-Stage 3 (Synthesis, parallel):
-  ├── Insight Generator   — ranked insights + recommendations
-  ├── Explainability Agent — permutation feature importance
-  ├── Visualization Specialist — Recharts chart specs (histograms, scatters, heatmaps, etc.)
+Stage 3 — Synthesis (parallel):
+  ├── Insight Generator       — ranked insights + recommendations
+  ├── Explainability Agent    — permutation feature importance
+  ├── Visualization Specialist — Recharts chart specs
   ├── Synthetic Data Generator — privacy-preserving fake data
-  └── Code Generator      — Python (pandas) + SQL + JavaScript
+  └── Code Generator          — Python (pandas) + SQL + JavaScript
 
-Stage 4 (Reporting):
-  ├── Narrative Composer  — executive summary, methodology, key findings
-  └── Conversational Analyst — chat layer
+Stage 4 — Reporting:
+  ├── Narrative Composer      — executive summary, methodology, key findings
+  └── Conversational Analyst  — chat layer with knowledge base
 
-Stage 5 (Final):
-  └── Orchestrator        — compiles all outputs into unified response
+Stage 5 — Final:
+  └── Orchestrator            — compiles all outputs into unified response
 ```
 
-Each agent has its own **circuit breaker** (3 failures → 60s cooldown) and **timeout** (10-60s depending on complexity). Failed dependencies cascade-skip dependent agents (not fail the whole pipeline).
+Each agent has its own **circuit breaker** (3 failures → 60s cooldown) and **timeout** (10-60s).
 
 ---
 
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router, Turbopack)
-- **Language**: TypeScript 5 throughout
-- **Database**: Prisma ORM (SQLite for dev, Postgres for prod)
-- **Styling**: Tailwind CSS 4 + shadcn/ui (New York style)
+- **Language**: TypeScript 5
+- **Database**: PostgreSQL on **Supabase** via Prisma ORM
+- **Styling**: Tailwind CSS 4 + shadcn/ui
 - **Animations**: Framer Motion
 - **Charts**: Recharts
-- **Code Highlighting**: react-syntax-highlighter
-- **Auth**: Custom JWT (HS256) + API keys (SHA-256 hashed)
-- **Payments**: Paystack (NGN, USD, GHS, ZAR, KES)
-- **Real-time**: Socket.IO mini-service
-- **Icons**: Lucide React
+- **Payments**: **Flutterwave** (NGN, USD, GHS, ZAR, KES, UGX, TZS, RWF, EUR, GBP)
+- **Real-time**: Socket.IO mini-service (port 3003)
+- **AI**: z-ai-web-dev-sdk (bundled, no API key required)
+- **PWA**: Web App Manifest + Service Worker
+- **Android**: Bubblewrap TWA wrapping the PWA
 
 ---
 
@@ -96,21 +89,22 @@ Each agent has its own **circuit breaker** (3 failures → 60s cooldown) and **t
 
 ### Prerequisites
 - Node.js 18+ (or Bun)
-- A Paystack account (optional — works in mock mode without)
+- PostgreSQL 14+ (local) or a Supabase project
+- Flutterwave account (optional — works in mock mode without)
 
 ### Install & Run
 
 ```bash
 # Clone
-git clone https://github.com/gadda00/IntelliFlow.git
-cd IntelliFlow
+git clone https://github.com/gadda00/Akili.git
+cd Akili
 
 # Install dependencies
 bun install  # or npm install
 
 # Set up environment
 cp .env.example .env
-# Edit .env with your secrets (or leave defaults for dev mode)
+# Edit .env with your Supabase connection strings and Flutterwave keys
 
 # Initialize database
 bun run db:push
@@ -118,7 +112,7 @@ bun run db:push
 # Start the dev server
 bun run dev  # http://localhost:3000
 
-# (Optional) Start the WebSocket mini-service for real-time updates
+# (Optional) Start the WebSocket mini-service
 cd mini-services/websocket-server
 bun install
 bun run dev  # http://localhost:3003
@@ -132,159 +126,91 @@ bun run dev  # http://localhost:3003
 4. Click **Run Full Analysis**
 5. Watch all 20 agents complete in ~5 seconds
 6. Explore the 6 result tabs: Overview, Insights, Charts, Advanced, Code, Agents
+7. Install as PWA via your browser's "Add to Home Screen"
+
+---
+
+## Android App (Play Store)
+
+Akili ships as an installable PWA that's wrapped as a Trusted Web Activity (TWA) for the Play Store.
+
+### Build APK & AAB
+
+```bash
+# 1. Install Bubblewrap CLI (one-time)
+npm install -g @bubblewrap/cli
+
+# 2. Initialize TWA project from the deployed PWA manifest
+bubblewrap init --manifest https://your-domain.com/manifest.json
+
+# 3. Build the APK and AAB
+bubblewrap build
+
+# Output:
+# app-release-signed.apk  (for testing)
+# app-release-bundle.aab  (for Play Store upload)
+```
+
+See [`ANDROID.md`](ANDROID.md) for the complete Play Store deployment guide.
 
 ---
 
 ## Architecture
 
 ```
-IntelliFlow v3/
+Akili/
 ├── src/
 │   ├── app/
 │   │   ├── api/                  # 18 API routes
-│   │   │   ├── analyze/          # Main analysis endpoint
+│   │   │   ├── analyze/          # Main 20-agent analysis endpoint
 │   │   │   ├── agents/           # List all 20 agents
-│   │   │   ├── anomalies/        # Standalone anomaly detection
 │   │   │   ├── auth/             # register, login, me, api-keys
-│   │   │   ├── benchmark/        # Industry benchmarks
-│   │   │   ├── causal/           # Causal analysis
-│   │   │   ├── chat/             # Conversational analyst
-│   │   │   ├── codegen/          # Code generation
-│   │   │   ├── explain/          # Feature importance
-│   │   │   ├── forecast/         # Time series forecasting
-│   │   │   ├── health/           # Health check
-│   │   │   ├── knowledge-graph/  # Knowledge graph
-│   │   │   ├── nlq/              # Natural language query
-│   │   │   ├── payments/         # Paystack init, verify, webhook
-│   │   │   ├── plans/            # Subscription plans
-│   │   │   ├── quality/          # Data quality assessment
-│   │   │   ├── stats/            # Usage stats
-│   │   │   └── synthetic/        # Synthetic data generation
+│   │   │   ├── payments/         # Flutterwave init, verify, webhook
+│   │   │   └── ...               # 13 more endpoints
 │   │   ├── layout.tsx
-│   │   ├── page.tsx              # Single-page app (the only route)
+│   │   ├── page.tsx              # Single-page app
 │   │   └── globals.css
 │   ├── components/
-│   │   ├── intelliflow/          # App-specific components
-│   │   │   ├── Header.tsx
-│   │   │   ├── Hero.tsx
-│   │   │   ├── AgentGallery.tsx
-│   │   │   ├── Analyzer.tsx
-│   │   │   ├── AgentDAGVisualizer.tsx
-│   │   │   ├── AnalysisResultsView.tsx
-│   │   │   ├── ChatSection.tsx
-│   │   │   ├── Pricing.tsx
-│   │   │   ├── AuthModal.tsx
-│   │   │   └── Footer.tsx
-│   │   └── ui/                   # shadcn/ui components
+│   │   ├── akili/                # App components
+│   │   └── ui/                   # shadcn/ui
 │   └── lib/
-│       ├── agents/               # The 20-agent framework
-│       │   ├── core.ts           # Base Agent, Tool, CircuitBreaker, SmartCache
-│       │   ├── statistics.ts     # Real math: mean, median, stdev, regression, k-means, PII detection
-│       │   ├── executor.ts       # DAG executor with topological scheduling
-│       │   ├── coreAgents.ts     # 7 core agents
-│       │   ├── advancedAgents.ts # 5 advanced agents
-│       │   ├── specializedAgents.ts # 8 NEW specialized agents
-│       │   └── index.ts          # Registry & singleton pool
-│       ├── auth/server.ts        # JWT, API keys, password hashing (PBKDF2)
-│       ├── paystack/server.ts    # Paystack service + plans
-│       ├── data/parsers.ts       # CSV/JSON/TSV parsing
-│       ├── api-client.ts         # Frontend API client + types
-│       ├── parsers-client.ts     # Client-side CSV parser
-│       └── db.ts                 # Prisma client
-├── prisma/
-│   └── schema.prisma             # User, Analysis, AgentRun, Payment, Subscription, UsageRecord, ApiKey
-├── mini-services/
-│   └── websocket-server/         # Socket.IO server on port 3003
-├── legacy/                       # v2 Python code (preserved for reference)
-├── .env.example
-├── DEPLOYMENT.md
-└── package.json
+│       ├── agents/               # 20-agent framework
+│       ├── flutterwave/          # Flutterwave service
+│       ├── auth/                 # JWT + API keys
+│       └── data/                 # Parsers
+├── prisma/schema.prisma          # Postgres schema (7 models)
+├── public/                       # PWA icons, manifest, service worker
+├── mini-services/websocket-server/
+├── legacy/                       # v2 Python code (preserved)
+└── .env.example
 ```
 
 ---
 
 ## API Reference
 
-### Core Endpoints
-
-| Method | Path | Description | Auth |
-|---|---|---|---|
-| `GET` | `/api/health` | Health check + agent pool status | None |
-| `GET` | `/api/agents` | List all 20 agents with capabilities | None |
-| `POST` | `/api/analyze` | Run full 20-agent pipeline | Optional |
-| `GET` | `/api/analyses` | List user's past analyses | Required |
-| `GET` | `/api/stats` | Platform stats + user usage | Required |
+### Core
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/health` | Health check |
+| `GET` | `/api/agents` | List 20 agents |
+| `POST` | `/api/analyze` | Run full pipeline |
+| `GET` | `/api/analyses` | User's past analyses |
+| `GET` | `/api/stats` | Platform stats |
 
 ### Standalone Agent Endpoints
-
-| Method | Path | Agent |
-|---|---|---|
-| `POST` | `/api/nlq` | NLQ Interpreter |
-| `POST` | `/api/anomalies` | Anomaly Sentinel |
-| `POST` | `/api/forecast` | Forecasting Oracle |
-| `POST` | `/api/causal` | Causal Architect |
-| `POST` | `/api/quality` | Data Quality Guardian |
-| `POST` | `/api/chat` | Conversational Analyst |
-| `POST` | `/api/codegen` | Code Generator |
-| `POST` | `/api/synthetic` | Synthetic Data Generator |
-| `POST` | `/api/knowledge-graph` | Knowledge Graph Builder |
-| `POST` | `/api/explain` | Explainability Agent |
-| `POST` | `/api/benchmark` | Benchmark Agent |
+`/api/nlq`, `/api/anomalies`, `/api/forecast`, `/api/causal`, `/api/quality`, `/api/chat`, `/api/codegen`, `/api/synthetic`, `/api/knowledge-graph`, `/api/explain`, `/api/benchmark`
 
 ### Auth & Payments
-
 | Method | Path | Description |
 |---|---|---|
 | `POST` | `/api/auth/register` | Create account |
 | `POST` | `/api/auth/login` | Sign in |
-| `GET` | `/api/auth/me` | Current user info |
 | `GET/POST/DELETE` | `/api/auth/api-keys` | Manage API keys |
-| `GET` | `/api/plans` | List subscription plans |
-| `POST` | `/api/payments/initialize` | Initialize Paystack transaction |
-| `POST` | `/api/payments/verify` | Verify payment & upgrade plan |
-| `POST` | `/api/payments/webhook` | Paystack webhook (signature verified) |
-
----
-
-## Algorithms Implemented (No Mocks)
-
-### Statistics (`src/lib/agents/statistics.ts`)
-- Mean, median, mode, variance, stdev, skewness, kurtosis
-- Pearson correlation, linear regression, multiple regression (OLS via normal equation)
-- Permutation importance (SHAP-lite)
-- K-Means clustering with elbow detection
-- Quantile/percentile, IQR, Box-Muller normal sampling
-
-### Anomaly Detection (3-algorithm ensemble)
-- **Z-Score** — flags points >3σ from mean
-- **IQR** — flags points outside [Q1 - 1.5×IQR, Q3 + 1.5×IQR]
-- **EWMA** — Exponentially Weighted Moving Average for trend deviations
-- Ensemble scoring: each detected anomaly gets a weighted score across methods
-
-### Time Series Forecasting
-- **Holt-Winters Triple Exponential Smoothing** (level + trend + seasonality, period 12)
-- **Simple Exponential Smoothing** fallback for short series (<24 points)
-- 95% confidence intervals as `1.96σ√h`
-- Accuracy reported as `100 - MAPE` (mean absolute percentage error)
-
-### Causal Inference
-- Pearson correlation between variables
-- OLS regression for effect size estimation
-- Lagged correlation (Granger-style temporal precedence)
-- Strength classification: strong (|r|>0.7), moderate (>0.4), weak (>0.2)
-
-### PII Detection
-- 7 regex patterns: email, phone, SSN, credit card, IP, DOB, IBAN
-- 9 column-name heuristics: name, email, phone, address, SSN, DOB, gender, race, religion
-- Risk scoring (0-100) with weighted PII types
-- Compliance assessment: GDPR, CCPA, HIPAA, PCI-DSS
-
-### Synthetic Data Generation
-- Numeric columns: normal distribution fitted to original mean/stdev (Box-Muller)
-- Categorical: original frequency distribution
-- Datetime: uniform between min/max
-- PII columns: replaced with type-appropriate fakes (fake emails, names, etc.)
-- Validation: distribution divergence + similarity score
+| `GET` | `/api/plans` | Subscription plans |
+| `POST` | `/api/payments/initialize` | Init Flutterwave transaction |
+| `POST` | `/api/payments/verify` | Verify payment |
+| `POST` | `/api/payments/webhook` | Flutterwave webhook |
 
 ---
 
@@ -292,82 +218,44 @@ IntelliFlow v3/
 
 | Plan | Price (NGN) | Price (USD) | Analyses/mo | Key Features |
 |---|---|---|---|---|
-| **Free** | ₦0 | $0 | 5 | All 20 agents, CSV/JSON/Excel, PDF export |
-| **Professional** | ₦15,000 | $29 | 50 | + API access, forecasting, causal analysis, priority support |
-| **Team** | ₦50,000 | $99 | 200 | + 5 seats, synthetic data, collaboration, custom branding |
-| **Enterprise** | Custom | Custom | Unlimited | + SSO, dedicated support, custom agents, on-prem |
+| **Free** | ₦0 | $0 | 5 | All 20 agents, CSV/JSON/Excel |
+| **Professional** | ₦15,000 | $29 | 50 | + API access, forecasting, priority support |
+| **Team** | ₦50,000 | $99 | 200 | + 5 seats, synthetic data, branding |
+| **Enterprise** | Custom | Custom | Unlimited | + SSO, custom agents, on-prem |
 
-All payments via **Paystack**. Subscriptions renew automatically. Cancel anytime.
+All payments via **Flutterwave**. Subscriptions renew automatically. Cancel anytime.
 
 ---
 
-## Development
+## Algorithms Implemented (No Mocks)
 
-### Scripts
+### Anomaly Detection (3-algorithm ensemble)
+- **Z-Score** — flags points >3σ from mean
+- **IQR** — flags points outside [Q1 - 1.5×IQR, Q3 + 1.5×IQR]
+- **EWMA** — Exponentially Weighted Moving Average for trend deviations
 
-```bash
-bun run dev          # Start dev server (port 3000)
-bun run build        # Production build
-bun run lint         # ESLint
-bun run db:push      # Apply schema changes to DB
-bun run db:migrate   # Create migration
-bun run db:reset     # Reset DB (dev only!)
-bun run db:generate  # Regenerate Prisma client
-```
+### Time Series Forecasting
+- **Holt-Winters Triple Exponential Smoothing** (level + trend + seasonality)
+- **Simple Exponential Smoothing** fallback for short series
+- 95% confidence intervals
 
-### Adding a New Agent
+### Causal Inference
+- Pearson correlation + OLS regression + Granger-style lag analysis
+- Strength classification: strong (|r|>0.7), moderate (>0.4), weak (>0.2)
 
-1. Create `src/lib/agents/myAgent.ts`:
-```typescript
-import { Agent, AgentExecutionContext } from './core';
+### Machine Learning
+- **K-Means** clustering with elbow detection
+- **Multiple Linear Regression** (OLS via normal equation)
+- **Permutation Importance** (SHAP-lite)
 
-export class MyAgent extends Agent {
-  constructor() {
-    super({
-      id: 'my_agent',
-      name: 'My Agent',
-      role: 'Does something cool',
-      tier: 'specialized',
-      description: 'Detailed description',
-      capabilities: ['capability_1', 'capability_2'],
-      icon: 'Sparkles',
-      color: '#10b981',
-    });
-  }
+### PII Detection
+- 7 regex patterns + 9 column-name heuristics
+- Risk scoring with GDPR/CCPA/HIPAA/PCI-DSS compliance assessment
 
-  async execute(ctx: AgentExecutionContext): Promise<any> {
-    const data = ctx.fileContents;
-    // ... your logic
-    return {
-      status: 'completed',
-      confidence: 0.9,
-      summary: 'What I did',
-      // ... your output
-    };
-  }
-}
-```
-
-2. Register in `src/lib/agents/index.ts`:
-```typescript
-import { MyAgent } from './myAgent';
-// Add to the instances array
-new MyAgent(),
-```
-
-3. Add to the DAG in `src/lib/agents/executor.ts`:
-```typescript
-my_agent: {
-  agentId: 'my_agent',
-  dependsOn: ['data_engineer'],  // whatever it needs
-  stage: 2,
-  timeoutMs: 30000,
-},
-```
-
-4. (Optional) Add a standalone API route at `src/app/api/my-agent/route.ts`
-
-That's it — the agent automatically appears in the gallery, runs in the pipeline, and gets its own progress chip in the DAG visualizer.
+### Synthetic Data Generation
+- Box-Muller normal sampling for numeric columns
+- Frequency-preserving categorical sampling
+- PII columns replaced with type-appropriate fakes
 
 ---
 
@@ -377,11 +265,9 @@ MIT — see [LICENSE](LICENSE)
 
 ## Acknowledgments
 
-- Built on the original IntelliFlow v2 (Python/Flask) by Victor Ndunda
-- Inspired by Google ADK multi-agent patterns
-- Paystack for African payment infrastructure
-- The open-source community for React, Next.js, Prisma, Tailwind, shadcn/ui, Recharts, and Framer Motion
+Built by **Victor Ndunda** & contributors in Nairobi, Kenya.
+Inspired by the Swahili word *akili* (intelligence) — African heritage, global ambition.
 
 ---
 
-**Built with intent. Shipped with care.**
+**Twenty agents. One mind. Built in Nairobi.**
