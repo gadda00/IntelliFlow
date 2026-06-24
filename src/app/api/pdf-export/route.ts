@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
   ${fullReport ? `<h2>Full Report</h2>\n<div>${markdownToHtml(fullReport)}</div>` : ''}
 
   <div class="footer">
-    <div><strong>Akili</strong> — 20-Agent Data Intelligence Platform</div>
+    <div><strong>Akili</strong> — 20+ AI Agent Data Intelligence Platform</div>
     <div>Built in Nairobi. Powered by 20 specialized AI agents.</div>
     <div>Generated: ${new Date().toISOString()}</div>
   </div>

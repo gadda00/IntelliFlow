@@ -12,7 +12,7 @@ export class OrchestratorAgent extends Agent {
       name: 'Orchestrator',
       role: 'Workflow coordination & final synthesis',
       tier: 'core',
-      description: 'Coordinates the entire 20-agent pipeline, compiles results, and produces the final unified analysis output.',
+      description: 'Coordinates the entire 20+ AI agent pipeline, compiles results, and produces the final unified analysis output.',
       capabilities: ['workflow_coordination', 'result_compilation', 'final_synthesis'],
       icon: 'Network',
       color: '#6366f1',

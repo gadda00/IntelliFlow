@@ -1,7 +1,11 @@
 {
   "name": "akili",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "private": true,
+  "engines": {
+    "node": ">=22.0.0",
+    "bun": ">=1.1.0"
+  },
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
@@ -13,6 +17,8 @@
     "db:reset": "prisma migrate reset",
     "db:studio": "prisma studio",
     "ws": "cd mini-services/websocket-server && bun run dev",
+    "icons": "node scripts/generate-icons.js",
+    "android": "./scripts/build-android.sh",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -50,6 +56,8 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@reactuses/core": "^6.0.5",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
     "@tanstack/react-query": "^5.82.0",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
@@ -84,6 +92,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.12",
     "@tailwindcss/postcss": "^4",
     "@types/react": "^19",
     "@types/react-dom": "^19",

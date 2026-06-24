@@ -113,7 +113,7 @@ export function Pricing() {
             <span className="gradient-text">Cancel anytime.</span>
           </h2>
           <p className="text-muted-foreground text-lg">
-            {configured ? 'Secure payments via Flutterwave. NGN, USD, GHS, ZAR, KES supported.' : 'Demo mode — Flutterwave not configured. Use env vars to enable live payments.'}
+            {configured ? 'Secure payments via Flutterwave · Google Pay · Apple Pay · Mobile Money · Cards. NGN, USD, GHS, ZAR, KES supported.' : 'Demo mode — Flutterwave not configured. Set FLW_SECRET_KEY to enable live payments.'}
           </p>
         </motion.div>
 
@@ -195,7 +195,7 @@ export function Pricing() {
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-8 max-w-md mx-auto">
-          All plans include access to all 20 AI agents. Higher tiers unlock more analyses per month,
+          All plans include access to all 20+ AI agents. Higher tiers unlock more analyses per month,
           team features, and API access. Subscriptions renew automatically; cancel anytime.
         </p>
       </div>

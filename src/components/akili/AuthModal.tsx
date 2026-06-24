@@ -75,7 +75,7 @@ export function AuthModal({ open, onClose, mode }: AuthModalProps) {
                 </h2>
               </div>
               <p className="text-sm text-muted-foreground mb-5">
-                {localMode === 'login' ? 'Sign in to access your analyses and API keys.' : 'Start analyzing data with 20 AI agents in seconds.'}
+                {localMode === 'login' ? 'Sign in to access your analyses and API keys.' : 'Start analyzing data with 20+ AI agents in seconds.'}
               </p>
 
               <div className="space-y-3">

@@ -1,28 +1,30 @@
-# Akili — 20-Agent Data Intelligence Platform
+# Akili — 20+ AI Agent Data Intelligence Platform
 
-> **Twenty agents. One mind.**
+> **Twenty+ agents. One mind.**
 >
-> *Akili* (Swahili for *intelligence* / *mind*) is a multi-agent data analysis platform that orchestrates **20 specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset. Built in Nairobi for the world.
+> *Akili* (Swahili for *intelligence* / *mind*) is a multi-agent data analysis platform that orchestrates **23 specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset. Built in Nairobi for the world.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed-Vercel-black)](https://vercel.com)
+[![Deployed on Netlify](https://img.shields.io/badge/Deployed-Netlify-00C7B7)](https://netlify.com)
 [![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E)](https://supabase.com)
-[![Payments: Flutterwave](https://img.shields.io/badge/Payments-Flutterwave-FE5C2A)](https://flutterwave.com)
+[![Payments: Flutterwave + Google Pay](https://img.shields.io/badge/Payments-Flutterwave%20%2B%20Google%20Pay-FE5C2A)](https://flutterwave.com)
 [![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black)](https://nextjs.org)
-[![Language: TypeScript](https://img.shields.io/badge/Language-TypeScript-3178C6)](https://www.typescriptlang.org)
+[![Node: 22+](https://img.shields.io/badge/Node.js-22%2B-339933)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 
 ---
 
-## What's New in v3.1
+## What's New in v3.2
 
-| | v3.0 | v3.1 (This Release) |
+| | v3.1 | v3.2 (This Release) |
 |---|---|---|
-| **Brand** | IntelliFlow | **Akili** (Swahili for *intelligence*) |
-| **Database** | SQLite (local only) | **PostgreSQL on Supabase** |
-| **Payments** | Paystack (had issues) | **Flutterwave** (pan-African, more currencies, webhook secret-hash) |
-| **AI Narrative** | Rule-based templates | **LLM-powered** via z-ai-web-dev-sdk |
-| **PWA** | No | **Yes** — installable, offline-capable |
-| **Android** | No | **APK + AAB** via Bubblewrap TWA |
+| **Agents** | 20 | **23** (+ NLP Sentiment, Anomaly Forecasting, Graph Neural Network) |
+| **Auth** | Custom JWT only | **Supabase Auth** (optional, falls back to JWT) |
+| **Payments** | Flutterwave | **Flutterwave + Google Pay + Apple Pay + Mobile Money** |
+| **Workflow** | Run all or nothing | **Workflow Composer** — pick agents or use 8 presets |
+| **Hosting** | Vercel | **Netlify** (with `@netlify/plugin-nextjs`) |
+| **Android** | Manual build | **GitHub Actions** auto-builds APK + AAB on tag push |
+| **Node.js** | 18+ | **22+** (required) |
+| **Portfolio** | — | **Victor Ndunda portfolio** deploys to GitHub Pages |
 | **Real-time** | In-memory pub/sub | WebSocket mini-service (preserved) |
 
 ---
