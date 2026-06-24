@@ -1,0 +1,30 @@
+{
+  "packageId": "ai.busara.app",
+  "host": "busara.netlify.app",
+  "name": "Busara",
+  "launcherName": "Busara",
+  "display": "standalone",
+  "orientation": "default",
+  "themeColor": "#0a0f0d",
+  "navigationColor": "#0a0f0d",
+  "navigationColorDivider": "#0a0f0d",
+  "backgroundColor": "#0a0f0d",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "https://busara.netlify.app/icon-512.png",
+  "maskableIconUrl": "https://busara.netlify.app/icon-maskable-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "signingKey": {
+    "path": "/home/z/.android/debug.keystore",
+    "alias": "androiddebugkey"
+  },
+  "appVersionName": "3.3.0",
+  "appVersionCode": 33,
+  "shortcuts": [
+    { "name": "Analyze", "shortName": "Analyze", "url": "/?section=analyze" },
+    { "name": "Chat", "shortName": "Chat", "url": "/?section=chat" },
+    { "name": "Pricing", "shortName": "Pricing", "url": "/?section=pricing" }
+  ],
+  "generatorSignatures": [],
+  "generatorApp": "bubblewrap-cli-manual"
+}

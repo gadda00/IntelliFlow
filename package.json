@@ -1,6 +1,6 @@
 {
-  "name": "akili",
-  "version": "3.2.0",
+  "name": "busara",
+  "version": "3.3.0",
   "private": true,
   "engines": {
     "node": ">=22.0.0",

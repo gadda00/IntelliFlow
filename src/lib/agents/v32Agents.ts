@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// Akili v3.2 — 3 NEW Specialized Agents (Total: 23 agents)
+// Busara v3.3 — 3 NEW Specialized Agents (Total: 23 agents)
 //   21. NLP Sentiment Analyst
 //   22. Anomaly Forecasting Agent
 //   23. Graph Neural Network Agent

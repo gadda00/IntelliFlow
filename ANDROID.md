@@ -1,8 +1,8 @@
-# Akili — Android App (Play Store) Deployment Guide
+# Busara — Android App (Play Store) Deployment Guide
 
-This guide walks you through building the Akili Android APK and AAB (Android App Bundle) for the Google Play Store.
+This guide walks you through building the Busara Android APK and AAB (Android App Bundle) for the Google Play Store.
 
-Akili is a **Progressive Web App (PWA)** that's wrapped as a **Trusted Web Activity (TWA)** using Google's [Bubblewrap CLI](https://github.com/GoogleChromeLabs/bubblewrap). This means:
+Busara is a **Progressive Web App (PWA)** that's wrapped as a **Trusted Web Activity (TWA)** using Google's [Bubblewrap CLI](https://github.com/GoogleChromeLabs/bubblewrap). This means:
 
 - ✅ One codebase (your Next.js PWA)
 - ✅ Full Play Store presence (installable, discoverable)
@@ -57,11 +57,11 @@ npm install -g @bubblewrap/cli
 ```
 
 ### 4. Deploy the PWA First
-The TWA wraps your deployed PWA, so you need your Akili site live on a public URL (e.g., Vercel).
+The TWA wraps your deployed PWA, so you need your Busara site live on a public URL (e.g., Vercel).
 
 ```bash
 # After deploying to Vercel, note your URL, e.g.:
-# https://akili.vercel.app
+# https://busara.vercel.app
 ```
 
 ---
@@ -86,20 +86,20 @@ This will:
 #### Step 1: Initialize the TWA Project
 
 ```bash
-mkdir -p ~/akili-android
-cd ~/akili-android
+mkdir -p ~/busara-android
+cd ~/busara-android
 
 bubblewrap init \
   --manifest https://your-deployed-url.vercel.app/manifest.json \
-  --name "Akili" \
-  --packageId "ai.akili.app"
+  --name "Busara" \
+  --packageId "ai.busara.app"
 ```
 
 Bubblewrap will ask a few questions:
-- **Application name**: Akili
-- **Short name**: Akili
-- **Launcher name**: Akili
-- **Package ID**: ai.akili.app
+- **Application name**: Busara
+- **Short name**: Busara
+- **Launcher name**: Busara
+- **Package ID**: ai.busara.app
 - **Display mode**: standalone
 - **Orientation**: default
 - **Theme color**: #0a0f0d
@@ -135,7 +135,7 @@ adb install app-release-signed.apk
 
 ### 2. Create a New App
 - Click **Create app**
-- App name: **Akili — Data Intelligence**
+- App name: **Busara — Data Intelligence**
 - Default language: English
 - App type: **App**
 - Pricing: Free (with in-app products for subscriptions)
@@ -148,12 +148,12 @@ adb install app-release-signed.apk
 ### 4. Complete the Store Listing
 
 **App details:**
-- **App name**: Akili — 20-Agent Data Intelligence
+- **App name**: Busara — 20-Agent Data Intelligence
 - **Short description** (80 chars): Twenty agents. One mind. AI data analysis in seconds.
 - **Full description** (4000 chars):
 
 ```
-Akili (Swahili for "intelligence") is a 20-agent AI data analysis platform that turns raw data into actionable insights in seconds.
+Busara (Swahili for "intelligence") is a 20-agent AI data analysis platform that turns raw data into actionable insights in seconds.
 
 Upload a CSV, JSON, or Excel file, and watch as 20 specialized AI agents run in parallel — profilers, forecasters, causal architects, privacy guardians, code generators — extracting every insight your data has to offer.
 
@@ -277,8 +277,8 @@ cd android-twa
 For production, generate a proper release keystore:
 ```bash
 keytool -genkeypair \
-  -keystore akili-release.keystore \
-  -alias akili \
+  -keystore busara-release.keystore \
+  -alias busara \
   -keyalg RSA -keysize 2048 \
   -validity 10000
 

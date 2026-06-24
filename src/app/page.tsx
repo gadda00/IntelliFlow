@@ -1,15 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Header } from '@/components/akili/Header';
-import { Hero } from '@/components/akili/Hero';
-import { AgentGallery } from '@/components/akili/AgentGallery';
-import { Analyzer } from '@/components/akili/Analyzer';
-import { ChatSection } from '@/components/akili/ChatSection';
-import { Pricing } from '@/components/akili/Pricing';
-import { Footer } from '@/components/akili/Footer';
-import { AuthModal, UserMenu } from '@/components/akili/AuthModal';
-import { PWAInstallPrompt } from '@/components/akili/PWAInstallPrompt';
+import { Header } from '@/components/busara/Header';
+import { Hero } from '@/components/busara/Hero';
+import { AgentGallery } from '@/components/busara/AgentGallery';
+import { Analyzer } from '@/components/busara/Analyzer';
+import { ChatSection } from '@/components/busara/ChatSection';
+import { Pricing } from '@/components/busara/Pricing';
+import { Footer } from '@/components/busara/Footer';
+import { AuthModal, UserMenu } from '@/components/busara/AuthModal';
+import { PWAInstallPrompt } from '@/components/busara/PWAInstallPrompt';
 import { storage } from '@/lib/api-client';
 
 export default function Home() {
@@ -35,8 +35,8 @@ export default function Home() {
 
   useEffect(() => {
     const refresh = () => setUser(storage.getUser());
-    window.addEventListener('akili-auth-changed', refresh);
-    return () => window.removeEventListener('akili-auth-changed', refresh);
+    window.addEventListener('busara-auth-changed', refresh);
+    return () => window.removeEventListener('busara-auth-changed', refresh);
   }, []);
 
   // Track active section based on scroll

@@ -34,7 +34,7 @@ export function Pricing() {
   const handleUpgrade = async (plan: Plan) => {
     if (plan.id === 'free') return;
     if (plan.id === 'enterprise') {
-      window.location.href = 'mailto:sales@akili.ai?subject=Enterprise Inquiry';
+      window.location.href = 'mailto:sales@busara.ai?subject=Enterprise Inquiry';
       return;
     }
     if (!user) {

@@ -1,4 +1,4 @@
-// Akili v3.1 — Development schema (SQLite)
+// Busara v3.1 — Development schema (SQLite)
 // Used for local development when PostgreSQL/Supabase is not available.
 // Production uses prisma/schema.prisma (PostgreSQL on Supabase).
 

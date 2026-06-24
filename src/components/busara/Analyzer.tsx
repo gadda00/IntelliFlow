@@ -16,6 +16,7 @@ import { parseCSVText } from '@/lib/parsers-client';
 import { AgentDAGVisualizer } from './AgentDAGVisualizer';
 import { AnalysisResultsView } from './AnalysisResultsView';
 import { WorkflowComposer } from './WorkflowComposer';
+import { VoiceInput } from './VoiceInput';
 
 const SAMPLE_DATA = `product,category,sales,quantity,region,date
 Widget A,Electronics,1200,30,North,2024-01-15
@@ -122,6 +123,8 @@ export function Analyzer() {
 
   const [selectedAgents, setSelectedAgents] = useState<string[] | null>(null);
   const [composerOpen, setComposerOpen] = useState(false);
+  const [useStreaming, setUseStreaming] = useState(true);
+  const [streamingLog, setStreamingLog] = useState<string[]>([]);
 
   const runAnalysis = async (agentIds?: string[]) => {
     setError(null);
@@ -134,8 +137,94 @@ export function Analyzer() {
     setProgress(0);
     setActiveAgents({});
     setResult(null);
+    setStreamingLog([]);
 
-    // Simulate progressive agent activation for visual feedback
+    // If streaming is enabled, use SSE endpoint for real-time updates
+    if (useStreaming) {
+      try {
+        const response = await fetch('/api/analyze-stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fileContents,
+            analysisConfig: { fileName: rawFileName },
+            nlqQuery: nlqQuery || undefined,
+            enabledAgents: agentsToUse && agentsToUse.length > 0 ? agentsToUse : undefined,
+          }),
+        });
+
+        if (!response.ok || !response.body) {
+          throw new Error(`Streaming failed: ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        const completedAgents = new Set<string>();
+        const totalAgents = 23;
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          let currentEvent = '';
+          for (const line of lines) {
+            if (line.startsWith('event: ')) {
+              currentEvent = line.slice(7);
+            } else if (line.startsWith('data: ') && currentEvent) {
+              try {
+                const data = JSON.parse(line.slice(6));
+
+                if (currentEvent === 'connected') {
+                  setStreamingLog(prev => [...prev, `✓ Connected — analysis ${data.analysisId} started`]);
+                } else if (currentEvent === 'agent_update') {
+                  const { agentId, agentName, status, stage, durationMs } = data;
+                  setActiveAgents(prev => ({ ...prev, [agentId]: status }));
+
+                  if (status === 'completed') {
+                    completedAgents.add(agentId);
+                    setProgress(Math.round((completedAgents.size / totalAgents) * 100));
+                    setStreamingLog(prev => [...prev, `✓ ${agentName} completed (${durationMs}ms)`]);
+                  } else if (status === 'running') {
+                    setStreamingLog(prev => [...prev, `▶ ${agentName} running...`]);
+                  } else if (status === 'failed') {
+                    setStreamingLog(prev => [...prev, `✗ ${agentName} failed: ${data.error || ''}`]);
+                  }
+                } else if (currentEvent === 'complete') {
+                  setProgress(100);
+                  setStreamingLog(prev => [...prev, `✓ Pipeline complete: ${data.execution.agentsSucceeded} succeeded, ${data.execution.agentsFailed} failed in ${data.totalDurationMs}ms`]);
+                  setResult(data);
+                  storage.addToHistory({
+                    id: data.analysisId,
+                    name: rawFileName || 'Analysis',
+                    timestamp: new Date().toISOString(),
+                    rowCount: fileContents.length,
+                    status: data.status,
+                  });
+                  setIsRunning(false);
+                } else if (currentEvent === 'error') {
+                  setError(data.error);
+                  setIsRunning(false);
+                }
+              } catch (e) {
+                // ignore JSON parse errors for partial chunks
+              }
+              currentEvent = '';
+            }
+          }
+        }
+        return;
+      } catch (err: any) {
+        console.warn('Streaming failed, falling back to regular API:', err);
+        // Fall through to non-streaming
+      }
+    }
+
+    // Non-streaming fallback (original code)
     const stages = [
       { agents: ['data_scout', 'data_quality_guardian', 'nlq_interpreter', 'privacy_guardian'], duration: 600 },
       { agents: ['data_engineer'], duration: 800 },
@@ -145,9 +234,7 @@ export function Analyzer() {
       { agents: ['orchestrator'], duration: 500 },
     ];
 
-    // Run visual progress in parallel with actual API call
     const visualPromise = (async () => {
-      // Set all to pending first
       const initial: Record<string, any> = {};
       stages.forEach(s => s.agents.forEach(a => initial[a] = 'pending'));
       setActiveAgents(initial);
@@ -249,7 +336,7 @@ export function Analyzer() {
                   <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
                     <Database className="h-10 w-10 mx-auto mb-3 text-primary" />
                     <p className="text-sm text-muted-foreground mb-4">
-                      Try Akili with a sample e-commerce sales dataset (20 rows × 6 columns).
+                      Try Busara with a sample e-commerce sales dataset (20 rows × 6 columns).
                     </p>
                     <Button onClick={loadSample} variant="outline" disabled={isRunning}>
                       <Sparkles className="h-4 w-4 mr-2" />
@@ -392,13 +479,16 @@ export function Analyzer() {
                   <Label htmlFor="nlq" className="text-xs text-muted-foreground">
                     Optional: Ask a question in plain English
                   </Label>
+                <div className="flex gap-2 mt-1">
                   <Input
                     id="nlq"
                     placeholder="e.g., What's driving sales? Forecast next 6 months."
                     value={nlqQuery}
                     onChange={(e) => setNlqQuery(e.target.value)}
-                    className="mt-1"
+                    className="flex-1"
                   />
+                  <VoiceInput onTranscript={(text) => setNlqQuery(prev => (prev ? prev + ' ' : '') + text)} />
+                </div>
                 </div>
               )}
 
@@ -446,11 +536,20 @@ export function Analyzer() {
               {isRunning && (
                 <div className="mt-6 space-y-3">
                   <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>Pipeline progress</span>
+                    <span>Pipeline progress {useStreaming && <Badge variant="secondary" className="ml-2 text-[10px]">SSE Live</Badge>}</span>
                     <span>{Math.round(progress)}%</span>
                   </div>
                   <Progress value={progress} className="h-1.5" />
                   <AgentDAGVisualizer agentStatuses={activeAgents} />
+                  {useStreaming && streamingLog.length > 0 && (
+                    <div className="mt-3 p-3 rounded-lg bg-muted/30 border border-border max-h-32 overflow-y-auto scrollbar-thin font-mono text-[11px] space-y-0.5">
+                      {streamingLog.slice(-12).map((line, i) => (
+                        <div key={i} className={line.startsWith('✗') ? 'text-destructive' : line.startsWith('✓') ? 'text-primary' : 'text-muted-foreground'}>
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
             </Card>

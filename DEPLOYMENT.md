@@ -1,4 +1,4 @@
-# Akili v3.1 — Production Deployment
+# Busara v3.1 — Production Deployment
 
 ## Vercel (Recommended for the Web App)
 
@@ -60,7 +60,7 @@ bun run db:studio  # opens Prisma Studio
 ```
 
 ### 4. (Optional) Enable Supabase Auth
-Akili ships with its own JWT auth, but you can swap in Supabase Auth by replacing `src/lib/auth/server.ts` with Supabase client calls.
+Busara ships with its own JWT auth, but you can swap in Supabase Auth by replacing `src/lib/auth/server.ts` with Supabase client calls.
 
 ---
 
@@ -99,7 +99,7 @@ The app falls back to polling if the WebSocket service is unavailable. To enable
 5. **Port**: 3003 (Render assigns this; set `PORT=3003` env var)
 
 ### Update env var
-After deploying, set `WS_SERVER_URL` in your Vercel project to the Render URL (e.g., `https://akili-ws.onrender.com`).
+After deploying, set `WS_SERVER_URL` in your Vercel project to the Render URL (e.g., `https://busara-ws.onrender.com`).
 
 ---
 

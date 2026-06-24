@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Akili Analysis Report — ${analysisId ?? 'Report'}</title>
+  <title>Busara Analysis Report — ${analysisId ?? 'Report'}</title>
   <style>
     @page { size: A4; margin: 2cm; }
     * { box-sizing: border-box; }
@@ -98,8 +98,8 @@ export async function POST(req: NextRequest) {
 </head>
 <body>
   <div class="cover">
-    <h1>Akili Analysis Report</h1>
-    <div class="subtitle">Twenty agents. One mind.</div>
+    <h1>Busara Analysis Report</h1>
+    <div class="subtitle">Twenty-three agents. One wisdom.</div>
     <div class="meta">
       ${analysisId ? `<div>Analysis ID: <code>${analysisId}</code></div>` : ''}
       <div>Generated: ${new Date().toLocaleString()}</div>
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
   ${fullReport ? `<h2>Full Report</h2>\n<div>${markdownToHtml(fullReport)}</div>` : ''}
 
   <div class="footer">
-    <div><strong>Akili</strong> — 20+ AI Agent Data Intelligence Platform</div>
+    <div><strong>Busara</strong> — 20+ AI Agent Data Intelligence Platform</div>
     <div>Built in Nairobi. Powered by 20 specialized AI agents.</div>
     <div>Generated: ${new Date().toISOString()}</div>
   </div>
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     return new NextResponse(html, {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
-        'Content-Disposition': `inline; filename="akili-report-${analysisId ?? Date.now()}.html"`,
+        'Content-Disposition': `inline; filename="busara-report-${analysisId ?? Date.now()}.html"`,
       },
     });
   } catch (err: any) {

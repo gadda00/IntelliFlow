@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Akili Android TWA Build Script
+# Busara Android TWA Build Script
 # Produces APK (for testing) and AAB (for Play Store upload)
 #
 # Prerequisites:
@@ -57,12 +57,12 @@ init_project() {
   cd "$PROJECT_DIR"
 
   # Use the deployed URL (update this after deploying to Vercel)
-  PWA_URL="${PWA_URL:-https://akili.vercel.app}"
+  PWA_URL="${PWA_URL:-https://busara.vercel.app}"
 
   bubblewrap init \
     --manifest "$PWA_URL/manifest.json" \
-    --name "Akili" \
-    --packageId "ai.akili.app" \
+    --name "Busara" \
+    --packageId "ai.busara.app" \
     --skip-https-validation || {
       err "Bubblewrap init failed. Try running interactively: bubblewrap init --manifest $PWA_URL/manifest.json"
       exit 1
@@ -143,7 +143,7 @@ case "${1:-all}" in
 esac
 
 echo ""
-log "🎉 Akili Android build complete!"
+log "🎉 Busara Android build complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Test the APK on a device: adb install app/build/outputs/apk/release/app-release.apk"

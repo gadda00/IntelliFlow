@@ -1,8 +1,8 @@
-# Akili — 20+ AI Agent Data Intelligence Platform
+# Busara — 20+ AI Agent Data Intelligence Platform
 
 > **Twenty+ agents. One mind.**
 >
-> *Akili* (Swahili for *intelligence* / *mind*) is a multi-agent data analysis platform that orchestrates **23 specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset. Built in Nairobi for the world.
+> *Busara* (Swahili for *intelligence* / *mind*) is a multi-agent data analysis platform that orchestrates **23 specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset. Built in Nairobi for the world.
 
 [![Deployed on Netlify](https://img.shields.io/badge/Deployed-Netlify-00C7B7)](https://netlify.com)
 [![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E)](https://supabase.com)
@@ -31,7 +31,7 @@
 
 ## The 20-Agent Pipeline
 
-Akili runs **20 specialized TypeScript agents** in a 6-stage parallel DAG with circuit breakers, timeouts, and topological scheduling.
+Busara runs **20 specialized TypeScript agents** in a 6-stage parallel DAG with circuit breakers, timeouts, and topological scheduling.
 
 ```
 Stage 0 — Intake (parallel):
@@ -98,8 +98,8 @@ Each agent has its own **circuit breaker** (3 failures → 60s cooldown) and **t
 
 ```bash
 # Clone
-git clone https://github.com/gadda00/Akili.git
-cd Akili
+git clone https://github.com/gadda00/Busara.git
+cd Busara
 
 # Install dependencies
 bun install  # or npm install
@@ -134,7 +134,7 @@ bun run dev  # http://localhost:3003
 
 ## Android App (Play Store)
 
-Akili ships as an installable PWA that's wrapped as a Trusted Web Activity (TWA) for the Play Store.
+Busara ships as an installable PWA that's wrapped as a Trusted Web Activity (TWA) for the Play Store.
 
 ### Build APK & AAB
 
@@ -160,7 +160,7 @@ See [`ANDROID.md`](ANDROID.md) for the complete Play Store deployment guide.
 ## Architecture
 
 ```
-Akili/
+Busara/
 ├── src/
 │   ├── app/
 │   │   ├── api/                  # 18 API routes
@@ -173,7 +173,7 @@ Akili/
 │   │   ├── page.tsx              # Single-page app
 │   │   └── globals.css
 │   ├── components/
-│   │   ├── akili/                # App components
+│   │   ├── busara/                # App components
 │   │   └── ui/                   # shadcn/ui
 │   └── lib/
 │       ├── agents/               # 20-agent framework
@@ -268,7 +268,7 @@ MIT — see [LICENSE](LICENSE)
 ## Acknowledgments
 
 Built by **Victor Ndunda** & contributors in Nairobi, Kenya.
-Inspired by the Swahili word *akili* (intelligence) — African heritage, global ambition.
+Inspired by the Swahili word *busara* (intelligence) — African heritage, global ambition.
 
 ---
 
