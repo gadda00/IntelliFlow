@@ -133,7 +133,7 @@ export class FlutterwaveService {
   async initializeTransaction(args: InitTransactionArgs): Promise<InitTransactionResult> {
     if (!this.isConfigured()) {
       // Mock mode for development
-      const ref = `akili_mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      const ref = `busara_mock_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       return {
         success: true,
         authorizationUrl: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/billing?mock_ref=${ref}`,
@@ -142,7 +142,7 @@ export class FlutterwaveService {
       };
     }
 
-    const txRef = `akili_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const txRef = `busara_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const payload: Record<string, any> = {
       tx_ref: txRef,
       amount: args.amountKobo / 100, // Flutterwave uses major currency unit
@@ -152,7 +152,7 @@ export class FlutterwaveService {
         name: args.customerName ?? args.email,
       },
       customizations: {
-        title: 'Akili',
+        title: 'Busara',
         logo: `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/icon-512.png`,
       },
       meta: args.metadata ?? {},

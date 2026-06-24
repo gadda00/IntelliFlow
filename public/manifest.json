@@ -1,6 +1,6 @@
 {
-  "name": "Akili — 20-Agent Data Intelligence",
-  "short_name": "Akili",
+  "name": "Busara — 20-Agent Data Intelligence",
+  "short_name": "Busara",
   "description": "Twenty agents. One mind. Upload your data, get instant insights from 20 specialized AI agents.",
   "start_url": "/",
   "scope": "/",
@@ -40,7 +40,7 @@
       "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Chat with Akili",
+      "name": "Chat with Busara",
       "short_name": "Chat",
       "description": "Ask questions about data analysis",
       "url": "/?section=chat",

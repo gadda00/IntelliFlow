@@ -1,4 +1,4 @@
-// Shared API client + types for Akili frontend
+// Shared API client + types for Busara frontend
 // All requests use relative paths so the Caddy gateway can route correctly.
 
 export interface AgentInfo {
@@ -41,8 +41,8 @@ export interface Plan {
 const API_BASE = '/api';
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('akili_token') : null;
-  const apiKey = typeof window !== 'undefined' ? localStorage.getItem('akili_api_key') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('busara_token') : null;
+  const apiKey = typeof window !== 'undefined' ? localStorage.getItem('busara_api_key') : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(opts.headers as Record<string, string>),
@@ -162,28 +162,28 @@ export const api = {
 
 // ─── Local storage helpers ─────────────────────────────────────────────────
 export const storage = {
-  getToken: () => typeof window !== 'undefined' ? localStorage.getItem('akili_token') : null,
-  setToken: (t: string) => typeof window !== 'undefined' && localStorage.setItem('akili_token', t),
-  removeToken: () => typeof window !== 'undefined' && localStorage.removeItem('akili_token'),
+  getToken: () => typeof window !== 'undefined' ? localStorage.getItem('busara_token') : null,
+  setToken: (t: string) => typeof window !== 'undefined' && localStorage.setItem('busara_token', t),
+  removeToken: () => typeof window !== 'undefined' && localStorage.removeItem('busara_token'),
   getUser: () => {
     if (typeof window === 'undefined') return null;
-    const u = localStorage.getItem('akili_user');
+    const u = localStorage.getItem('busara_user');
     return u ? JSON.parse(u) : null;
   },
-  setUser: (u: any) => typeof window !== 'undefined' && localStorage.setItem('akili_user', JSON.stringify(u)),
-  removeUser: () => typeof window !== 'undefined' && localStorage.removeItem('akili_user'),
+  setUser: (u: any) => typeof window !== 'undefined' && localStorage.setItem('busara_user', JSON.stringify(u)),
+  removeUser: () => typeof window !== 'undefined' && localStorage.removeItem('busara_user'),
 
   // Analysis history (localStorage)
   getHistory: () => {
     if (typeof window === 'undefined') return [];
-    const h = localStorage.getItem('akili_history');
+    const h = localStorage.getItem('busara_history');
     return h ? JSON.parse(h) : [];
   },
   addToHistory: (item: any) => {
     if (typeof window === 'undefined') return;
     const h = storage.getHistory();
     h.unshift({ ...item, savedAt: new Date().toISOString() });
-    localStorage.setItem('akili_history', JSON.stringify(h.slice(0, 50)));
+    localStorage.setItem('busara_history', JSON.stringify(h.slice(0, 50)));
   },
-  clearHistory: () => typeof window !== 'undefined' && localStorage.removeItem('akili_history'),
+  clearHistory: () => typeof window !== 'undefined' && localStorage.removeItem('busara_history'),
 };

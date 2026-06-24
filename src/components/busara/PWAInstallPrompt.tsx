@@ -69,7 +69,7 @@ export function PWAInstallPrompt() {
                 <Smartphone className="h-5 w-5 text-primary-foreground" />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-sm">Install Akili</h3>
+                <h3 className="font-semibold text-sm">Install Busara</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Add to your home screen for instant access to 20+ AI agent data analysis.
                 </p>

@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       pwa_url:
-        description: 'Deployed PWA URL (e.g., https://akili.netlify.app)'
+        description: 'Deployed PWA URL (e.g., https://busara.netlify.app)'
         required: true
-        default: 'https://akili.netlify.app'
+        default: 'https://busara.netlify.app'
 
 jobs:
   build:
@@ -48,7 +48,7 @@ jobs:
             echo "url=${{ github.event.inputs.pwa_url }}" >> $GITHUB_OUTPUT
           else
             # Default to Netlify URL — update this after your first deploy
-            echo "url=https://akili.netlify.app" >> $GITHUB_OUTPUT
+            echo "url=https://busara.netlify.app" >> $GITHUB_OUTPUT
           fi
 
       - name: Initialize TWA project
@@ -57,8 +57,8 @@ jobs:
           cd android-twa-build
           bubblewrap init \
             --manifest ${{ steps.pwa-url.outputs.url }}/manifest.json \
-            --name "Akili" \
-            --packageId "ai.akili.app" \
+            --name "Busara" \
+            --packageId "ai.busara.app" \
             --skip-https-validation || true
 
       - name: Decode signing keystore
@@ -66,8 +66,8 @@ jobs:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.AKILI_ANDROID_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android-twa-build/akili-release.keystore
-            echo "KEYSTORE_PATH=akili-release.keystore" >> $GITHUB_ENV
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android-twa-build/busara-release.keystore
+            echo "KEYSTORE_PATH=busara-release.keystore" >> $GITHUB_ENV
             echo "KEYSTORE_ALIAS=${{ secrets.AKILI_KEYSTORE_ALIAS }}" >> $GITHUB_ENV
             echo "KEYSTORE_PASSWORD=${{ secrets.AKILI_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
             echo "KEY_PASSWORD=${{ secrets.AKILI_KEY_PASSWORD }}" >> $GITHUB_ENV
@@ -90,22 +90,22 @@ jobs:
       - name: Rename artifacts
         run: |
           mkdir -p artifacts
-          find android-twa-build -name "*.apk" -exec cp {} artifacts/akili-release.apk \;
-          find android-twa-build -name "*.aab" -exec cp {} artifacts/akili-release.aab \;
+          find android-twa-build -name "*.apk" -exec cp {} artifacts/busara-release.apk \;
+          find android-twa-build -name "*.aab" -exec cp {} artifacts/busara-release.aab \;
           ls -la artifacts/
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: akili-apk
-          path: artifacts/akili-release.apk
+          name: busara-apk
+          path: artifacts/busara-release.apk
           retention-days: 90
 
       - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
-          name: akili-aab
-          path: artifacts/akili-release.aab
+          name: busara-aab
+          path: artifacts/busara-release.aab
           retention-days: 90
 
       - name: Create GitHub Release
@@ -113,25 +113,25 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/akili-release.apk
-            artifacts/akili-release.aab
+            artifacts/busara-release.apk
+            artifacts/busara-release.aab
           draft: true
-          name: Akili ${{ github.ref_name }}
+          name: Busara ${{ github.ref_name }}
           body: |
-            ## Akili ${{ github.ref_name }}
+            ## Busara ${{ github.ref_name }}
 
             ### Downloads
-            - **APK** (for testing): `akili-release.apk`
-            - **AAB** (for Play Store): `akili-release.aab`
+            - **APK** (for testing): `busara-release.apk`
+            - **AAB** (for Play Store): `busara-release.aab`
 
             ### Install APK on a device
             ```bash
-            adb install akili-release.apk
+            adb install busara-release.apk
             ```
 
             ### Upload AAB to Play Store
             1. Go to https://play.google.com/console
-            2. Select Akili → Production → Create release
-            3. Upload `akili-release.aab`
+            2. Select Busara → Production → Create release
+            3. Upload `busara-release.aab`
           env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

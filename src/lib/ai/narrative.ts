@@ -57,7 +57,7 @@ export async function generateAINarrative(req: NarrativeRequest): Promise<Narrat
       messages: [
         {
           role: 'system',
-          content: `You are Akili, an expert data analyst AI. You produce clear, actionable, business-friendly narratives from data analysis results. Be specific, quantitative, and insightful. Avoid generic statements. Use markdown formatting with headers (##) and bullet points where helpful. Keep the tone professional but accessible to non-technical business stakeholders. Always ground your insights in the provided data — do not invent numbers.`,
+          content: `You are Busara, an expert data analyst AI. You produce clear, actionable, business-friendly narratives from data analysis results. Be specific, quantitative, and insightful. Avoid generic statements. Use markdown formatting with headers (##) and bullet points where helpful. Keep the tone professional but accessible to non-technical business stakeholders. Always ground your insights in the provided data — do not invent numbers.`,
         },
         {
           role: 'user',
@@ -177,7 +177,7 @@ function fallbackNarrative(req: NarrativeRequest): NarrativeResponse {
     executiveSummary,
     keyInsights: findings,
     strategicRecommendations: recs,
-    methodology: 'The Akili v3.1 pipeline employs a 6-stage Directed Acyclic Graph (DAG) where 20 specialized agents run in topological order with parallelism within each stage.',
+    methodology: 'The Busara v3.3 pipeline employs a 6-stage Directed Acyclic Graph (DAG) where 20 specialized agents run in topological order with parallelism within each stage.',
     conclusion: 'This analysis provides actionable intelligence for data-driven decision making. Review the key findings and implement the recommended actions in priority order.',
     fullReport: `## Executive Summary\n\n${executiveSummary}\n\n## Key Insights\n\n${findings.join('\n')}\n\n## Strategic Recommendations\n\n${recs.join('\n')}\n\n## Conclusion\n\nReview the findings and implement recommended actions.`,
     aiPowered: false,

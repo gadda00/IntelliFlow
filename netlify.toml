@@ -1,16 +1,19 @@
-# Netlify deployment config for Akili
+# Netlify deployment config for Busara
 # https://docs.netlify.com/integrations/frameworks/next-js/overview/
 
 [build]
-  command = "bun run db:generate && bun run build"
+  command = "npx prisma generate && npm run build"
   publish = ".next"
 
 [build.environment]
   NODE_VERSION = "22"
   NEXT_TELEMETRY_DISABLED = "1"
-  # Set these in the Netlify dashboard (Site settings → Environment variables):
-  # DATABASE_URL, DIRECT_URL, JWT_SECRET, NEXT_PUBLIC_APP_URL
-  # FLW_SECRET_KEY, FLW_PUBLIC_KEY, FLW_ENCRYPTION_KEY, FLW_WEBHOOK_HASH
+  # Placeholder DB URLs for prisma generate during build (doesn't connect).
+  # Override these in the Netlify dashboard with your real Supabase URLs.
+  DATABASE_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
+  DIRECT_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
+  JWT_SECRET = "build-placeholder-not-used-at-runtime"
+  NEXT_PUBLIC_APP_URL = "https://busara-ai.netlify.app"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

@@ -28,7 +28,7 @@ export function Hero({ onAnalyze, onSeeAgents }: HeroProps) {
         >
           <Badge variant="secondary" className="mb-6 py-1.5 px-3 text-xs font-medium rounded-full">
             <Sparkles className="h-3 w-3 mr-1.5" />
-            Akili v3.1 · Swahili for "intelligence" · Built in Nairobi
+            Busara v3.3 · Swahili for "intelligence" · Built in Nairobi
           </Badge>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.05]">
@@ -38,7 +38,7 @@ export function Hero({ onAnalyze, onSeeAgents }: HeroProps) {
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            Akili orchestrates a parallel DAG of 20 specialized AI agents — profilers, forecasters, causal
+            Busara orchestrates a parallel DAG of 20 specialized AI agents — profilers, forecasters, causal
             architects, privacy guardians, code generators — to extract every actionable insight from your dataset.
             Powered by LLM-driven narrative. Production-ready. Installable as a PWA.
           </p>

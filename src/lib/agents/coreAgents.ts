@@ -1004,7 +1004,7 @@ export class NarrativeComposerAgent extends Agent {
     const topText = topInsight ? `${topInsight.title}: ${topInsight.description}` : 'No major anomalies detected.';
 
     return `This analysis examined a dataset of ${rows} records across ${cols} columns, achieving a data quality score of ${quality}%. ` +
-      `The Akili multi-agent pipeline executed 20 specialized agents in parallel, performing profiling, cleaning, statistical analysis, ` +
+      `The Busara multi-agent pipeline executed 20 specialized agents in parallel, performing profiling, cleaning, statistical analysis, ` +
       `anomaly detection, forecasting, causal inference, and explainability analysis. ` +
       `The most significant finding: ${topText} ` +
       `This report synthesizes the outputs of all agents into actionable recommendations for stakeholders.`;
@@ -1024,7 +1024,7 @@ export class NarrativeComposerAgent extends Agent {
 
   private composeMethodology(profile: any, deps: Record<string, any>): string {
     const parts: string[] = [];
-    parts.push('The Akili v3.1 pipeline employs a Directed Acyclic Graph (DAG) execution model where 20 specialized agents run in topological order, maximizing parallelism while respecting dependencies.');
+    parts.push('The Busara v3.3 pipeline employs a Directed Acyclic Graph (DAG) execution model where 20 specialized agents run in topological order, maximizing parallelism while respecting dependencies.');
     parts.push('Stage 0 (Intake): Data Scout profiles the dataset, Data Quality Guardian assesses completeness and validity, Privacy Guardian detects PII, and the NLQ Interpreter parses any natural-language queries.');
     parts.push('Stage 1 (Engineering): The Data Engineer cleans, deduplicates, imputes missing values, performs type coercion, and engineers new features.');
     parts.push('Stage 2 (Analytics): Six analytical agents run in parallel — Analysis Strategist plans, Anomaly Sentinel runs multi-algorithm detection (Z-score, IQR, EWMA), Forecasting Oracle uses Holt-Winters triple exponential smoothing, Causal Architect infers causal relationships, Knowledge Graph Builder extracts entity relationships, Benchmark Agent compares to industry benchmarks, and Auto-ML Agent selects the best predictive model.');
@@ -1041,7 +1041,7 @@ export class NarrativeComposerAgent extends Agent {
   ): string {
     const sections: string[] = [];
 
-    sections.push(`# Akili Analysis Report\n\nGenerated: ${new Date().toISOString()}\n\n## Executive Summary\n\n${executiveSummary}`);
+    sections.push(`# Busara Analysis Report\n\nGenerated: ${new Date().toISOString()}\n\n## Executive Summary\n\n${executiveSummary}`);
 
     sections.push(`## Methodology\n\n${methodology}`);
 

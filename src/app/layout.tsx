@@ -15,11 +15,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: "Akili — 20+ AI Agent Data Intelligence Platform",
-  description: "Twenty agents. One mind. Akili orchestrates 20 specialized AI agents in a parallel DAG to extract every actionable insight from your data. Built in Nairobi for the world.",
-  keywords: ["Akili", "multi-agent", "data analysis", "AI agents", "TypeScript", "Next.js", "Flutterwave", "anomaly detection", "forecasting", "causal inference", "Africa", "Nairobi"],
+  title: "Busara — 20+ AI Agent Data Intelligence Platform",
+  description: "Twenty-three agents. One wisdom. Busara orchestrates 20 specialized AI agents in a parallel DAG to extract every actionable insight from your data. Built in Nairobi for the world.",
+  keywords: ["Busara", "multi-agent", "data analysis", "AI agents", "TypeScript", "Next.js", "Flutterwave", "anomaly detection", "forecasting", "causal inference", "Africa", "Nairobi"],
   authors: [{ name: "Victor Ndunda" }],
-  applicationName: "Akili",
+  applicationName: "Busara",
   manifest: "/manifest.json",
   icons: {
     icon: [
@@ -31,21 +31,21 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    title: "Akili",
+    title: "Busara",
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "Akili — 20+ AI Agent Data Intelligence Platform",
-    description: "Twenty agents. One mind. Built in Nairobi for the world.",
-    url: "https://akili.ai",
-    siteName: "Akili",
+    title: "Busara — 20+ AI Agent Data Intelligence Platform",
+    description: "Twenty-three agents. One wisdom. Built in Nairobi for the world.",
+    url: "https://busara.ai",
+    siteName: "Busara",
     type: "website",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Akili — 20+ AI Agent Data Intelligence",
-    description: "Twenty agents. One mind.",
+    title: "Busara — 20+ AI Agent Data Intelligence",
+    description: "Twenty-three agents. One wisdom.",
     images: ["/og-image.png"],
   },
   formatDetection: {
@@ -78,7 +78,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Akili" />
+        <meta name="apple-mobile-web-app-title" content="Busara" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body

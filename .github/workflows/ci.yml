@@ -67,5 +67,5 @@ jobs:
           DATABASE_URL: "file:./dev.db"
           DIRECT_URL: "file:./dev.db"
           JWT_SECRET: "ci-test-secret-only-not-for-production"
-          NEXT_PUBLIC_APP_URL: "https://akili.netlify.app"
+          NEXT_PUBLIC_APP_URL: "https://busara.netlify.app"
         continue-on-error: true  # build may fail without all env vars; just a smoke test

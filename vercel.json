@@ -1,4 +1,4 @@
-# Vercel deployment config for Akili
+# Vercel deployment config for Busara
 # The Next.js app deploys as serverless functions.
 # The WebSocket mini-service should be deployed separately (Render, Railway, or Fly.io)
 

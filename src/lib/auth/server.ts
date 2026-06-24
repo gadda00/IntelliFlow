@@ -4,7 +4,7 @@
 import crypto from 'crypto';
 import { db } from '@/lib/db';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'akili-dev-secret-change-in-production-2026';
+const JWT_SECRET = process.env.JWT_SECRET ?? 'busara-dev-secret-change-in-production-2026';
 const API_KEY_PREFIX = 'ifl_';
 
 export interface AuthUser {

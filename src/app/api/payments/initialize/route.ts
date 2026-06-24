@@ -20,14 +20,14 @@ export async function POST(req: NextRequest) {
     }
     if (plan === 'enterprise') {
       return NextResponse.json({
-        message: 'Contact sales@akili.ai for enterprise pricing',
+        message: 'Contact sales@busara.ai for enterprise pricing',
         contact: true,
       });
     }
 
     const planDetails = PLANS[plan];
     const amountKobo = planDetails.priceNGN * 100;
-    const reference = `akili_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const reference = `busara_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/billing?verify=${reference}`;
 
     // Persist payment record

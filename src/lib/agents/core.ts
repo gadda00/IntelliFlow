@@ -1,4 +1,4 @@
-// Akili v3.1 — Agent Framework Core
+// Busara v3.3 — Agent Framework Core
 // TypeScript-native multi-agent system with DAG execution, circuit breakers,
 // smart caching, and real-time progress broadcasting.
 
