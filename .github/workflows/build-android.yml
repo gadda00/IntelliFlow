@@ -40,14 +40,19 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-34 build-tools;34.0.0'
 
+      - name: Accept Android SDK licenses
+        run: |
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+          yes | sdkmanager --licenses || true
+
       - name: Determine PWA URL
         id: pwa-url
         run: |
           if [ -n "${{ github.event.inputs.pwa_url }}" ]; then
             echo "url=${{ github.event.inputs.pwa_url }}" >> $GITHUB_OUTPUT
           else
-            # Default to Netlify URL — update this after your first deploy
-            echo "url=https://busara.netlify.app" >> $GITHUB_OUTPUT
+            echo "url=https://busara-ai.netlify.app" >> $GITHUB_OUTPUT
           fi
 
       - name: Initialize TWA project
@@ -59,16 +64,22 @@ jobs:
             --name "Busara" \
             --packageId "ai.busara.app" \
             --skip-https-validation || true
+          # Verify init succeeded
+          if [ ! -f "twa-manifest.json" ] && [ ! -f "app/build.gradle" ]; then
+            echo "bubblewrap init failed — PWA at ${{ steps.pwa-url.outputs.url }} may not be live yet"
+            echo "The PWA must be deployed before building the Android app."
+            exit 1
+          fi
 
       - name: Decode signing keystore
         env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.AKILI_ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.BUSARA_ANDROID_KEYSTORE_BASE64 }}
         run: |
           if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
             echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android-twa-build/busara-release.keystore
             echo "KEYSTORE_PATH=busara-release.keystore" >> $GITHUB_ENV
-            echo "KEYSTORE_ALIAS=${{ secrets.AKILI_KEYSTORE_ALIAS }}" >> $GITHUB_ENV
-            echo "KEYSTORE_PASSWORD=${{ secrets.AKILI_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+            echo "KEYSTORE_ALIAS=${{ secrets.BUSARA_KEYSTORE_ALIAS }}" >> $GITHUB_ENV
+            echo "KEYSTORE_PASSWORD=${{ secrets.BUSARA_KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
             echo "KEY_PASSWORD=${{ secrets.AKILI_KEY_PASSWORD }}" >> $GITHUB_ENV
           else
             echo "No signing keystore provided — using debug signing"
