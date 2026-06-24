@@ -16,7 +16,7 @@ export function Pricing() {
   const [configured, setConfigured] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [paystackOpen, setPaystackOpen] = useState(false);
+  const [paymentOpen, setFlutterwaveOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
@@ -34,7 +34,7 @@ export function Pricing() {
   const handleUpgrade = async (plan: Plan) => {
     if (plan.id === 'free') return;
     if (plan.id === 'enterprise') {
-      window.location.href = 'mailto:sales@intelliflow.ai?subject=Enterprise Inquiry';
+      window.location.href = 'mailto:sales@akili.ai?subject=Enterprise Inquiry';
       return;
     }
     if (!user) {
@@ -43,7 +43,7 @@ export function Pricing() {
       return;
     }
     setSelectedPlan(plan);
-    setPaystackOpen(true);
+    setFlutterwaveOpen(true);
     setPaymentUrl(null);
     setVerifyResult(null);
 
@@ -107,13 +107,13 @@ export function Pricing() {
           viewport={{ once: true }}
           className="max-w-2xl mx-auto text-center mb-12"
         >
-          <Badge variant="secondary" className="mb-3">Pricing · Paystack</Badge>
+          <Badge variant="secondary" className="mb-3">Pricing · Flutterwave</Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
             Pay only for value.<br />
             <span className="gradient-text">Cancel anytime.</span>
           </h2>
           <p className="text-muted-foreground text-lg">
-            {configured ? 'Secure payments via Paystack. NGN, USD, GHS, ZAR, KES supported.' : 'Demo mode — Paystack not configured. Use env vars to enable live payments.'}
+            {configured ? 'Secure payments via Flutterwave. NGN, USD, GHS, ZAR, KES supported.' : 'Demo mode — Flutterwave not configured. Use env vars to enable live payments.'}
           </p>
         </motion.div>
 
@@ -200,8 +200,8 @@ export function Pricing() {
         </p>
       </div>
 
-      {/* Paystack Modal */}
-      <Dialog open={paystackOpen} onOpenChange={setPaystackOpen}>
+      {/* Flutterwave Modal */}
+      <Dialog open={paymentOpen} onOpenChange={setFlutterwaveOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -209,8 +209,8 @@ export function Pricing() {
               Upgrade to {selectedPlan?.name}
             </DialogTitle>
             <DialogDescription>
-              You'll be redirected to Paystack's secure payment page to complete your upgrade to {selectedPlan?.name}.
-              {configured ? '' : ' (Demo mode — Paystack not configured, using mock flow.)'}
+              You'll be redirected to Flutterwave's secure payment page to complete your upgrade to {selectedPlan?.name}.
+              {configured ? '' : ' (Demo mode — Flutterwave not configured, using mock flow.)'}
             </DialogDescription>
           </DialogHeader>
 
@@ -235,7 +235,7 @@ export function Pricing() {
                 className="w-full gap-2"
               >
                 <CreditCard className="h-4 w-4" />
-                Pay with Paystack
+                Pay with Flutterwave
               </Button>
               <Button
                 onClick={handleVerify}

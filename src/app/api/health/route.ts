@@ -24,7 +24,7 @@ export async function GET() {
     },
     cache: cache.stats(),
     environment: process.env.NODE_ENV ?? 'development',
-    paystackConfigured: !!(process.env.PAYSTACK_SECRET_KEY && process.env.PAYSTACK_SECRET_KEY.startsWith('sk_')),
+    flwConfigured: !!(process.env.FLW_SECRET_KEY && process.env.FLW_SECRET_KEY.startsWith('sk_')),
   };
   cache.set('health', response, 30000); // 30s
   return NextResponse.json(response);

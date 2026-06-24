@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { PLANS } from '@/lib/paystack/server';
+import { PLANS } from '@/lib/flutterwave/server';
 
 export async function GET() {
   return NextResponse.json({
     plans: Object.values(PLANS).map(p => ({
       ...p,
-      paystackPlanCode: undefined, // don't expose internal codes
+      flwPlanId: undefined, // don't expose internal IDs
     })),
     currency: 'NGN',
-    paystackPublicKey: process.env.PAYSTACK_PUBLIC_KEY ?? '',
-    configured: !!(process.env.PAYSTACK_SECRET_KEY && process.env.PAYSTACK_SECRET_KEY.startsWith('sk_')),
+    provider: 'flutterwave',
+    publicKey: process.env.FLW_PUBLIC_KEY ?? '',
+    configured: !!(process.env.FLW_SECRET_KEY && process.env.FLW_SECRET_KEY.startsWith('FLWSECK-')),
   });
 }

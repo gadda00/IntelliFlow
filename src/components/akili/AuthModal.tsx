@@ -37,7 +37,7 @@ export function AuthModal({ open, onClose, mode }: AuthModalProps) {
       storage.setUser(result.user);
       onClose();
       // Trigger a refresh
-      window.dispatchEvent(new Event('intelliflow-auth-changed'));
+      window.dispatchEvent(new Event('akili-auth-changed'));
     } catch (err: any) {
       setError(err.message ?? 'Authentication failed');
     } finally {
@@ -136,8 +136,8 @@ export function UserMenu() {
   useEffect(() => {
     setUser(storage.getUser());
     const refresh = () => setUser(storage.getUser());
-    window.addEventListener('intelliflow-auth-changed', refresh);
-    return () => window.removeEventListener('intelliflow-auth-changed', refresh);
+    window.addEventListener('akili-auth-changed', refresh);
+    return () => window.removeEventListener('akili-auth-changed', refresh);
   }, []);
 
   if (!user) return null;
@@ -166,7 +166,7 @@ export function UserMenu() {
     storage.removeToken();
     storage.removeUser();
     setUser(null);
-    window.dispatchEvent(new Event('intelliflow-auth-changed'));
+    window.dispatchEvent(new Event('akili-auth-changed'));
   };
 
   return (

@@ -1,4 +1,4 @@
-// Shared API client + types for IntelliFlow frontend
+// Shared API client + types for Akili frontend
 // All requests use relative paths so the Caddy gateway can route correctly.
 
 export interface AgentInfo {
@@ -41,8 +41,8 @@ export interface Plan {
 const API_BASE = '/api';
 
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('intelliflow_token') : null;
-  const apiKey = typeof window !== 'undefined' ? localStorage.getItem('intelliflow_api_key') : null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('akili_token') : null;
+  const apiKey = typeof window !== 'undefined' ? localStorage.getItem('akili_api_key') : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(opts.headers as Record<string, string>),
@@ -134,7 +134,7 @@ export const api = {
   deleteApiKey: (id: string) => request<any>(`/auth/api-keys?id=${id}`, { method: 'DELETE' }),
 
   // Plans & Payments
-  getPlans: () => request<{ plans: Plan[]; currency: string; paystackPublicKey: string; configured: boolean }>('/plans'),
+  getPlans: () => request<{ plans: Plan[]; currency: string; publicKey: string; configured: boolean }>('/plans'),
   initializePayment: (plan: string, currency?: string) => request<any>('/payments/initialize', {
     method: 'POST', body: JSON.stringify({ plan, currency }),
   }),
@@ -146,32 +146,44 @@ export const api = {
   getStats: () => request<any>('/stats'),
   getAnalyses: () => request<{ analyses: any[] }>('/analyses'),
   deleteAnalysis: (id: string) => request<any>(`/analyses?id=${id}`, { method: 'DELETE' }),
+
+  // AI Narrative (LLM-powered)
+  generateAINarrative: (payload: any) => request<any>('/ai-narrative', {
+    method: 'POST', body: JSON.stringify(payload),
+  }),
+
+  // PDF Export (returns HTML for browser-to-PDF)
+  exportPdf: (payload: any) => fetch('/api/pdf-export', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  }).then(r => r.text()),
 };
 
 // ─── Local storage helpers ─────────────────────────────────────────────────
 export const storage = {
-  getToken: () => typeof window !== 'undefined' ? localStorage.getItem('intelliflow_token') : null,
-  setToken: (t: string) => typeof window !== 'undefined' && localStorage.setItem('intelliflow_token', t),
-  removeToken: () => typeof window !== 'undefined' && localStorage.removeItem('intelliflow_token'),
+  getToken: () => typeof window !== 'undefined' ? localStorage.getItem('akili_token') : null,
+  setToken: (t: string) => typeof window !== 'undefined' && localStorage.setItem('akili_token', t),
+  removeToken: () => typeof window !== 'undefined' && localStorage.removeItem('akili_token'),
   getUser: () => {
     if (typeof window === 'undefined') return null;
-    const u = localStorage.getItem('intelliflow_user');
+    const u = localStorage.getItem('akili_user');
     return u ? JSON.parse(u) : null;
   },
-  setUser: (u: any) => typeof window !== 'undefined' && localStorage.setItem('intelliflow_user', JSON.stringify(u)),
-  removeUser: () => typeof window !== 'undefined' && localStorage.removeItem('intelliflow_user'),
+  setUser: (u: any) => typeof window !== 'undefined' && localStorage.setItem('akili_user', JSON.stringify(u)),
+  removeUser: () => typeof window !== 'undefined' && localStorage.removeItem('akili_user'),
 
   // Analysis history (localStorage)
   getHistory: () => {
     if (typeof window === 'undefined') return [];
-    const h = localStorage.getItem('intelliflow_history');
+    const h = localStorage.getItem('akili_history');
     return h ? JSON.parse(h) : [];
   },
   addToHistory: (item: any) => {
     if (typeof window === 'undefined') return;
     const h = storage.getHistory();
     h.unshift({ ...item, savedAt: new Date().toISOString() });
-    localStorage.setItem('intelliflow_history', JSON.stringify(h.slice(0, 50)));
+    localStorage.setItem('akili_history', JSON.stringify(h.slice(0, 50)));
   },
-  clearHistory: () => typeof window !== 'undefined' && localStorage.removeItem('intelliflow_history'),
+  clearHistory: () => typeof window !== 'undefined' && localStorage.removeItem('akili_history'),
 };

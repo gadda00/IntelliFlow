@@ -243,7 +243,7 @@ export function Analyzer() {
                   <div className="rounded-lg border border-dashed border-border bg-muted/30 p-8 text-center">
                     <Database className="h-10 w-10 mx-auto mb-3 text-primary" />
                     <p className="text-sm text-muted-foreground mb-4">
-                      Try IntelliFlow with a sample e-commerce sales dataset (20 rows × 6 columns).
+                      Try Akili with a sample e-commerce sales dataset (20 rows × 6 columns).
                     </p>
                     <Button onClick={loadSample} variant="outline" disabled={isRunning}>
                       <Sparkles className="h-4 w-4 mr-2" />

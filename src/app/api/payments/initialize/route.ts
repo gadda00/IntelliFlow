@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserFromRequest } from '@/lib/auth/server';
-import { getPaystack, PLANS } from '@/lib/paystack/server';
+import { getFlutterwave, PLANS } from '@/lib/flutterwave/server';
 import { db } from '@/lib/db';
 
 export async function POST(req: NextRequest) {
@@ -20,14 +20,14 @@ export async function POST(req: NextRequest) {
     }
     if (plan === 'enterprise') {
       return NextResponse.json({
-        message: 'Contact sales@intelliflow.ai for enterprise pricing',
+        message: 'Contact sales@akili.ai for enterprise pricing',
         contact: true,
       });
     }
 
     const planDetails = PLANS[plan];
-    const amountKobo = planDetails.priceNGN * 100; // NGN → kobo
-    const reference = `ifl_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const amountKobo = planDetails.priceNGN * 100;
+    const reference = `akili_${user.id}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const callbackUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ''}/billing?verify=${reference}`;
 
     // Persist payment record
@@ -39,14 +39,16 @@ export async function POST(req: NextRequest) {
         currency,
         plan,
         status: 'initialized',
+        provider: 'flutterwave',
       },
     });
 
-    const paystack = getPaystack();
-    const result = await paystack.initializeTransaction({
+    const flw = getFlutterwave();
+    const result = await flw.initializeTransaction({
       email: user.email,
       amountKobo,
-      currency: currency as any,
+      currency,
+      customerName: user.name ?? undefined,
       metadata: {
         user_id: user.id,
         plan,
@@ -54,7 +56,7 @@ export async function POST(req: NextRequest) {
         currency_display: currency,
       },
       callbackUrl,
-      planCode: planDetails.paystackPlanCode,
+      planId: planDetails.flwPlanId,
     });
 
     if (!result.success) {
@@ -63,11 +65,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       authorizationUrl: result.authorizationUrl,
-      accessCode: result.accessCode,
+      flwRef: result.flwRef,
       reference: result.reference ?? reference,
       plan,
       amountNGN: planDetails.priceNGN,
       amountUSD: planDetails.priceUSD,
+      provider: 'flutterwave',
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

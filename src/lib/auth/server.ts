@@ -4,7 +4,7 @@
 import crypto from 'crypto';
 import { db } from '@/lib/db';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'intelliflow-dev-secret-change-in-production-2026';
+const JWT_SECRET = process.env.JWT_SECRET ?? 'akili-dev-secret-change-in-production-2026';
 const API_KEY_PREFIX = 'ifl_';
 
 export interface AuthUser {
@@ -175,7 +175,7 @@ export async function getUsageForMonth(userId: string, month?: string): Promise<
   });
   const user = await db.user.findUnique({ where: { id: userId } });
   const plan = user?.plan ?? 'free';
-  const { PLANS } = await import('@/lib/paystack/server');
+  const { PLANS } = await import('@/lib/flutterwave/server');
   const planDetails = PLANS[plan] ?? PLANS.free;
   return {
     analysesUsed: record?.analysesUsed ?? 0,

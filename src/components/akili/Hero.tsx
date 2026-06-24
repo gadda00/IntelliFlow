@@ -28,19 +28,19 @@ export function Hero({ onAnalyze, onSeeAgents }: HeroProps) {
         >
           <Badge variant="secondary" className="mb-6 py-1.5 px-3 text-xs font-medium rounded-full">
             <Sparkles className="h-3 w-3 mr-1.5" />
-            v3.0 · 20 Specialized AI Agents · TypeScript-Native
+            Akili v3.1 · Swahili for "intelligence" · Built in Nairobi
           </Badge>
 
           <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.05]">
-            Your data has a story.
+            Twenty agents.
             <br />
-            <span className="gradient-text">20 agents tell it.</span>
+            <span className="gradient-text">One mind.</span>
           </h1>
 
           <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
-            IntelliFlow orchestrates a parallel DAG of 20 specialized AI agents — profilers, forecasters, causal
+            Akili orchestrates a parallel DAG of 20 specialized AI agents — profilers, forecasters, causal
             architects, privacy guardians, code generators — to extract every actionable insight from your dataset.
-            No mocks. No toy demos. Real math, real fast, in production.
+            Powered by LLM-driven narrative. Production-ready. Installable as a PWA.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">

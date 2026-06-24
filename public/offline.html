@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akili — Offline</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0f0d;
+      color: #e8f0ed;
+      text-align: center;
+      padding: 2rem;
+    }
+    .container { max-width: 480px; }
+    .logo {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 1.5rem;
+      display: block;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; }
+    p { color: #94a3a0; line-height: 1.6; margin-bottom: 1.5rem; }
+    button {
+      background: linear-gradient(135deg, #10b981, #a855f7);
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    button:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <svg class="logo" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+      <rect width="512" height="512" rx="112" fill="#0f1a17"/>
+      <circle cx="256" cy="256" r="28" fill="#10b981"/>
+      <circle cx="120" cy="120" r="18" fill="#10b981"/>
+      <circle cx="392" cy="120" r="18" fill="#10b981"/>
+      <circle cx="120" cy="392" r="18" fill="#10b981"/>
+      <circle cx="392" cy="392" r="18" fill="#10b981"/>
+      <line x1="120" y1="120" x2="256" y2="256" stroke="#10b981" stroke-width="3" opacity="0.6"/>
+      <line x1="392" y1="120" x2="256" y2="256" stroke="#10b981" stroke-width="3" opacity="0.6"/>
+      <line x1="120" y1="392" x2="256" y2="256" stroke="#10b981" stroke-width="3" opacity="0.6"/>
+      <line x1="392" y1="392" x2="256" y2="256" stroke="#10b981" stroke-width="3" opacity="0.6"/>
+    </svg>
+    <h1>You're offline</h1>
+    <p>Akili needs an internet connection to run the 20-agent analysis pipeline. Check your connection and try again.</p>
+    <button onclick="window.location.reload()">Retry</button>
+  </div>
+</body>
+</html>

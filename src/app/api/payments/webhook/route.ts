@@ -1,78 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPaystack } from '@/lib/paystack/server';
+import { getFlutterwave } from '@/lib/flutterwave/server';
 import { upgradeUserPlan } from '@/lib/auth/server';
 import { db } from '@/lib/db';
 
-// Paystack webhook — MUST verify signature
+// Flutterwave webhook — verification uses the secret hash set in the dashboard.
+// The hash is sent in the `verif-hash` header.
 export async function POST(req: NextRequest) {
   try {
-    const signature = req.headers.get('x-paystack-signature') ?? '';
-    const rawBody = await req.text();
-
-    const paystack = getPaystack();
-    if (!paystack.verifyWebhookSignature(rawBody, signature)) {
-      return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+    const providedHash = req.headers.get('verif-hash') ?? '';
+    const flw = getFlutterwave();
+    if (!flw.verifyWebhookSignature(providedHash)) {
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
     }
 
-    const event = JSON.parse(rawBody);
-    const eventType = event.event;
-    const data = event.data ?? {};
+    const event = await req.json();
+    const eventType = event?.event;
+    const data = event?.data ?? {};
 
-    if (eventType === 'charge.success') {
-      const reference = data.reference;
-      const metadata = data.metadata ?? {};
+    if (eventType === 'charge.completed' || (eventType === 'transfer.completed' && data.status === 'successful')) {
+      const txRef = data.tx_ref;
+      const metadata = data.meta ?? {};
       const userId = metadata.user_id;
       const plan = metadata.plan ?? 'pro';
+
+      // Update our payment record
+      if (txRef) {
+        await db.payment.updateMany({
+          where: { reference: txRef },
+          data: {
+            status: 'success',
+            verifiedAt: new Date(),
+            providerData: JSON.stringify(data),
+          },
+        });
+      }
 
       if (userId && plan) {
         await upgradeUserPlan(userId, plan);
       }
-
-      // Update our payment record
-      if (reference) {
-        await db.payment.updateMany({
-          where: { reference },
-          data: {
-            status: 'success',
-            verifiedAt: new Date(),
-            paystackData: JSON.stringify(data),
-          },
-        });
-      }
     }
 
-    if (eventType === 'subscription.create' || eventType === 'subscription.enable') {
+    if (eventType === 'subscription.create' || eventType === 'subscription.activate') {
       // Track subscription
-      const subscriptionCode = data.subscription_code;
-      const userId = data.metadata?.user_id;
-      if (userId && subscriptionCode) {
+      const subCode = data.id?.toString() ?? data.subscription_code;
+      const userId = data.meta?.user_id;
+      if (userId && subCode) {
         await db.subscription.upsert({
           where: { userId },
           create: {
             userId,
-            plan: data.metadata?.plan ?? 'pro',
+            plan: data.meta?.plan ?? 'pro',
             status: 'active',
-            paystackSubCode: subscriptionCode,
-            paystackPlanCode: data.plan?.plan_code,
+            providerSubCode: subCode,
+            providerPlanCode: data.plan?.id?.toString(),
             currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           },
           update: {
             status: 'active',
-            paystackSubCode: subscriptionCode,
+            providerSubCode: subCode,
             currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
           },
         });
       }
     }
 
-    if (eventType === 'subscription.disable') {
-      const userId = data.metadata?.user_id;
+    if (eventType === 'subscription.cancel') {
+      const userId = data.meta?.user_id;
       if (userId) {
         await db.subscription.updateMany({
           where: { userId },
           data: { status: 'canceled' },
         });
-        // Downgrade user to free
         await db.user.update({ where: { id: userId }, data: { plan: 'free' } });
       }
     }

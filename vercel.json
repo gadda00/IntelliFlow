@@ -1,0 +1,40 @@
+# Vercel deployment config for Akili
+# The Next.js app deploys as serverless functions.
+# The WebSocket mini-service should be deployed separately (Render, Railway, or Fly.io)
+
+[build]
+  command = "bun run db:generate && bun run build"
+  environment = { NEXT_TELEMETRY_DISABLED = "1" }
+
+[functions]
+  # Increase timeout for the analyze endpoint (runs 20 agents)
+  max_duration = 60
+
+[[headers]]
+  for = "/manifest.json"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+    Service-Worker-Allowed = "/"
+
+[[headers]]
+  for = "/.well-known/assetlinks.json"
+  [headers.values]
+    Content-Type = "application/json"
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/icon-*.png"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+  # Bubblewrap TWA needs this verified
+  from = "/.well-known/assetlinks.json"
+  to = "/.well-known/assetlinks.json"
+  status = 200

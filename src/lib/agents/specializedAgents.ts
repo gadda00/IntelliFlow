@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// IntelliFlow v3 — 8 NEW Novel Specialized Agents
+// Akili v3.1 — 8 NEW Novel Specialized Agents
 // These are the differentiators — capabilities not in the original Python codebase.
 // ═══════════════════════════════════════════════════════════════════════════
 import { Agent, AgentExecutionContext } from './core';
@@ -400,7 +400,7 @@ export class CodeGeneratorAgent extends Agent {
       name: 'Code Generator',
       role: 'Generate Python/SQL/JavaScript code from analysis intent',
       tier: 'specialized',
-      description: 'Produces ready-to-run code snippets in Python (pandas), SQL, and JavaScript that reproduce the analysis pipeline performed by IntelliFlow.',
+      description: 'Produces ready-to-run code snippets in Python (pandas), SQL, and JavaScript that reproduce the analysis pipeline performed by Akili.',
       capabilities: ['python_generation', 'sql_generation', 'javascript_generation', 'reproducible_pipelines'],
       icon: 'Code',
       color: '#0f766e',
@@ -429,7 +429,7 @@ export class CodeGeneratorAgent extends Agent {
 
   private generatePython(profile: any, target: string | undefined, numericCols: string[], categoricalCols: string[]): string {
     const cols = profile.columns.map((c: any) => `"${c.name}"`).join(', ');
-    return `# IntelliFlow v3 — Generated Analysis Pipeline
+    return `# Akili v3.1 — Generated Analysis Pipeline
 # Generated: ${new Date().toISOString()}
 import pandas as pd
 import numpy as np
@@ -501,7 +501,7 @@ print("\\n✓ Analysis complete.")
   }
 
   private generateSQL(profile: any, target: string | undefined, numericCols: string[], categoricalCols: string[]): string {
-    return `-- IntelliFlow v3 — Generated SQL Analysis
+    return `-- Akili v3.1 — Generated SQL Analysis
 -- Generated: ${new Date().toISOString()}
 -- Table: data (replace with your table name)
 
@@ -548,7 +548,7 @@ FROM data;` : ''}
   }
 
   private generateJavaScript(profile: any, target: string | undefined, numericCols: string[], categoricalCols: string[]): string {
-    return `// IntelliFlow v3 — Generated JavaScript Analysis
+    return `// Akili v3.1 — Generated JavaScript Analysis
 // Generated: ${new Date().toISOString()}
 // Run with Node.js: node analyze.js
 
@@ -1099,7 +1099,7 @@ export class ConversationalAnalystAgent extends Agent {
   }
 
   private generateGreeting(profile: any, insights: any, narrative: any): string {
-    if (!profile) return "Hi! I'm your IntelliFlow analyst. Upload data and I'll help you understand it.";
+    if (!profile) return "Hi! I'm your Akili analyst. Upload data and I'll help you understand it.";
     return `Hi! I've analyzed your dataset of ${profile.rowCount.toLocaleString()} rows × ${profile.columnCount} columns. ` +
       `Quality score: ${profile.qualityScore}%. ` +
       `${insights.insights?.length ?? 0} insights found. ` +

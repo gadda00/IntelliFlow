@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
       token,
       user: { id: user.id, email: user.email, name: user.name, plan: user.plan },
       expiresIn: 86400,
-      message: 'Welcome to IntelliFlow!',
+      message: 'Welcome to Akili!',
     }, { status: 201 });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
