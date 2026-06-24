@@ -1,12 +1,14 @@
-// Busara v3.3 — Production Prisma schema (PostgreSQL on Supabase)
+// Busara v3.1 — Development schema (SQLite)
+// Used for local development when PostgreSQL/Supabase is not available.
+// Production uses prisma/schema.prisma (PostgreSQL on Supabase).
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -34,6 +36,7 @@ model ApiKey {
   lastUsedAt DateTime?
   createdAt DateTime @default(now())
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
@@ -52,6 +55,7 @@ model Analysis {
   startedAt   DateTime?
   completedAt DateTime?
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([status])
 }
@@ -69,6 +73,7 @@ model AgentRun {
   result      String?
   error       String?
   analysis    Analysis @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+
   @@index([analysisId])
   @@index([agentId])
 }
@@ -88,6 +93,7 @@ model Payment {
   createdAt       DateTime    @default(now())
   verifiedAt      DateTime?
   user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
   @@index([status])
 }
@@ -115,6 +121,7 @@ model UsageRecord {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([userId, month])
   @@index([userId])
 }
@@ -127,6 +134,7 @@ model AgentMetric {
   success     Boolean
   errorType   String?
   createdAt   DateTime @default(now())
+
   @@index([agentId])
   @@index([createdAt])
 }
