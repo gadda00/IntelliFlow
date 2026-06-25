@@ -2,7 +2,7 @@
 # https://docs.netlify.com/integrations/frameworks/next-js/overview/
 
 [build]
-  command = "npx prisma generate && npx next build --webpack"
+  command = "npx prisma generate && npm run build"
   publish = ".next"
 
 [build.environment]
