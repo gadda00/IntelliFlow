@@ -13,7 +13,7 @@
   DATABASE_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
   DIRECT_URL = "postgresql://placeholder:placeholder@localhost:5432/placeholder"
   JWT_SECRET = "build-placeholder-not-used-at-runtime"
-  NEXT_PUBLIC_APP_URL = "https://busara-ai.netlify.app"
+  NEXT_PUBLIC_APP_URL = "https://busaraai.com"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
