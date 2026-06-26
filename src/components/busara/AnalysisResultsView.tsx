@@ -94,6 +94,99 @@ export function AnalysisResultsView({ result, fileContents, onReset }: Props) {
   const handleExportPdf = async () => {
     setPdfLoading(true);
     try {
+      // Build chart specifications from the analysis results so the server
+      // can generate real chart images and embed them in the PDF.
+      const charts: any[] = [];
+
+      // 1. Histograms for top numeric columns
+      const numericCols = (scout.profile?.columns ?? []).filter((c: any) => c.stats.type === 'numeric').slice(0, 2);
+      for (const col of numericCols) {
+        const values = fileContents.map((r: any) => Number(r[col.name])).filter((v: number) => !isNaN(v));
+        if (values.length > 3) {
+          charts.push({
+            type: 'histogram',
+            title: `Distribution of ${col.name}`,
+            values,
+            color: '#10b981',
+            description: `Histogram showing the frequency distribution of ${col.name} across ${values.length} data points.`,
+          });
+        }
+      }
+
+      // 2. Time series / forecast chart
+      if (forecast.forecast && forecast.forecast.length > 0) {
+        const dateCol = (scout.profile?.columns ?? []).find((c: any) => c.stats.type === 'datetime')?.name;
+        const targetCol = forecast.targetColumn;
+        if (dateCol && targetCol) {
+          const historical = fileContents
+            .map((r: any) => ({ label: String(r[dateCol] ?? '').split('T')[0], value: Number(r[targetCol]) }))
+            .filter((p: any) => p.value && !isNaN(p.value))
+            .slice(-12);
+          charts.push({
+            type: 'forecast',
+            title: `${targetCol} — Historical & Forecast`,
+            historical,
+            forecast: forecast.forecast.map((f: any) => ({
+              label: f.timestamp?.split('T')[0] ?? `+${f.timestamp}`,
+              value: f.value,
+              lower: f.lower,
+              upper: f.upper,
+            })),
+            description: `Forecast using ${forecast.method}. Accuracy: ${forecast.accuracy}%. Trend: ${forecast.trend}.`,
+          });
+        }
+      }
+
+      // 3. Correlation chart
+      if (causal.relationships && causal.relationships.length > 0) {
+        charts.push({
+          type: 'correlation',
+          title: 'Top Causal Relationships',
+          matrix: causal.relationships.slice(0, 8).map((r: any) => ({
+            row: r.cause,
+            col: r.effect,
+            value: r.correlation,
+          })),
+          variables: causal.relationships.map((r: any) => r.cause),
+          description: 'Pearson correlation between key variables. Green = positive, red = negative.',
+        });
+      }
+
+      // 4. Anomaly chart (scatter)
+      if (anomalies.anomalies && anomalies.anomalies.length > 0) {
+        const anomalyCol = anomalies.anomalies[0].column;
+        const values = fileContents.map((r: any) => Number(r[anomalyCol])).filter((v: number) => !isNaN(v));
+        const anomalyIndices = new Set(anomalies.anomalies.map((a: any) => a.rowIndex));
+        charts.push({
+          type: 'scatter',
+          title: `Anomalies in ${anomalyCol}`,
+          points: values.map((v: number, i: number) => ({ x: i, y: v })),
+          xLabel: 'Row Index',
+          yLabel: anomalyCol,
+          color: '#ef4444',
+          description: `${anomalies.totalAnomalies} anomalies detected using ${anomalies.methodsUsed?.join(', ')}. Red points indicate flagged anomalies.`,
+        });
+      }
+
+      // 5. Bar chart for top categorical values
+      const catCols = (scout.profile?.columns ?? []).filter((c: any) => c.stats.type === 'categorical' && (c.stats.unique ?? 0) < 20).slice(0, 1);
+      for (const col of catCols) {
+        const counts = new Map<string, number>();
+        fileContents.forEach((r: any) => {
+          const v = String(r[col.name] ?? 'N/A');
+          counts.set(v, (counts.get(v) ?? 0) + 1);
+        });
+        const top = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 10);
+        charts.push({
+          type: 'bar',
+          title: `Top values in ${col.name}`,
+          data: top.map(([label, value]) => ({ label, value })),
+          color: '#f59e0b',
+          horizontal: true,
+          description: `Most frequent values in the ${col.name} column.`,
+        });
+      }
+
       const payload = {
         analysisId: result.analysisId,
         executiveSummary: aiNarrative?.executiveSummary ?? narrative.executiveSummary,
@@ -105,8 +198,10 @@ export function AnalysisResultsView({ result, fileContents, onReset }: Props) {
           rowCount: scout.profile?.rowCount,
           columnCount: scout.profile?.columnCount,
           qualityScore: quality.overallScore,
+          domain: scout.detectedDomain,
           aiPowered: aiNarrative?.aiPowered ?? false,
         },
+        charts,
       };
       const html = await api.exportPdf(payload);
       // Open in new window for browser Print → Save as PDF
@@ -114,7 +209,7 @@ export function AnalysisResultsView({ result, fileContents, onReset }: Props) {
       if (w) {
         w.document.write(html);
         w.document.close();
-        setTimeout(() => w.print(), 500);
+        setTimeout(() => w.print(), 800);
       }
     } catch (err: any) {
       alert('PDF export failed: ' + err.message);

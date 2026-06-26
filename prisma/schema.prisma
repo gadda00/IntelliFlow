@@ -1,4 +1,4 @@
-// Busara v3.3 — Production Prisma schema (PostgreSQL on Supabase)
+// Busara v4.0 — Production Prisma schema (PostgreSQL on Supabase)
 generator client {
   provider = "prisma-client-js"
 }
