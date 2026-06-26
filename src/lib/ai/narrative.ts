@@ -4,6 +4,7 @@
 
 import 'server-only';
 import ZAI from 'z-ai-web-dev-sdk';
+import { llmRouter } from '@/lib/llm/router';
 
 let _zai: any = null;
 
@@ -45,19 +46,9 @@ export interface NarrativeResponse {
 }
 
 export async function generateAINarrative(req: NarrativeRequest): Promise<NarrativeResponse> {
-  const zai = await getZAI();
   const prompt = buildPrompt(req);
 
-  if (!zai) {
-    return fallbackNarrative(req);
-  }
-
-  try {
-    const completion = await zai.chat.completions.create({
-      messages: [
-        {
-          role: 'system',
-          content: `You are Busara, an elite data analyst AI — the kind that works at McKinsey or BCG. You produce concise, high-impact, business-actionable narratives from data analysis results.
+  const systemPrompt = `You are Busara, an elite data analyst AI — the kind that works at McKinsey or BCG. You produce concise, high-impact, business-actionable narratives from data analysis results.
 
 CRITICAL RULES:
 1. Be SPECIFIC and QUANTITATIVE. Every claim must reference an actual number from the data.
@@ -67,19 +58,19 @@ CRITICAL RULES:
 5. GROUND everything in the provided data. NEVER invent numbers.
 6. Write for a C-SUITE executive — they have 30 seconds to read this.
 7. Use markdown: ## headers, - bullet points, **bold** for key numbers.
-8. Prioritize by business impact: revenue > risk > efficiency > curiosity.`,
-        },
-        {
-          role: 'user',
-          content: prompt,
-        },
-      ],
-      thinking: { type: 'disabled' },
+8. Prioritize by business impact: revenue > risk > efficiency > curiosity.`;
+
+  // Use the multi-LLM router (tries OpenAI → Claude → Gemini → z-ai-sdk)
+  try {
+    const response = await llmRouter({
+      system: systemPrompt,
+      user: prompt,
       temperature: 0.3,
-      max_tokens: 1500,
+      maxTokens: 1500,
+      complexity: 'high',
     });
 
-    const content = completion.choices?.[0]?.message?.content ?? '';
+    const content = response.text;
 
     if (!content || content.length < 100) {
       return fallbackNarrative(req);
@@ -91,11 +82,11 @@ CRITICAL RULES:
       executiveSummary: sections['Executive Summary'] ?? sections['executive summary'] ?? content.split('\n\n')[0],
       keyInsights: extractBulletPoints(sections['Key Insights'] ?? sections['key insights'] ?? ''),
       strategicRecommendations: extractBulletPoints(sections['Recommendations'] ?? sections['Strategic Recommendations'] ?? ''),
-      methodology: sections['Methodology'] ?? sections['methodology'] ?? 'Multi-agent DAG pipeline with 20 specialized agents.',
+      methodology: sections['Methodology'] ?? sections['methodology'] ?? 'Multi-agent DAG pipeline with 23 specialized agents.',
       conclusion: sections['Conclusion'] ?? sections['conclusion'] ?? content.split('\n\n').pop() ?? '',
       fullReport: content,
       aiPowered: true,
-      model: 'GLM-4.6',
+      model: `${response.provider}/${response.model}`,
     };
   } catch (err: any) {
     console.warn('[AI Narrative] LLM call failed, using fallback:', err.message);
