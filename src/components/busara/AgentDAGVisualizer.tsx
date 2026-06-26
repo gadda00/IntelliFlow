@@ -52,11 +52,19 @@ const STAGES: { stage: number; agents: { id: string; name: string }[] }[] = [
   },
   {
     stage: 5,
+    agents: [
+      { id: 'reflection_agent', name: 'Reflection' },
+      { id: 'africa_market_intel', name: 'Africa Intel' },
+      { id: 'realtime_alert', name: 'Alert Agent' },
+    ],
+  },
+  {
+    stage: 6,
     agents: [{ id: 'orchestrator', name: 'Orchestrator' }],
   },
 ];
 
-const STAGE_LABELS = ['Intake', 'Engineering', 'Deep Analytics', 'Synthesis', 'Reporting', 'Compilation'];
+const STAGE_LABELS = ['Intake', 'Engineering', 'Deep Analytics', 'Synthesis', 'Reporting', 'Reflection & Intel', 'Compilation'];
 
 interface Props {
   agentStatuses: Record<string, 'pending' | 'running' | 'completed' | 'failed' | 'skipped'>;

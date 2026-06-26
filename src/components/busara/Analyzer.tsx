@@ -161,7 +161,7 @@ export function Analyzer() {
         const decoder = new TextDecoder();
         let buffer = '';
         const completedAgents = new Set<string>();
-        const totalAgents = 23;
+        const totalAgents = 26;
 
         while (true) {
           const { done, value } = await reader.read();
@@ -231,6 +231,7 @@ export function Analyzer() {
       { agents: ['analysis_strategist', 'anomaly_sentinel', 'forecasting_oracle', 'causal_architect', 'knowledge_graph_builder', 'benchmark_agent', 'auto_ml_agent', 'nlp_sentiment_analyst', 'graph_neural_network'], duration: 1400 },
       { agents: ['insight_generator', 'explainability_agent', 'visualization_specialist', 'synthetic_data_generator', 'code_generator', 'anomaly_forecasting'], duration: 1100 },
       { agents: ['narrative_composer', 'conversational_analyst'], duration: 800 },
+      { agents: ['reflection_agent', 'africa_market_intel', 'realtime_alert'], duration: 900 },
       { agents: ['orchestrator'], duration: 500 },
     ];
 
@@ -507,7 +508,7 @@ export function Analyzer() {
                   disabled={isRunning || !fileContents.length}
                 >
                   <Zap className="h-4 w-4" />
-                  {isRunning ? 'Running 23 Agents...' : selectedAgents && selectedAgents.length > 0 ? `Run ${selectedAgents.length} Selected Agents` : 'Run Full Analysis'}
+                  {isRunning ? 'Running 26 Agents...' : selectedAgents && selectedAgents.length > 0 ? `Run ${selectedAgents.length} Selected Agents` : 'Run Full Analysis'}
                 </Button>
                 <Button
                   variant="outline"

@@ -55,7 +55,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode 
           </div>
           <div className="flex flex-col items-start leading-tight">
             <span className="font-bold text-base tracking-tight">Busara</span>
-            <span className="text-[10px] text-muted-foreground -mt-0.5">v3.2 · 23 agents</span>
+            <span className="text-[10px] text-muted-foreground -mt-0.5">v6.0 · 26 agents</span>
           </div>
         </button>
 

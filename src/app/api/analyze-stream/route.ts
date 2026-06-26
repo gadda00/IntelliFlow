@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
         };
 
-        send('connected', { analysisId, agentCount: 23, timestamp: new Date().toISOString() });
+        send('connected', { analysisId, agentCount: 26, timestamp: new Date().toISOString() });
 
         try {
           const pool = getAgentPool();

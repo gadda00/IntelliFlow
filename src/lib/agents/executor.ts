@@ -83,11 +83,28 @@ export const AGENT_DAG: Record<string, AgentNode> = {
     stage: 4, timeoutMs: 15000,
   },
 
-  // Stage 5 — Final
+  // Stage 5 — Reflection & Africa Market Intel (parallel)
+  reflection_agent: {
+    agentId: 'reflection_agent',
+    dependsOn: ['narrative_composer', 'conversational_analyst', 'insight_generator', 'causal_architect', 'explainability_agent', 'data_quality_guardian', 'forecasting_oracle', 'anomaly_sentinel'],
+    stage: 5, timeoutMs: 20000,
+  },
+  africa_market_intel: {
+    agentId: 'africa_market_intel',
+    dependsOn: ['data_scout'],
+    stage: 5, timeoutMs: 15000,
+  },
+  realtime_alert: {
+    agentId: 'realtime_alert',
+    dependsOn: ['data_scout'],
+    stage: 5, timeoutMs: 15000,
+  },
+
+  // Stage 6 — Final
   orchestrator: {
     agentId: 'orchestrator',
-    dependsOn: ['narrative_composer', 'conversational_analyst', 'data_quality_guardian', 'benchmark_agent'],
-    stage: 5, timeoutMs: 15000,
+    dependsOn: ['narrative_composer', 'conversational_analyst', 'data_quality_guardian', 'benchmark_agent', 'reflection_agent', 'africa_market_intel', 'realtime_alert'],
+    stage: 6, timeoutMs: 15000,
   },
 };
 

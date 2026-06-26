@@ -6,6 +6,7 @@ import { OrchestratorAgent, DataScoutAgent, DataEngineerAgent, AnalysisStrategis
 import { AnomalySentinelAgent, ForecastingOracleAgent, CausalArchitectAgent, NLQInterpreterAgent, DataQualityGuardianAgent } from './advancedAgents';
 import { PrivacyGuardianAgent, KnowledgeGraphBuilderAgent, SyntheticDataGeneratorAgent, CodeGeneratorAgent, BenchmarkAgent, ExplainabilityAgent, AutoMLAgent, ConversationalAnalystAgent } from './specializedAgents';
 import { NLPSentimentAgent, AnomalyForecastingAgent, GraphNeuralNetworkAgent } from './v32Agents';
+import { RealTimeAlertAgent, ReflectionAgent, AfricaMarketIntelligenceAgent } from './v6Agents';
 
 // Re-export for convenience
 export * from './core';
@@ -13,6 +14,7 @@ export * from './coreAgents';
 export * from './advancedAgents';
 export * from './specializedAgents';
 export * from './v32Agents';
+export * from './v6Agents';
 export * from './executor';
 export * from './statistics';
 
@@ -50,6 +52,10 @@ export function getAgentPool(): Map<string, Agent> {
     new NLPSentimentAgent(),
     new AnomalyForecastingAgent(),
     new GraphNeuralNetworkAgent(),
+    // Specialized (3) — v6.0 NEW
+    new RealTimeAlertAgent(),
+    new ReflectionAgent(),
+    new AfricaMarketIntelligenceAgent(),
   ];
 
   for (const agent of instances) {
@@ -71,4 +77,4 @@ export function getDAG() {
 }
 
 // Total agent count for display — "20+" marketing
-export const TOTAL_AGENTS = 23;
+export const TOTAL_AGENTS = 26;
