@@ -11,8 +11,8 @@ const nextConfig: NextConfig = {
     // Turbopack is stable in Next.js 16 — keep enabled for faster builds
     optimizePackageImports: ["lucide-react", "recharts", "framer-motion"],
   },
-  // Allow Prisma to be bundled in serverless functions
-  serverExternalPackages: ["@prisma/client", "@supabase/supabase-js"],
+  // Allow native/external modules to be bundled in serverless functions
+  serverExternalPackages: ["@prisma/client", "@supabase/supabase-js", "canvas", "chartjs-node-canvas", "binding"],
   // ESLint errors shouldn't fail the production build
   eslint: {
     ignoreDuringBuilds: true,

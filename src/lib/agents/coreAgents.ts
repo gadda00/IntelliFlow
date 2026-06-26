@@ -695,19 +695,75 @@ export class InsightGeneratorAgent extends Agent {
       }
     }
 
+    // ─── Relevance Filter ────────────────────────────────────────────────
+    // Remove low-value insights and deduplicate. Only keep the most actionable,
+    // high-confidence findings. This is what makes Busara's output feel like
+    // a McKinsey consultant wrote it, not a script.
+    const filteredInsights = this.filterRelevantInsights(insights);
+    const filteredRecs = this.filterRelevantRecommendations(recommendations);
+
     return {
       status: 'completed',
       confidence: 0.9,
-      insights: insights.sort((a, b) => {
-        const impactOrder = { high: 3, medium: 2, low: 1 };
-        return impactOrder[b.impact] - impactOrder[a.impact] || b.confidence - a.confidence;
-      }),
-      recommendations: recommendations.sort((a, b) => {
-        const priorityOrder = { high: 3, medium: 2, low: 1 };
-        return priorityOrder[b.priority] - priorityOrder[a.priority];
-      }),
-      summary: `Generated ${insights.length} insights and ${recommendations.length} recommendations.`,
+      insights: filteredInsights,
+      recommendations: filteredRecs,
+      summary: `Generated ${filteredInsights.length} insights and ${filteredRecs.length} recommendations from ${insights.length} raw findings.`,
     };
+  }
+
+  /**
+   * Relevance filter — removes low-value, redundant, or obvious insights.
+   * Keeps only insights that are: high-impact, non-obvious, and actionable.
+   */
+  private filterRelevantInsights(insights: any[]): any[] {
+    // Sort by impact + confidence
+    const impactOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+    const sorted = [...insights].sort((a, b) =>
+      (impactOrder[b.impact] ?? 0) - (impactOrder[a.impact] ?? 0) ||
+      (b.confidence ?? 0) - (a.confidence ?? 0)
+    );
+
+    // Filter out: low-impact + low-confidence, and obvious "overview" insights
+    const filtered = sorted.filter(insight => {
+      // Always keep high-impact insights
+      if (insight.impact === 'high') return true;
+      // Keep medium-impact if confidence > 0.7
+      if (insight.impact === 'medium' && insight.confidence > 0.7) return true;
+      // Keep low-impact only if it's the dataset overview (1 allowed) or very high confidence
+      if (insight.category === 'overview') return sorted.indexOf(insight) === 0; // only first overview
+      return insight.confidence > 0.85;
+    });
+
+    // Deduplicate by title similarity
+    const seen = new Set<string>();
+    const deduped = filtered.filter(insight => {
+      const key = insight.title.toLowerCase().slice(0, 40);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Cap at 7 insights — quality over quantity
+    return deduped.slice(0, 7);
+  }
+
+  private filterRelevantRecommendations(recs: any[]): any[] {
+    const priorityOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+    const sorted = [...recs].sort((a, b) =>
+      (priorityOrder[b.priority] ?? 0) - (priorityOrder[a.priority] ?? 0)
+    );
+
+    // Deduplicate by title
+    const seen = new Set<string>();
+    const deduped = sorted.filter(rec => {
+      const key = rec.title.toLowerCase().slice(0, 40);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    // Cap at 5 recommendations
+    return deduped.slice(0, 5);
   }
 }
 
