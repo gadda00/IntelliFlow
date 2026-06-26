@@ -20,6 +20,10 @@
 
 [functions]
   # Increase timeout for the analyze endpoint (runs 23 agents)
+  node_bundler = "esbuild"
+  external_node_modules = ["@prisma/client"]
+
+[functions."api/analyze"]
   max_duration = 60
 
 # PWA manifest headers
