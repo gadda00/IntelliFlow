@@ -35,7 +35,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
-      - name: Build project
+      - name: Build project (verification)
         run: npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
@@ -46,26 +46,17 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli@17
 
-      - name: Deploy to Netlify
+      - name: Link and Deploy to Netlify
         run: |
-          # Deploy the .next directory with Netlify CLI
-          # The netlify.toml in the repo configures @netlify/plugin-nextjs
+          # Link to the Netlify site using the site ID
+          # Then deploy the pre-built .next directory
+          # The @netlify/plugin-nextjs (configured in netlify.toml) will process the output
+          netlify link --id "${NETLIFY_SITE_ID}"
+          netlify status
           netlify deploy \
             --dir=.next \
             --prod \
-            --message "Deploy from commit ${{ github.sha }}"
+            --message "Deploy from ${{ github.event.head_commit.message || 'GitHub Actions' }}"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-      - name: Comment on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '🚀 Deployed to Netlify! Check the deploy log for the preview URL.'
-            })
