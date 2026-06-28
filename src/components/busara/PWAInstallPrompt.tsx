@@ -71,7 +71,7 @@ export function PWAInstallPrompt() {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-sm">Install Busara</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Add to your home screen for instant access to 20+ AI agent data analysis.
+                  Add to your home screen for instant access to 26 AI agent data analysis.
                 </p>
                 <div className="flex gap-2 mt-3">
                   <Button size="sm" onClick={handleInstall} className="gap-1.5 h-8">

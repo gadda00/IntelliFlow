@@ -1,64 +1,73 @@
 'use client';
 
-import { Activity, Github, Twitter, Mail } from 'lucide-react';
+import { Activity, Github, Twitter, Mail, Heart, Sparkles, Command } from 'lucide-react';
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-border/40 py-12 bg-muted/20">
+    <footer className="mt-auto border-t border-border/30 py-12 bg-muted/10">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div className="md:col-span-1">
             <div className="flex items-center gap-2 mb-3">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent-foreground flex items-center justify-center">
+              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary to-accent-foreground flex items-center justify-center shadow-md shadow-primary/20">
                 <Activity className="h-4 w-4 text-primary-foreground" />
               </div>
               <span className="font-bold">Busara</span>
             </div>
-            <p className="text-xs text-muted-foreground">
-              20+ AI agent parallel data analysis. TypeScript-native. Production-ready.
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              26 specialized AI agents in a parallel DAG. TypeScript-native. Production-ready. Built in Nairobi for the world.
             </p>
+            <div className="flex items-center gap-1.5 mt-3 text-[10px] text-muted-foreground">
+              <Command className="h-3 w-3" />
+              <span>Press Cmd+K to search</span>
+            </div>
           </div>
 
           <div>
             <h4 className="text-sm font-semibold mb-3">Product</h4>
-            <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li><a href="#agents" className="hover:text-foreground">Agents</a></li>
-              <li><a href="#analyze" className="hover:text-foreground">Analyzer</a></li>
-              <li><a href="#chat" className="hover:text-foreground">Chat</a></li>
-              <li><a href="#pricing" className="hover:text-foreground">Pricing</a></li>
+            <ul className="space-y-2 text-xs text-muted-foreground">
+              <li><a href="#agents" className="hover:text-foreground transition-colors">Agents</a></li>
+              <li><a href="#analyze" className="hover:text-foreground transition-colors">Analyzer</a></li>
+              <li><a href="#chat" className="hover:text-foreground transition-colors">Chat</a></li>
+              <li><a href="#pricing" className="hover:text-foreground transition-colors">Pricing</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm font-semibold mb-3">Resources</h4>
-            <ul className="space-y-1.5 text-xs text-muted-foreground">
-              <li><a href="https://github.com/gadda00/Busara" target="_blank" rel="noreferrer" className="hover:text-foreground">GitHub</a></li>
-              <li>API Docs</li>
-              <li>Agent Catalog</li>
-              <li>Changelog</li>
+            <ul className="space-y-2 text-xs text-muted-foreground">
+              <li><a href="https://github.com/gadda00/IntelliFlow" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">GitHub</a></li>
+              <li><a href="/api/docs" className="hover:text-foreground transition-colors">API Docs</a></li>
+              <li><a href="#agents" className="hover:text-foreground transition-colors">Agent Catalog</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="text-sm font-semibold mb-3">Connect</h4>
             <div className="flex gap-2">
-              <a href="https://github.com/gadda00/Busara" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-lg bg-muted hover:bg-accent flex items-center justify-center transition-colors">
+              <a href="https://github.com/gadda00/IntelliFlow" target="_blank" rel="noreferrer" className="h-8 w-8 rounded-lg bg-muted/50 hover:bg-accent flex items-center justify-center transition-colors border border-border/30">
                 <Github className="h-4 w-4" />
               </a>
-              <a href="#" className="h-8 w-8 rounded-lg bg-muted hover:bg-accent flex items-center justify-center transition-colors">
+              <a href="#" className="h-8 w-8 rounded-lg bg-muted/50 hover:bg-accent flex items-center justify-center transition-colors border border-border/30">
                 <Twitter className="h-4 w-4" />
               </a>
-              <a href="mailto:hello@busara.ai" className="h-8 w-8 rounded-lg bg-muted hover:bg-accent flex items-center justify-center transition-colors">
+              <a href="mailto:hello@busara.ai" className="h-8 w-8 rounded-lg bg-muted/50 hover:bg-accent flex items-center justify-center transition-colors border border-border/30">
                 <Mail className="h-4 w-4" />
               </a>
             </div>
           </div>
         </div>
 
-        <div className="pt-6 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-muted-foreground">
-          <div>© 2026 Busara. Built by Victor Ndunda & contributors.</div>
-          <div className="flex gap-4">
-            <span>Powered by Next.js 16 · Prisma · Flutterwave</span>
+        <div className="pt-6 border-t border-border/30 flex flex-col md:flex-row justify-between items-center gap-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            © 2026 Busara. Built with <Heart className="h-3 w-3 text-destructive inline" /> by Victor Ndunda & contributors.
+          </div>
+          <div className="flex gap-4 items-center">
+            <span>Next.js 15 · Prisma · Flutterwave</span>
+            <span className="flex items-center gap-1">
+              <Sparkles className="h-3 w-3 text-primary" />
+              v6.1
+            </span>
           </div>
         </div>
       </div>
