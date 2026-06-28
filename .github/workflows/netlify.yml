@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -46,32 +46,55 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli@17
 
-      - name: Deploy to Netlify
+      - name: Verify Netlify credentials
         run: |
-          # Verify secrets are set
-          if [ -z "${NETLIFY_AUTH_TOKEN}" ]; then
-            echo "::error::NETLIFY_AUTH_TOKEN secret is not set. Please add it in GitHub Settings > Secrets and variables > Actions"
-            exit 1
-          fi
-          if [ -z "${NETLIFY_SITE_ID}" ]; then
-            echo "::error::NETLIFY_SITE_ID secret is not set. Please add it in GitHub Settings > Secrets and variables > Actions"
+          # Debug: show length of secrets (not the values themselves)
+          echo "NETLIFY_SITE_ID length: ${#NETLIFY_SITE_ID}"
+          echo "NETLIFY_AUTH_TOKEN length: ${#NETLIFY_AUTH_TOKEN}"
+
+          if [ ${#NETLIFY_SITE_ID} -lt 10 ]; then
+            echo "::error::NETLIFY_SITE_ID appears to be empty or too short. It should be a UUID like 'abc12345-1234-1234-1234-abc123456789'"
+            echo "::error::Find it at: Netlify dashboard → Site settings → General → Site details → API ID"
             exit 1
           fi
 
-          # Deploy using Netlify CLI with explicit site and auth
-          # The --site flag specifies the site ID directly
-          # The netlify.toml in the repo configures @netlify/plugin-nextjs
+          if [ ${#NETLIFY_AUTH_TOKEN} -lt 10 ]; then
+            echo "::error::NETLIFY_AUTH_TOKEN appears to be empty or too short."
+            echo "::error::Generate one at: https://app.netlify.com/user/applications#personal-access-tokens"
+            exit 1
+          fi
+
+          # List sites to verify the auth token works
+          echo "Verifying auth token by listing sites..."
+          netlify api listSites --auth "${NETLIFY_AUTH_TOKEN}" 2>&1 | head -20 || {
+            echo "::error::Auth token verification failed. The token may be expired or invalid."
+            exit 1
+          }
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+      - name: Deploy to Netlify
+        run: |
+          # Create a .netlify/state.json file to link the site explicitly
+          mkdir -p .netlify
+          cat > .netlify/state.json << EOF
+          {
+            "siteId": "${NETLIFY_SITE_ID}"
+          }
+          EOF
+
+          # Deploy using Netlify CLI
+          # The .netlify/state.json file links this directory to the Netlify site
           netlify deploy \
-            --site "${NETLIFY_SITE_ID}" \
-            --auth "${NETLIFY_AUTH_TOKEN}" \
             --dir=.next \
             --prod \
+            --auth "${NETLIFY_AUTH_TOKEN}" \
             --message "Deploy from ${{ github.event.head_commit.message || 'GitHub Actions' }}" \
             2>&1 || {
-              echo "::error::Deploy failed. Common causes:"
-              echo "::error::1. NETLIFY_SITE_ID is incorrect — find it in Netlify dashboard > Site settings > General > Site details > API ID"
-              echo "::error::2. NETLIFY_AUTH_TOKEN is expired — regenerate at https://app.netlify.com/user/applications#personal-access-tokens"
-              echo "::error::3. The auth token's user doesn't have access to the site"
+              echo "::error::Deploy failed. The NETLIFY_SITE_ID may be incorrect."
+              echo "::error::Verify the Site ID at: Netlify dashboard → Site settings → General → Site details → API ID"
+              echo "::error::It should look like: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
               exit 1
             }
         env:
