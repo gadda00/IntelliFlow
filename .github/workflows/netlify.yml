@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 25
 
@@ -35,7 +35,7 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
-      - name: Build project (verification)
+      - name: Build project
         run: npm run build
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
@@ -46,17 +46,34 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli@17
 
-      - name: Link and Deploy to Netlify
+      - name: Deploy to Netlify
         run: |
-          # Link to the Netlify site using the site ID
-          # Then deploy the pre-built .next directory
-          # The @netlify/plugin-nextjs (configured in netlify.toml) will process the output
-          netlify link --id "${NETLIFY_SITE_ID}"
-          netlify status
+          # Verify secrets are set
+          if [ -z "${NETLIFY_AUTH_TOKEN}" ]; then
+            echo "::error::NETLIFY_AUTH_TOKEN secret is not set. Please add it in GitHub Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+          if [ -z "${NETLIFY_SITE_ID}" ]; then
+            echo "::error::NETLIFY_SITE_ID secret is not set. Please add it in GitHub Settings > Secrets and variables > Actions"
+            exit 1
+          fi
+
+          # Deploy using Netlify CLI with explicit site and auth
+          # The --site flag specifies the site ID directly
+          # The netlify.toml in the repo configures @netlify/plugin-nextjs
           netlify deploy \
+            --site "${NETLIFY_SITE_ID}" \
+            --auth "${NETLIFY_AUTH_TOKEN}" \
             --dir=.next \
             --prod \
-            --message "Deploy from ${{ github.event.head_commit.message || 'GitHub Actions' }}"
+            --message "Deploy from ${{ github.event.head_commit.message || 'GitHub Actions' }}" \
+            2>&1 || {
+              echo "::error::Deploy failed. Common causes:"
+              echo "::error::1. NETLIFY_SITE_ID is incorrect — find it in Netlify dashboard > Site settings > General > Site details > API ID"
+              echo "::error::2. NETLIFY_AUTH_TOKEN is expired — regenerate at https://app.netlify.com/user/applications#personal-access-tokens"
+              echo "::error::3. The auth token's user doesn't have access to the site"
+              exit 1
+            }
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
