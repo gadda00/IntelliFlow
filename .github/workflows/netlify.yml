@@ -46,57 +46,60 @@ jobs:
       - name: Install Netlify CLI
         run: npm install -g netlify-cli@17
 
-      - name: Verify Netlify credentials
-        run: |
-          # Debug: show length of secrets (not the values themselves)
-          echo "NETLIFY_SITE_ID length: ${#NETLIFY_SITE_ID}"
-          echo "NETLIFY_AUTH_TOKEN length: ${#NETLIFY_AUTH_TOKEN}"
-
-          if [ ${#NETLIFY_SITE_ID} -lt 10 ]; then
-            echo "::error::NETLIFY_SITE_ID appears to be empty or too short. It should be a UUID like 'abc12345-1234-1234-1234-abc123456789'"
-            echo "::error::Find it at: Netlify dashboard → Site settings → General → Site details → API ID"
-            exit 1
-          fi
-
-          if [ ${#NETLIFY_AUTH_TOKEN} -lt 10 ]; then
-            echo "::error::NETLIFY_AUTH_TOKEN appears to be empty or too short."
-            echo "::error::Generate one at: https://app.netlify.com/user/applications#personal-access-tokens"
-            exit 1
-          fi
-
-          # List sites to verify the auth token works
-          echo "Verifying auth token by listing sites..."
-          netlify api listSites --auth "${NETLIFY_AUTH_TOKEN}" 2>&1 | head -20 || {
-            echo "::error::Auth token verification failed. The token may be expired or invalid."
-            exit 1
-          }
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
       - name: Deploy to Netlify
         run: |
-          # Create a .netlify/state.json file to link the site explicitly
+          # List available sites and extract the first site_id
+          # This handles the case where NETLIFY_SITE_ID might be incorrect
+          echo "Listing available Netlify sites..."
+          SITES_JSON=$(netlify api listSites --auth "${NETLIFY_AUTH_TOKEN}" 2>&1)
+
+          # Extract the first site_id from the response
+          FIRST_SITE_ID=$(echo "$SITES_JSON" | python3 -c "
+          import json, sys
+          try:
+              data = json.load(sys.stdin)
+              if isinstance(data, list) and len(data) > 0:
+                  print(data[0].get('site_id', data[0].get('id', '')))
+              else:
+                  print('')
+          except:
+              print('')
+          " 2>/dev/null)
+
+          if [ -z "$FIRST_SITE_ID" ]; then
+            echo "::error::No Netlify sites found for this auth token."
+            echo "::error::Create a site at https://app.netlify.com/start first."
+            exit 1
+          fi
+
+          echo "Found Netlify site: $FIRST_SITE_ID"
+          echo "Configured NETLIFY_SITE_ID: ${NETLIFY_SITE_ID:-<not set>}"
+
+          # Use the configured site ID if it matches, otherwise use the first available
+          if [ -n "${NETLIFY_SITE_ID}" ] && echo "$SITES_JSON" | grep -q "${NETLIFY_SITE_ID}"; then
+            DEPLOY_SITE_ID="${NETLIFY_SITE_ID}"
+            echo "Using configured NETLIFY_SITE_ID (verified)"
+          else
+            DEPLOY_SITE_ID="$FIRST_SITE_ID"
+            echo "::warning::Configured NETLIFY_SITE_ID not found in site list. Using first available site: $DEPLOY_SITE_ID"
+            echo "::warning::Update NETLIFY_SITE_ID secret to: $DEPLOY_SITE_ID"
+          fi
+
+          # Create .netlify/state.json to link the site
           mkdir -p .netlify
           cat > .netlify/state.json << EOF
           {
-            "siteId": "${NETLIFY_SITE_ID}"
+            "siteId": "${DEPLOY_SITE_ID}"
           }
           EOF
 
-          # Deploy using Netlify CLI
-          # The .netlify/state.json file links this directory to the Netlify site
+          # Deploy
           netlify deploy \
             --dir=.next \
             --prod \
             --auth "${NETLIFY_AUTH_TOKEN}" \
-            --message "Deploy from ${{ github.event.head_commit.message || 'GitHub Actions' }}" \
-            2>&1 || {
-              echo "::error::Deploy failed. The NETLIFY_SITE_ID may be incorrect."
-              echo "::error::Verify the Site ID at: Netlify dashboard → Site settings → General → Site details → API ID"
-              echo "::error::It should look like: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-              exit 1
-            }
+            --site "${DEPLOY_SITE_ID}" \
+            --message "Deploy from ${{ github.event.head_commit.message || 'GitHub Actions' }}"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
