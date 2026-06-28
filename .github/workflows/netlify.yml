@@ -15,7 +15,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repository
@@ -35,25 +35,15 @@ jobs:
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
 
-      - name: Build project
-        run: npm run build
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
-          DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'build-placeholder-not-used-at-runtime' }}
-          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://busaraai.com' }}
-
       - name: Install Netlify CLI
         run: npm install -g netlify-cli@17
 
-      - name: Deploy to Netlify
+      - name: Detect Netlify Site ID
         run: |
           # List available sites and extract the first site_id
-          # This handles the case where NETLIFY_SITE_ID might be incorrect
           echo "Listing available Netlify sites..."
           SITES_JSON=$(netlify api listSites --auth "${NETLIFY_AUTH_TOKEN}" 2>&1)
 
-          # Extract the first site_id from the response
           FIRST_SITE_ID=$(echo "$SITES_JSON" | python3 -c "
           import json, sys
           try:
@@ -73,33 +63,46 @@ jobs:
           fi
 
           echo "Found Netlify site: $FIRST_SITE_ID"
-          echo "Configured NETLIFY_SITE_ID: ${NETLIFY_SITE_ID:-<not set>}"
 
-          # Use the configured site ID if it matches, otherwise use the first available
           if [ -n "${NETLIFY_SITE_ID}" ] && echo "$SITES_JSON" | grep -q "${NETLIFY_SITE_ID}"; then
             DEPLOY_SITE_ID="${NETLIFY_SITE_ID}"
             echo "Using configured NETLIFY_SITE_ID (verified)"
           else
             DEPLOY_SITE_ID="$FIRST_SITE_ID"
-            echo "::warning::Configured NETLIFY_SITE_ID not found in site list. Using first available site: $DEPLOY_SITE_ID"
-            echo "::warning::Update NETLIFY_SITE_ID secret to: $DEPLOY_SITE_ID"
+            echo "::warning::Configured NETLIFY_SITE_ID not found. Using: $DEPLOY_SITE_ID"
           fi
 
-          # Create .netlify/state.json to link the site
+          echo "DEPLOY_SITE_ID=$DEPLOY_SITE_ID" >> $GITHUB_ENV
+
           mkdir -p .netlify
           cat > .netlify/state.json << EOF
           {
             "siteId": "${DEPLOY_SITE_ID}"
           }
           EOF
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
-          # Deploy
+      - name: Build and Deploy to Netlify
+        run: |
+          # Use 'netlify deploy --build' which:
+          # 1. Runs 'netlify build' (invokes @netlify/plugin-nextjs to process .next)
+          # 2. Deploys the processed output to Netlify
+          #
+          # This is critical: just uploading .next/ doesn't work because
+          # @netlify/plugin-nextjs needs to transform Next.js output into
+          # Netlify serverless functions during the build step.
           netlify deploy \
-            --dir=.next \
+            --build \
             --prod \
             --auth "${NETLIFY_AUTH_TOKEN}" \
             --site "${DEPLOY_SITE_ID}" \
             --message "Deploy from ${{ github.event.head_commit.message || 'GitHub Actions' }}"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
+          DIRECT_URL: ${{ secrets.DIRECT_URL || 'postgresql://placeholder:placeholder@localhost:5432/placeholder' }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'build-placeholder-not-used-at-runtime' }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL || 'https://busaraai.com' }}
+          NEXT_TELEMETRY_DISABLED: '1'
