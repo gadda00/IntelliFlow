@@ -18,10 +18,10 @@ interface HeaderProps {
 }
 
 const NAV_ITEMS = [
-  { id: 'hero', label: 'Home' },
-  { id: 'agents', label: 'Agents', badge: '26' },
-  { id: 'analyze', label: 'Analyze' },
-  { id: 'pricing', label: 'Pricing' },
+  { id: 'hero', label: 'Home', type: 'scroll' as const },
+  { id: 'agents-page', label: 'Agents', badge: '50', type: 'route' as const, href: '/agents' },
+  { id: 'analyze-page', label: 'Analyze', badge: 'v7', type: 'route' as const, href: '/analyze' },
+  { id: 'pricing', label: 'Pricing', type: 'scroll' as const },
 ];
 
 export function Header({ activeSection, setActiveSection, darkMode, setDarkMode, onOpenCommandPalette, onOpenChat, onOpenAuth }: HeaderProps) {
@@ -39,6 +39,15 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
   const scrollTo = (id: string) => {
     setActiveSection(id);
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setMobileOpen(false);
+  };
+
+  const navigate = (item: typeof NAV_ITEMS[0]) => {
+    if (item.type === 'route' && item.href) {
+      window.location.href = item.href;
+    } else {
+      scrollTo(item.id);
+    }
     setMobileOpen(false);
   };
 
@@ -60,7 +69,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
           </div>
           <div className="flex flex-col items-start leading-tight">
             <span className="font-bold text-base tracking-tight">Busara</span>
-            <span className="text-[10px] text-muted-foreground -mt-0.5">v6.1 · 26 agents</span>
+            <span className="text-[10px] text-muted-foreground -mt-0.5">v7.0 · 50 agents</span>
           </div>
         </button>
 
@@ -68,7 +77,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
           {NAV_ITEMS.map(item => (
             <button
               key={item.id}
-              onClick={() => scrollTo(item.id)}
+              onClick={() => navigate(item)}
               className={`relative px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
                 activeSection === item.id
                   ? 'text-primary'
@@ -131,7 +140,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
           </Button>
 
           {user ? (
-            <Button size="sm" variant="outline" className="hidden md:flex gap-2" onClick={() => scrollTo('analyze')}>
+            <Button size="sm" variant="outline" className="hidden md:flex gap-2" onClick={() => window.location.href = '/analyze'}>
               <Sparkles className="h-3.5 w-3.5" />
               {user.name?.split(' ')[0] ?? 'Dashboard'}
             </Button>
@@ -140,7 +149,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
               <Button size="sm" variant="ghost" onClick={() => onOpenAuth('login')} className="text-xs">
                 Sign in
               </Button>
-              <Button size="sm" onClick={() => onOpenAuth('register')} className="gap-1.5">
+              <Button size="sm" onClick={() => window.location.href = '/analyze'} className="gap-1.5">
                 <Sparkles className="h-3 w-3" />
                 Get Started
               </Button>
@@ -170,7 +179,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
               {NAV_ITEMS.map(item => (
                 <button
                   key={item.id}
-                  onClick={() => scrollTo(item.id)}
+                  onClick={() => navigate(item)}
                   className={`px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-all flex items-center justify-between ${
                     activeSection === item.id
                       ? 'bg-primary/10 text-primary'

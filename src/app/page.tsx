@@ -117,8 +117,8 @@ export default function Home() {
 
       <main className="flex-1">
         <Hero
-          onAnalyze={() => scrollTo('analyze')}
-          onSeeAgents={() => scrollTo('agents')}
+          onAnalyze={() => window.location.href = '/analyze'}
+          onSeeAgents={() => window.location.href = '/agents'}
         />
         <AgentGallery />
         <Analyzer />
