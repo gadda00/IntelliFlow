@@ -1,0 +1,41 @@
+{
+  "name": "@busara/agents",
+  "version": "8.0.0-alpha.1",
+  "private": true,
+  "description": "Busara Agents - Multi-agent orchestration framework",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@busara/core": "workspace:*",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "eslint": "^9.0.0",
+    "eslint-config-busara": "workspace:*",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "busara",
+    "agents",
+    "orchestration",
+    "multi-agent",
+    "dag"
+  ],
+  "author": "Victor Ndunda <victor@busara.ai>",
+  "license": "MIT"
+}

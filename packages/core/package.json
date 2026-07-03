@@ -1,0 +1,39 @@
+{
+  "name": "@busara/core",
+  "version": "8.0.0-alpha.1",
+  "private": true,
+  "description": "Busara Core - Shared types, utilities, and constants",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "eslint": "^9.0.0",
+    "eslint-config-busara": "workspace:*",
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "busara",
+    "core",
+    "types",
+    "utilities"
+  ],
+  "author": "Victor Ndunda <victor@busara.ai>",
+  "license": "MIT"
+}

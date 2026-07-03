@@ -1,0 +1,51 @@
+# Code Owners
+# ===========
+#
+# This file defines individuals or teams that are responsible for code in this repository.
+# For more information, see: https://docs.github.com/en/repositories/managing-your-repositorys-customers-and-teams/about-code-owners
+
+# Global owners (responsible for the entire repository)
+* @gadda00
+
+# Package owners
+/packages/core/ @gadda00
+/packages/agents/ @gadda00
+/packages/ui/ @gadda00
+/packages/db/ @gadda00
+/packages/eslint-config/ @gadda00
+
+# App owners
+/apps/web/ @gadda00
+/apps/api/ @gadda00
+
+# Infrastructure owners
+/infrastructure/ @gadda00
+
+# Documentation owners
+/docs/ @gadda00
+README.md @gadda00
+
+# Configuration owners
+/package.json @gadda00
+turbo.json @gadda00
+pnpm-workspace.yaml @gadda00
+.tsconfig.json @gadda00
+
+# GitHub workflows
+/.github/workflows/ @gadda00
+
+# Prisma schema
+/prisma/ @gadda00
+
+# Public assets
+/public/ @gadda00
+
+# Scripts
+/scripts/ @gadda00
+
+# Tests
+/tests/ @gadda00
+
+# Legacy code (to be reviewed)
+/legacy/ @gadda00
+/mini-services/ @gadda00

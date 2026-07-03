@@ -3,47 +3,56 @@ node_modules/
 .pnp
 .pnp.js
 
-# Next.js
+# Build outputs
+dist/
 .next/
 out/
 build/
-dist/
-
-# Database
-*.db
-*.db-journal
-
-# Environment
-.env
-.env.local
-.env.*.local
 
 # IDE
-.vscode/
 .idea/
+.vscode/
 *.swp
 *.swo
+*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Logs
-*.log
-dev.log
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Build artifacts
-*.tsbuildinfo
-next-env.d.ts
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
 
 # Cache
 .cache/
 .turbo/
 
-# Agent browser
-.agent-browser/
+# Testing
+coverage/
+.nyc_output/
 
 # Misc
-.zscripts/
-dev.db
-bun.lock
+*.pem
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# Docker
+.docker/
+
+# Temporary files
+tmp/
+temp/
