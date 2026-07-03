@@ -1,275 +1,398 @@
-# Busara — 20+ AI Agent Data Intelligence Platform
+# Busara AI - Multi-Agent Data Intelligence Platform
 
 > **Twenty+ agents. One mind.**
 >
-> *Busara* (Swahili for *intelligence* / *mind*) is a multi-agent data analysis platform that orchestrates **23 specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset. Built in Nairobi for the world.
+> *Busara* (Swahili for *intelligence* / *mind*) is a production-grade multi-agent data analysis platform that orchestrates **23+ specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset.
 
-[![Deployed on Netlify](https://img.shields.io/badge/Deployed-Netlify-00C7B7)](https://netlify.com)
-[![Database: Supabase](https://img.shields.io/badge/Database-Supabase-3ECF8E)](https://supabase.com)
-[![Payments: Flutterwave + Google Pay](https://img.shields.io/badge/Payments-Flutterwave%20%2B%20Google%20Pay-FE5C2A)](https://flutterwave.com)
-[![Framework: Next.js 16](https://img.shields.io/badge/Framework-Next.js%2016-black)](https://nextjs.org)
-[![Node: 22+](https://img.shields.io/badge/Node.js-22%2B-339933)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
+[![Node: 18+](https://img.shields.io/badge/Node.js-18%2B-339933)](https://nodejs.org)
+[![pnpm: 8+](https://img.shields.io/badge/pnpm-8%2B-f69220)](https://pnpm.io)
+[![Turborepo](https://img.shields.io/badge/Turborepo-2.0-000000)](https://turbo.build/repo)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6)](https://typescriptlang.org)
+[![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 
 ---
 
-## What's New in v3.2
+## 🚀 What's New in v8.0
 
-| | v3.1 | v3.2 (This Release) |
-|---|---|---|
-| **Agents** | 20 | **23** (+ NLP Sentiment, Anomaly Forecasting, Graph Neural Network) |
-| **Auth** | Custom JWT only | **Supabase Auth** (optional, falls back to JWT) |
-| **Payments** | Flutterwave | **Flutterwave + Google Pay + Apple Pay + Mobile Money** |
-| **Workflow** | Run all or nothing | **Workflow Composer** — pick agents or use 8 presets |
-| **Hosting** | Vercel | **Netlify** (with `@netlify/plugin-nextjs`) |
-| **Android** | Manual build | **GitHub Actions** auto-builds APK + AAB on tag push |
-| **Node.js** | 18+ | **22+** (required) |
-| **Portfolio** | — | **Victor Ndunda portfolio** deploys to GitHub Pages |
-| **Real-time** | In-memory pub/sub | WebSocket mini-service (preserved) |
+Busara v8.0 is a **complete transformation** from a hackathon project to a production-grade AI platform:
 
----
+### ✨ Major Improvements
 
-## The 20-Agent Pipeline
+1. **🏗️ Monorepo Architecture**
+   - Turborepo for fast, incremental builds
+   - pnpm workspaces for efficient dependency management
+   - Clear separation of concerns (core, agents, web)
 
-Busara runs **20 specialized TypeScript agents** in a 6-stage parallel DAG with circuit breakers, timeouts, and topological scheduling.
+2. **🤖 Enhanced Agent Framework**
+   - Type-safe agent definitions with Zod schemas
+   - Lifecycle methods (setup, execute, teardown, healthCheck)
+   - Enhanced error handling and retry logic
+   - Circuit breakers for fault tolerance
+   - Smart caching for performance
 
-```
-Stage 0 — Intake (parallel):
-  ├── Data Scout              — profiling, type detection, statistical summary
-  ├── Data Quality Guardian   — completeness, uniqueness, validity scoring
-  ├── Privacy Guardian        — PII detection with GDPR/CCPA/HIPAA/PCI-DSS
-  └── NLQ Interpreter         — natural language → structured analysis intent
+3. **🎯 Production-Grade Orchestrator**
+   - DAG-based execution with Kahn's algorithm
+   - Parallel execution within stages
+   - Real-time progress broadcasting
+   - Dependency failure cascade handling
+   - Comprehensive metrics collection
 
-Stage 1 — Engineering:
-  └── Data Engineer           — dedup, imputation, type coercion, feature engineering
+4. **🔧 Developer Experience**
+   - Comprehensive documentation
+   - Type-safe everything
+   - Modern tooling (ESLint, Prettier, Vitest)
+   - GitHub best practices (CI/CD, CODEOWNERS, templates)
 
-Stage 2 — Deep Analytics (parallel):
-  ├── Analysis Strategist     — methodology selection, hypothesis generation
-  ├── Anomaly Sentinel        — Z-score + IQR + EWMA ensemble
-  ├── Forecasting Oracle      — Holt-Winters triple exponential smoothing
-  ├── Causal Architect        — correlation + regression + Granger-style lag
-  ├── Knowledge Graph Builder — entity extraction + graph construction
-  ├── Benchmark Agent         — industry benchmark comparison
-  └── Auto-ML Agent           — model selection (linear regression + K-means)
-
-Stage 3 — Synthesis (parallel):
-  ├── Insight Generator       — ranked insights + recommendations
-  ├── Explainability Agent    — permutation feature importance
-  ├── Visualization Specialist — Recharts chart specs
-  ├── Synthetic Data Generator — privacy-preserving fake data
-  └── Code Generator          — Python (pandas) + SQL + JavaScript
-
-Stage 4 — Reporting:
-  ├── Narrative Composer      — executive summary, methodology, key findings
-  └── Conversational Analyst  — chat layer with knowledge base
-
-Stage 5 — Final:
-  └── Orchestrator            — compiles all outputs into unified response
-```
-
-Each agent has its own **circuit breaker** (3 failures → 60s cooldown) and **timeout** (10-60s).
+5. **🛡️ Reliability & Observability**
+   - Structured error handling
+   - Validation at every layer
+   - Health checks for agents
+   - Metrics and monitoring ready
 
 ---
 
-## Tech Stack
+## 📚 Table of Contents
 
-- **Framework**: Next.js 16 (App Router, Turbopack)
-- **Language**: TypeScript 5
-- **Database**: PostgreSQL on **Supabase** via Prisma ORM
-- **Styling**: Tailwind CSS 4 + shadcn/ui
-- **Animations**: Framer Motion
-- **Charts**: Recharts
-- **Payments**: **Flutterwave** (NGN, USD, GHS, ZAR, KES, UGX, TZS, RWF, EUR, GBP)
-- **Real-time**: Socket.IO mini-service (port 3003)
-- **AI**: z-ai-web-dev-sdk (bundled, no API key required)
-- **PWA**: Web App Manifest + Service Worker
-- **Android**: Bubblewrap TWA wrapping the PWA
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Features](#-features)
+- [Agent Framework](#-agent-framework)
+- [Development](#-development)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ---
 
-## Quick Start
+## 🌟 Quick Start
 
 ### Prerequisites
-- Node.js 18+ (or Bun)
-- PostgreSQL 14+ (local) or a Supabase project
-- Flutterwave account (optional — works in mock mode without)
 
-### Install & Run
+- **Node.js** 18+ (recommended: 22+)
+- **pnpm** 8+ (required)
+- **Git** 2+
+
+### Installation
 
 ```bash
-# Clone
-git clone https://github.com/gadda00/Busara.git
-cd Busara
+# Clone the repository
+git clone https://github.com/gadda00/IntelliFlow.git
+cd IntelliFlow
+
+# Install pnpm (if not already installed)
+npm install -g pnpm
 
 # Install dependencies
-bun install  # or npm install
+pnpm install
 
 # Set up environment
 cp .env.example .env
-# Edit .env with your Supabase connection strings and Flutterwave keys
+# Edit .env with your configuration
 
-# Initialize database
-bun run db:push
+# Generate Prisma client
+pnpm db:generate
 
-# Start the dev server
-bun run dev  # http://localhost:3000
+# Start development server
+pnpm dev
 
-# (Optional) Start the WebSocket mini-service
-cd mini-services/websocket-server
-bun install
-bun run dev  # http://localhost:3003
+# Open in browser
+# http://localhost:3000
 ```
 
-### Try It
+### Try It Out
 
 1. Open `http://localhost:3000`
 2. Scroll to **Analyze** section
 3. Click **Load Sample Data**
 4. Click **Run Full Analysis**
-5. Watch all 20 agents complete in ~5 seconds
+5. Watch all 20+ agents complete in ~5 seconds
 6. Explore the 6 result tabs: Overview, Insights, Charts, Advanced, Code, Agents
-7. Install as PWA via your browser's "Add to Home Screen"
 
 ---
 
-## Android App (Play Store)
-
-Busara ships as an installable PWA that's wrapped as a Trusted Web Activity (TWA) for the Play Store.
-
-### Build APK & AAB
-
-```bash
-# 1. Install Bubblewrap CLI (one-time)
-npm install -g @bubblewrap/cli
-
-# 2. Initialize TWA project from the deployed PWA manifest
-bubblewrap init --manifest https://your-domain.com/manifest.json
-
-# 3. Build the APK and AAB
-bubblewrap build
-
-# Output:
-# app-release-signed.apk  (for testing)
-# app-release-bundle.aab  (for Play Store upload)
-```
-
-See [`ANDROID.md`](ANDROID.md) for the complete Play Store deployment guide.
-
----
-
-## Architecture
+## 🏗️ Architecture
 
 ```
-Busara/
-├── src/
-│   ├── app/
-│   │   ├── api/                  # 18 API routes
-│   │   │   ├── analyze/          # Main 20-agent analysis endpoint
-│   │   │   ├── agents/           # List all 20 agents
-│   │   │   ├── auth/             # register, login, me, api-keys
-│   │   │   ├── payments/         # Flutterwave init, verify, webhook
-│   │   │   └── ...               # 13 more endpoints
-│   │   ├── layout.tsx
-│   │   ├── page.tsx              # Single-page app
-│   │   └── globals.css
-│   ├── components/
-│   │   ├── busara/                # App components
-│   │   └── ui/                   # shadcn/ui
-│   └── lib/
-│       ├── agents/               # 20-agent framework
-│       ├── flutterwave/          # Flutterwave service
-│       ├── auth/                 # JWT + API keys
-│       └── data/                 # Parsers
-├── prisma/schema.prisma          # Postgres schema (7 models)
-├── public/                       # PWA icons, manifest, service worker
-├── mini-services/websocket-server/
-├── legacy/                       # v2 Python code (preserved)
-└── .env.example
+busara/
+├── apps/
+│   └── web/                    # Next.js 15 frontend
+│       ├── src/
+│       │   ├── app/            # App Router
+│       │   ├── components/    # React components
+│       │   └── lib/           # Utilities & services
+│       └── public/            # Static assets
+│
+├── packages/
+│   ├── @busara/core/           # Shared types & constants
+│   ├── @busara/agents/         # Multi-agent framework
+│   └── @busara/eslint-config/  # ESLint configuration
+│
+├── infrastructure/
+│   └── docker/                # Docker configuration
+│
+├── docs/
+│   ├── api/                  # API documentation
+│   ├── architecture/         # Architecture docs
+│   └── guides/              # User guides
+│
+├── tests/
+│   ├── unit/                # Unit tests
+│   ├── integration/          # Integration tests
+│   └── e2e/                 # End-to-end tests
+│
+└── .github/
+    ├── workflows/           # CI/CD pipelines
+    ├── CODEOWNERS           # Code ownership
+    └── templates/           # PR & issue templates
 ```
 
----
+### Tech Stack
 
-## API Reference
-
-### Core
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/health` | Health check |
-| `GET` | `/api/agents` | List 20 agents |
-| `POST` | `/api/analyze` | Run full pipeline |
-| `GET` | `/api/analyses` | User's past analyses |
-| `GET` | `/api/stats` | Platform stats |
-
-### Standalone Agent Endpoints
-`/api/nlq`, `/api/anomalies`, `/api/forecast`, `/api/causal`, `/api/quality`, `/api/chat`, `/api/codegen`, `/api/synthetic`, `/api/knowledge-graph`, `/api/explain`, `/api/benchmark`
-
-### Auth & Payments
-| Method | Path | Description |
-|---|---|---|
-| `POST` | `/api/auth/register` | Create account |
-| `POST` | `/api/auth/login` | Sign in |
-| `GET/POST/DELETE` | `/api/auth/api-keys` | Manage API keys |
-| `GET` | `/api/plans` | Subscription plans |
-| `POST` | `/api/payments/initialize` | Init Flutterwave transaction |
-| `POST` | `/api/payments/verify` | Verify payment |
-| `POST` | `/api/payments/webhook` | Flutterwave webhook |
+| Category | Technology |
+|----------|------------|
+| **Framework** | Next.js 15 (App Router) |
+| **Language** | TypeScript 5.3 |
+| **Package Manager** | pnpm 8 |
+| **Build Tool** | Turborepo 2 |
+| **Database** | PostgreSQL (Supabase) |
+| **ORM** | Prisma 6 |
+| **Styling** | Tailwind CSS 4 |
+| **UI Components** | shadcn/ui |
+| **State Management** | Zustand |
+| **Validation** | Zod 4 |
+| **Testing** | Vitest |
+| **Linting** | ESLint 9 |
+| **Payments** | Flutterwave, Stripe |
+| **Real-time** | WebSocket |
+| **PWA** | Workbox |
 
 ---
 
-## Pricing
+## ✨ Features
 
-| Plan | Price (NGN) | Price (USD) | Analyses/mo | Key Features |
-|---|---|---|---|---|
-| **Free** | ₦0 | $0 | 5 | All 20 agents, CSV/JSON/Excel |
-| **Professional** | ₦15,000 | $29 | 50 | + API access, forecasting, priority support |
-| **Team** | ₦50,000 | $99 | 200 | + 5 seats, synthetic data, branding |
-| **Enterprise** | Custom | Custom | Unlimited | + SSO, custom agents, on-prem |
+### 🎯 Core Features
 
-All payments via **Flutterwave**. Subscriptions renew automatically. Cancel anytime.
+- **Multi-Agent Orchestration**: 23+ specialized agents working in parallel
+- **DAG-Based Execution**: Topological sorting with dependency resolution
+- **Real-Time Progress**: Live updates via WebSocket
+- **Fault Tolerance**: Circuit breakers, retries, timeouts
+- **Smart Caching**: Intelligent result caching
+- **Type Safety**: 100% TypeScript with comprehensive types
 
----
+### 📊 Data Analysis
 
-## Algorithms Implemented (No Mocks)
+- **Data Ingestion**: CSV, JSON, Excel support
+- **Schema Inference**: Automatic type detection
+- **Data Profiling**: Comprehensive statistics
+- **Data Quality**: Completeness, uniqueness, validity
+- **Privacy Guard**: PII detection (GDPR, CCPA, HIPAA)
+- **Natural Language**: NLQ to structured analysis
 
-### Anomaly Detection (3-algorithm ensemble)
-- **Z-Score** — flags points >3σ from mean
-- **IQR** — flags points outside [Q1 - 1.5×IQR, Q3 + 1.5×IQR]
-- **EWMA** — Exponentially Weighted Moving Average for trend deviations
+### 🔍 Advanced Analytics
 
-### Time Series Forecasting
-- **Holt-Winters Triple Exponential Smoothing** (level + trend + seasonality)
-- **Simple Exponential Smoothing** fallback for short series
-- 95% confidence intervals
+- **Anomaly Detection**: Z-score, IQR, EWMA ensemble
+- **Time Series**: Holt-Winters forecasting
+- **Causal Inference**: Correlation, regression, Granger
+- **Machine Learning**: K-Means, Linear Regression
+- **Explainability**: Permutation importance
+- **Benchmarking**: Industry comparisons
 
-### Causal Inference
-- Pearson correlation + OLS regression + Granger-style lag analysis
-- Strength classification: strong (|r|>0.7), moderate (>0.4), weak (>0.2)
+### 📈 Visualization
 
-### Machine Learning
-- **K-Means** clustering with elbow detection
-- **Multiple Linear Regression** (OLS via normal equation)
-- **Permutation Importance** (SHAP-lite)
+- **Interactive Charts**: Recharts integration
+- **Custom Visualizations**: Tailored to your data
+- **Export Options**: PNG, SVG, PDF
+- **Dashboard**: Real-time results
 
-### PII Detection
-- 7 regex patterns + 9 column-name heuristics
-- Risk scoring with GDPR/CCPA/HIPAA/PCI-DSS compliance assessment
+### 💰 Business Features
 
-### Synthetic Data Generation
-- Box-Muller normal sampling for numeric columns
-- Frequency-preserving categorical sampling
-- PII columns replaced with type-appropriate fakes
+- **Multi-Tenancy**: User and organization support
+- **Authentication**: JWT, Supabase Auth, SSO
+- **Payments**: Flutterwave, Stripe, Google Pay, Apple Pay
+- **Subscriptions**: Tiered pricing plans
+- **API Access**: REST API with rate limiting
+- **Usage Tracking**: Monitor resource usage
 
----
+### 📱 Multi-Platform
 
-## License
-
-MIT — see [LICENSE](LICENSE)
-
-## Acknowledgments
-
-Built by **Victor Ndunda** & contributors in Nairobi, Kenya.
-Inspired by the Swahili word *busara* (intelligence) — African heritage, global ambition.
+- **Web**: Responsive PWA
+- **Mobile**: Android TWA (Trusted Web Activity)
+- **Desktop**: Installable PWA
+- **API**: REST API for integration
 
 ---
 
-**Twenty agents. One mind. Built in Nairobi.**
+## 🤖 Agent Framework
+
+### Agent Types
+
+Busara agents are organized into **7 stages** with **50+ agents**:
+
+#### Stage 0: Ingest
+- `DataIngestionAgent` - Parse and validate data
+- `SchemaInferenceAgent` - Detect column types
+- `DataProfilerAgent` - Comprehensive data profiling
+- `DataQualityAgent` - Data quality scoring
+- `PrivacyGuardianAgent` - PII detection
+- `NLQInterpreterAgent` - Natural language to SQL
+
+#### Stage 1: Engineer
+- `DataCleanerAgent` - Clean and normalize data
+- `DataEngineerAgent` - Feature engineering
+- `FeatureEngineerAgent` - Advanced feature extraction
+- `DataTransformerAgent` - Data transformation
+
+#### Stage 2: Detect
+- `AnalysisStrategistAgent` - Methodology selection
+- `AnomalySentinelAgent` - Anomaly detection
+- `ForecastingOracleAgent` - Time series forecasting
+- `CausalArchitectAgent` - Causal inference
+- `KnowledgeGraphBuilderAgent` - Entity extraction
+- `BenchmarkAgent` - Industry benchmarks
+- `AutoMLAgent` - Automated ML
+
+#### Stage 3: Forecast
+- `TimeSeriesForecasterAgent` - Advanced forecasting
+- `SeasonalDecomposerAgent` - Seasonality analysis
+- `TrendAnalyzerAgent` - Trend detection
+
+#### Stage 4: Infer
+- `InsightGeneratorAgent` - Actionable insights
+- `ExplainabilityAgent` - Model interpretation
+- `HypothesisTesterAgent` - Statistical testing
+
+#### Stage 5: Cluster
+- `ClusterAnalyzerAgent` - Pattern discovery
+- `SegmenterAgent` - Data segmentation
+- `PatternDetectorAgent` - Anomaly patterns
+
+#### Stage 6: Report
+- `NarrativeComposerAgent` - Executive summaries
+- `VisualizationSpecialistAgent` - Chart generation
+- `CodeGeneratorAgent` - Code export
+- `SyntheticDataGeneratorAgent` - Privacy-preserving data
+- `ConversationalAnalystAgent` - Chat interface
+- `OrchestratorAgent` - Result compilation
+
+### Creating a Custom Agent
+
+```typescript
+import { z } from 'zod';
+import { AgentStage, AgentTier } from '@busara/core';
+import { BaseAgent, createAgentMetadata } from '@busara/agents';
+
+const metadata = createAgentMetadata({
+  id: 'my_custom_agent',
+  name: 'My Custom Agent',
+  description: 'Does something amazing',
+  stage: 'detect' as AgentStage,
+  tier: 'specialized' as AgentTier,
+  dependencies: ['data_ingestion'],
+  timeoutMs: 30000,
+  inputSchema: { schema: z.object({ /* ... */ }) },
+  outputSchema: { schema: z.object({ /* ... */ }) },
+  icon: 'Sparkles',
+  color: '#8b5cf6',
+});
+
+export class MyCustomAgent extends BaseAgent {
+  readonly metadata = metadata;
+  
+  async execute(context) {
+    // Your logic here
+    return this.createResult({ /* output */ }, { /* metrics */ });
+  }
+}
+```
+
+See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed agent development guide.
+
+---
+
+## 💻 Development
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start development servers |
+| `pnpm build` | Build all packages |
+| `pnpm lint` | Run linting |
+| `pnpm test` | Run tests |
+| `pnpm typecheck` | Run type checking |
+| `pnpm db:generate` | Generate Prisma client |
+| `pnpm db:push` | Push schema to database |
+
+### Project Structure
+
+```
+├── apps/web/              # Next.js frontend
+├── packages/@busara/core/ # Shared types & utilities
+├── packages/@busara/agents/ # Agent framework
+└── packages/@busara/eslint-config/ # ESLint config
+```
+
+### Documentation
+
+- [Development Guide](DEVELOPMENT.md) - Comprehensive development guide
+- [Transformation Plan](TRANSFORMATION_PLAN.md) - Roadmap and vision
+- [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Completed work
+- [API Documentation](docs/api/) - REST API reference
+- [Architecture Docs](docs/architecture/) - System architecture
+
+---
+
+## 🤝 Contributing
+
+### Getting Started
+
+1. Fork the repository
+2. Clone your fork
+3. Install dependencies: `pnpm install`
+4. Create a feature branch
+5. Make your changes
+6. Run tests: `pnpm test`
+7. Run linting: `pnpm lint`
+8. Commit your changes
+9. Push to your fork
+10. Open a pull request
+
+### Pull Request Guidelines
+
+- Follow [conventional commits](https://www.conventionalcommits.org/)
+- Keep PRs small and focused
+- Include tests for new functionality
+- Update documentation
+- Maintain backward compatibility
+- Follow the code style
+
+### Code of Conduct
+
+This project follows a code of conduct. Be respectful and inclusive.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- Built by **Victor Ndunda** & contributors
+- Inspired by the Swahili word *busara* (intelligence)
+- African heritage, global ambition
+
+---
+
+## 📞 Support
+
+- **Documentation**: [DEVELOPMENT.md](DEVELOPMENT.md)
+- **Issues**: [GitHub Issues](https://github.com/gadda00/IntelliFlow/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/gadda00/IntelliFlow/discussions)
+- **Email**: victor@busara.ai
+
+---
+
+**Twenty agents. One mind. Built in Nairobi for the world.**
