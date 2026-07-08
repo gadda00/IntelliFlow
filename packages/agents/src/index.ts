@@ -29,3 +29,7 @@ export * from './memory';
 // Pipeline checkpointing — save/restore agent pipeline state across stage
 // boundaries so interrupted runs can resume instead of restarting.
 export * from './checkpoint';
+
+// Fine-tuning pipeline — closes the AReaL self-evolution loop by converting
+// filtered trajectory datasets into SFT/DPO/RLHF training jobs.
+export * from './finetune';
