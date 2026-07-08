@@ -21,3 +21,11 @@ export * from './math';
 export * from './errors';
 export * from './trajectory';
 export * from './llm-gateway';
+
+// Episodic memory — in-context retrieval of similar past trajectories,
+// feeding the "evolve the in-context harness" half of the AReaL loop.
+export * from './memory';
+
+// Pipeline checkpointing — save/restore agent pipeline state across stage
+// boundaries so interrupted runs can resume instead of restarting.
+export * from './checkpoint';
