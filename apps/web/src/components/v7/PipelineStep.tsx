@@ -112,9 +112,12 @@ export function PipelineStep({
               <Clock className="h-6 w-6 text-muted-foreground" />
             )}
             <div>
-              <p className="font-semibold text-sm">
+              <p
+                className="font-semibold text-sm"
+                data-testid={isComplete ? 'pipeline-complete' : undefined}
+              >
                 {error ? 'Analysis Failed' :
-                 isComplete ? 'Analysis Complete!' :
+                 isComplete ? 'Pipeline complete' :
                  isStreaming ? 'Running 50-Agent Pipeline...' :
                  'Initializing...'}
               </p>

@@ -263,7 +263,7 @@ export function ConfigureStep({ data, fileName, onBack, onConfigure }: Configure
           <ArrowLeft className="h-4 w-4" />
           Back
         </Button>
-        <Button size="lg" onClick={handleStart} className="gap-2 shadow-lg shadow-primary/20">
+        <Button size="lg" onClick={handleStart} data-testid="run-analysis-button" className="gap-2 shadow-lg shadow-primary/20">
           <Zap className="h-4 w-4" />
           Run 50-Agent Analysis
           <ArrowRight className="h-4 w-4" />

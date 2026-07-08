@@ -124,36 +124,44 @@ export function AnalyzePage() {
             transition={{ duration: 0.3 }}
           >
             {step === 'upload' && (
-              <UploadStep onDataLoaded={handleDataLoaded} />
+              <div data-testid="wizard-upload-step">
+                <UploadStep onDataLoaded={handleDataLoaded} />
+              </div>
             )}
             {step === 'configure' && (
-              <ConfigureStep
-                data={data}
-                fileName={fileName}
-                onBack={handleBack}
-                onConfigure={handleConfigure}
-              />
+              <div data-testid="wizard-configure-step">
+                <ConfigureStep
+                  data={data}
+                  fileName={fileName}
+                  onBack={handleBack}
+                  onConfigure={handleConfigure}
+                />
+              </div>
             )}
             {step === 'pipeline' && (
-              <PipelineStep
-                agentStates={analysis.agentStates}
-                isStreaming={analysis.isStreaming}
-                isComplete={analysis.isComplete}
-                error={analysis.error}
-                executionSummary={analysis.executionSummary}
-                onProceed={() => setStep('results')}
-                onCancel={() => {
-                  analysis.cancelAnalysis();
-                  setStep('configure');
-                }}
-              />
+              <div data-testid="wizard-pipeline-step">
+                <PipelineStep
+                  agentStates={analysis.agentStates}
+                  isStreaming={analysis.isStreaming}
+                  isComplete={analysis.isComplete}
+                  error={analysis.error}
+                  executionSummary={analysis.executionSummary}
+                  onProceed={() => setStep('results')}
+                  onCancel={() => {
+                    analysis.cancelAnalysis();
+                    setStep('configure');
+                  }}
+                />
+              </div>
             )}
             {step === 'results' && (
-              <ResultsStep
-                agentStates={analysis.agentStates}
-                executionSummary={analysis.executionSummary}
-                onRestart={handleRestart}
-              />
+              <div data-testid="wizard-results-step">
+                <ResultsStep
+                  agentStates={analysis.agentStates}
+                  executionSummary={analysis.executionSummary}
+                  onRestart={handleRestart}
+                />
+              </div>
             )}
           </motion.div>
         </AnimatePresence>
