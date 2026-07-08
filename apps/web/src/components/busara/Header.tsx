@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Menu, X, Moon, Sun, Sparkles, Search, Command } from 'lucide-react';
+import { Activity, Menu, X, Moon, Sun, Sparkles, Search, Command, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { storage } from '@/lib/api-client';
@@ -20,6 +20,7 @@ interface HeaderProps {
 const NAV_ITEMS = [
   { id: 'hero', label: 'Home', type: 'scroll' as const },
   { id: 'agents-page', label: 'Agents', badge: '50', type: 'route' as const, href: '/agents' },
+  { id: 'dashboard-page', label: 'Dashboard', badge: 'NEW', type: 'route' as const, href: '/dashboard', icon: LayoutDashboard },
   { id: 'analyze-page', label: 'Analyze', badge: 'v7', type: 'route' as const, href: '/analyze' },
   { id: 'pricing', label: 'Pricing', type: 'scroll' as const },
 ];
@@ -74,31 +75,43 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
         </button>
 
         <nav className="hidden md:flex items-center gap-0.5">
-          {NAV_ITEMS.map(item => (
-            <button
-              key={item.id}
-              onClick={() => navigate(item)}
-              className={`relative px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                activeSection === item.id
-                  ? 'text-primary'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              }`}
-            >
-              {activeSection === item.id && (
-                <motion.div
-                  layoutId="nav-indicator"
-                  className="absolute inset-0 bg-primary/10 rounded-lg"
-                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                />
-              )}
-              <span className="relative z-10">{item.label}</span>
-              {item.badge && (
-                <Badge variant="secondary" className="relative z-10 text-[9px] h-4 px-1 bg-primary/10 text-primary border-primary/20">
-                  {item.badge}
-                </Badge>
-              )}
-            </button>
-          ))}
+          {NAV_ITEMS.map(item => {
+            const Icon = (item as any).icon;
+            const isNewBadge = item.badge === 'NEW';
+            return (
+              <button
+                key={item.id}
+                onClick={() => navigate(item)}
+                className={`relative px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                  activeSection === item.id
+                    ? 'text-primary'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                }`}
+              >
+                {activeSection === item.id && (
+                  <motion.div
+                    layoutId="nav-indicator"
+                    className="absolute inset-0 bg-primary/10 rounded-lg"
+                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                  />
+                )}
+                {Icon && <Icon className="relative z-10 h-3.5 w-3.5" />}
+                <span className="relative z-10">{item.label}</span>
+                {item.badge && (
+                  <Badge
+                    variant="secondary"
+                    className={
+                      isNewBadge
+                        ? 'relative z-10 text-[9px] h-4 px-1 bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                        : 'relative z-10 text-[9px] h-4 px-1 bg-primary/10 text-primary border-primary/20'
+                    }
+                  >
+                    {item.badge}
+                  </Badge>
+                )}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-1.5">
@@ -176,24 +189,38 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
             className="md:hidden glass-heavy border-b border-border/30"
           >
             <div className="container mx-auto px-4 py-3 flex flex-col gap-1">
-              {NAV_ITEMS.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => navigate(item)}
-                  className={`px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-all flex items-center justify-between ${
-                    activeSection === item.id
-                      ? 'bg-primary/10 text-primary'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="secondary" className="text-[9px] h-4 px-1.5 bg-primary/10 text-primary">
-                      {item.badge}
-                    </Badge>
-                  )}
-                </button>
-              ))}
+              {NAV_ITEMS.map(item => {
+                const Icon = (item as any).icon;
+                const isNewBadge = item.badge === 'NEW';
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => navigate(item)}
+                    className={`px-3 py-2.5 rounded-lg text-sm font-medium text-left transition-all flex items-center justify-between ${
+                      activeSection === item.id
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <span className="flex items-center gap-2">
+                      {Icon && <Icon className="h-4 w-4" />}
+                      {item.label}
+                    </span>
+                    {item.badge && (
+                      <Badge
+                        variant="secondary"
+                        className={
+                          isNewBadge
+                            ? 'text-[9px] h-4 px-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                            : 'text-[9px] h-4 px-1.5 bg-primary/10 text-primary'
+                        }
+                      >
+                        {item.badge}
+                      </Badge>
+                    )}
+                  </button>
+                );
+              })}
               <button
                 onClick={() => { onOpenCommandPalette(); setMobileOpen(false); }}
                 className="px-3 py-2.5 rounded-lg text-sm text-muted-foreground text-left flex items-center gap-2 hover:bg-muted transition-colors"
