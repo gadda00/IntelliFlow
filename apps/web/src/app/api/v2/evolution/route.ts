@@ -8,9 +8,9 @@
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { InMemoryTrajectoryStore, EvolutionControlPlane } from '@busara/agents';
+import { EvolutionControlPlane } from '@busara/agents';
+import { trajectoryStore as store } from '@/lib/trajectory/store';
 
-const store = new InMemoryTrajectoryStore();
 const controlPlane = new EvolutionControlPlane(store);
 
 export const dynamic = 'force-dynamic';

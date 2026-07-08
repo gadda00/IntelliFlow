@@ -130,3 +130,50 @@ model AgentMetric {
   @@index([agentId])
   @@index([createdAt])
 }
+
+/// AReaL Pillar 1 — Standardized trajectory data protocol.
+/// Each row is the complete step-level record of one agent execution.
+model Trajectory {
+  id             String   @id
+  analysisId     String
+  userId         String
+  workspaceId    String?
+  agentId        String
+  agentVersion   String
+  agentStability String
+  status         String
+  startedAt      DateTime
+  completedAt    DateTime?
+  data           Json     // full Trajectory object as JSONB
+  averageReward  Float    @default(0)
+  dataframeHash  String
+  tags           String[]
+
+  @@index([agentId])
+  @@index([userId])
+  @@index([workspaceId])
+  @@index([status])
+  @@index([startedAt])
+  @@index([dataframeHash])
+}
+
+/// AReaL Pillar 3 — Evolution control plane action log.
+/// Each row is a suggested/promoted/demoted action with human-in-the-loop review.
+model EvolutionAction {
+  id             String   @id @default(cuid())
+  agentId        String
+  actionType     String   // PROMOTE_STABILITY | DEMOTE_STABILITY | OPTIMIZE_CONFIG | etc.
+  reason         String
+  evidence       Json
+  suggestedChange Json?
+  confidence     Float
+  status         String   @default("pending") // pending | approved | rejected | applied | rolled_back
+  createdAt      DateTime @default(now())
+  reviewedAt     DateTime?
+  reviewedBy     String?
+  appliedAt      DateTime?
+
+  @@index([agentId])
+  @@index([status])
+  @@index([createdAt])
+}

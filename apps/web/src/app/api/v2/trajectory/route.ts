@@ -8,12 +8,8 @@
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { InMemoryTrajectoryStore } from '@busara/agents';
 import type { TrajectoryQuery, Trajectory } from '@busara/agents';
-
-// In production, this would be a Prisma-backed store.
-// For now, use in-memory (resets on server restart — fine for dev).
-const store = new InMemoryTrajectoryStore();
+import { trajectoryStore as store } from '@/lib/trajectory/store';
 
 export const dynamic = 'force-dynamic';
 

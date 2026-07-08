@@ -5,9 +5,8 @@
 
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { InMemoryTrajectoryStore, createExplicitReward } from '@busara/agents';
-
-const store = new InMemoryTrajectoryStore();
+import { createExplicitReward } from '@busara/agents';
+import { trajectoryStore as store } from '@/lib/trajectory/store';
 
 export const dynamic = 'force-dynamic';
 

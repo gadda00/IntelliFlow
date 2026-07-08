@@ -113,5 +113,8 @@
     "frontend"
   ],
   "author": "Victor Ndunda <victor@busara.ai>",
-  "license": "MIT"
+  "license": "MIT",
+  "prisma": {
+    "schema": "../../prisma/schema.prisma"
+  }
 }

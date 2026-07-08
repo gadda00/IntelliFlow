@@ -25,6 +25,10 @@ export {
 } from './store';
 export type { TrajectoryStore, AgentTrajectoryStats } from './store';
 
+// Agent execution wrapper — wires trajectory recording into BaseAgent.execute()
+export { withTrajectory } from './agentWrapper';
+export type { TrajectoryWrapperOptions } from './agentWrapper';
+
 // OpenTelemetry GenAI export (interoperability)
 export { trajectoryToOTel, trajectoriesToOTel, toOTLPJSON } from './otel';
 

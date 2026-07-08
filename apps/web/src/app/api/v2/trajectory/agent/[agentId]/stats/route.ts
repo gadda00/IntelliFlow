@@ -4,9 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
-import { InMemoryTrajectoryStore } from '@busara/agents';
-
-const store = new InMemoryTrajectoryStore();
+import { trajectoryStore as store } from '@/lib/trajectory/store';
 
 export const dynamic = 'force-dynamic';
 
