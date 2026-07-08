@@ -331,15 +331,15 @@ export class AnomalySentinelAgent extends BaseAgent {
         .slice(0, 5)
         .map(([col]) => col);
       
-      const mostAnomalousRows = limitedAnomalies
+      const anomalyCounts = limitedAnomalies
         .filter(a => a.isAnomaly)
         .map(a => a.rowIndex)
         .reduce((acc: Record<number, number>, rowIndex) => {
           acc[rowIndex] = (acc[rowIndex] ?? 0) + 1;
           return acc;
-        }, {})
-        .entries()
-        .sort(([, a], [, b]) => b - a)
+        }, {} as Record<number, number>);
+      const mostAnomalousRows = Object.entries(anomalyCounts)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 5)
         .map(([rowIndex]) => Number(rowIndex));
       

@@ -161,9 +161,10 @@ export function safeParse<T>(schema: z.ZodType<T>, value: unknown):
 export function assertSchema<T>(schema: z.ZodType<T>, value: unknown, label = 'input'): T {
   const result = safeParse(schema, value);
   if (!result.success) {
-    throw new Error(`Validation failed for ${label}: ${result.error.map((e) => `${e.field}: ${e.message}`).join(', ')}`);
+    const errors = (result as { error: Array<{ field: string; message: string }> }).error;
+    throw new Error(`Validation failed for ${label}: ${errors.map((e) => `${e.field}: ${e.message}`).join(', ')}`);
   }
-  return result.data;
+  return (result as { data: T }).data;
 }
 
 /**
