@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, Menu, X, Moon, Sun, Sparkles, Search, Command, LayoutDashboard } from 'lucide-react';
+import { Activity, Menu, X, Moon, Sun, Sparkles, Search, Command, LayoutDashboard, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { storage } from '@/lib/api-client';
@@ -21,6 +21,7 @@ const NAV_ITEMS = [
   { id: 'hero', label: 'Home', type: 'scroll' as const },
   { id: 'agents-page', label: 'Agents', badge: '50', type: 'route' as const, href: '/agents' },
   { id: 'dashboard-page', label: 'Dashboard', badge: 'NEW', type: 'route' as const, href: '/dashboard', icon: LayoutDashboard },
+  { id: 'admin-page', label: 'Admin', badge: 'OPS', type: 'route' as const, href: '/admin', icon: Shield },
   { id: 'analyze-page', label: 'Analyze', badge: 'v7', type: 'route' as const, href: '/analyze' },
   { id: 'pricing', label: 'Pricing', type: 'scroll' as const },
 ];
@@ -78,6 +79,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
           {NAV_ITEMS.map(item => {
             const Icon = (item as any).icon;
             const isNewBadge = item.badge === 'NEW';
+            const isOpsBadge = item.badge === 'OPS';
             return (
               <button
                 key={item.id}
@@ -103,7 +105,9 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
                     className={
                       isNewBadge
                         ? 'relative z-10 text-[9px] h-4 px-1 bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                        : 'relative z-10 text-[9px] h-4 px-1 bg-primary/10 text-primary border-primary/20'
+                        : isOpsBadge
+                          ? 'relative z-10 text-[9px] h-4 px-1 bg-rose-500/10 text-rose-500 border-rose-500/30'
+                          : 'relative z-10 text-[9px] h-4 px-1 bg-primary/10 text-primary border-primary/20'
                     }
                   >
                     {item.badge}
@@ -192,6 +196,7 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
               {NAV_ITEMS.map(item => {
                 const Icon = (item as any).icon;
                 const isNewBadge = item.badge === 'NEW';
+                const isOpsBadge = item.badge === 'OPS';
                 return (
                   <button
                     key={item.id}
@@ -212,7 +217,9 @@ export function Header({ activeSection, setActiveSection, darkMode, setDarkMode,
                         className={
                           isNewBadge
                             ? 'text-[9px] h-4 px-1.5 bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                            : 'text-[9px] h-4 px-1.5 bg-primary/10 text-primary'
+                            : isOpsBadge
+                              ? 'text-[9px] h-4 px-1.5 bg-rose-500/10 text-rose-500 border-rose-500/30'
+                              : 'text-[9px] h-4 px-1.5 bg-primary/10 text-primary'
                         }
                       >
                         {item.badge}
