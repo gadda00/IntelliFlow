@@ -17,19 +17,25 @@ This is the complete HTTP API reference for the Busara platform. The API is serv
   - [`GET /api/v7/agents`](#get-apiv7agents)
   - [`GET /api/v2/analyze`](#get-apiv2analyze)
   - [`GET /api/agents`](#get-apiagents)
+  - [`GET /api/v2/agents/:agentId`](#get-apiv2agentsagentid)
+  - [`PATCH /api/v2/agents/:agentId`](#patch-apiv2agentsagentid)
 - [Analysis](#analysis)
   - [`POST /api/v2/analyze`](#post-apiv2analyze)
   - [`POST /api/v2/analyze-stream`](#post-apiv2analyze-stream)
 - [Trajectory](#trajectory)
   - [`GET /api/v2/trajectory`](#get-apiv2trajectory)
   - [`GET /api/v2/trajectory/:id`](#get-apiv2trajectoryid)
+  - [`DELETE /api/v2/trajectory/:id`](#delete-apiv2trajectoryid)
   - [`POST /api/v2/trajectory/:id/reward`](#post-apiv2trajectoryidreward)
   - [`GET /api/v2/trajectory/agent/:agentId/stats`](#get-apiv2trajectoryagentagentidstats)
+  - [`POST /api/v2/trajectory/export`](#post-apiv2trajectoryexport)
 - [Evolution](#evolution)
   - [`GET /api/v2/evolution`](#get-apiv2evolution)
   - [`POST /api/v2/evolution`](#post-apiv2evolution)
-- [Health](#health)
+- [System](#system)
+  - [`GET /api/v2/system`](#get-apiv2system)
   - [`GET /api/health`](#get-apihealth)
+- [Admin](#admin)
 - [Legacy / v1 routes](#legacy--v1-routes)
 - [Error codes](#error-codes)
 
@@ -210,6 +216,147 @@ Legacy v1 endpoint. Returns the same shape as `/api/v7/agents` but with slightly
   "poolSize": 14
 }
 ```
+
+---
+
+### `GET /api/v2/agents/:agentId`
+
+Get the full metadata for a single agent, plus its live trajectory stats
+and any admin override (stability / enabled / config defaults).
+
+**Auth:** Optional. **Rate limited:** No.
+
+**Request:**
+
+```http
+GET /api/v2/agents/data_ingestion
+```
+
+**Path parameters:**
+
+| Param | Type | Description |
+|---|---|---|
+| `agentId` | string | The agent's ID (e.g. `data_ingestion`) |
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "id": "data_ingestion",
+    "name": "Data Ingestion",
+    "role": "Parse and validate incoming data",
+    "tier": "core",
+    "stage": "ingest",
+    "stageNumber": 0,
+    "description": "Validates the uploaded dataset, checks for structural integrity, and prepares it for downstream analysis.",
+    "capabilities": ["data_validation", "structure_check", "format_detection"],
+    "dependencies": [],
+    "icon": "FileInput",
+    "color": "#10b981",
+    "timeoutMs": 15000,
+    "stability": "stable",
+    "enabled": true,
+    "configDefaults": {},
+    "overrideUpdatedAt": "2026-01-20T11:42:13.000Z",
+    "stats": {
+      "agentId": "data_ingestion",
+      "totalTrajectories": 142,
+      "successCount": 138,
+      "failureCount": 3,
+      "successRate": 0.97,
+      "averageDurationMs": 18,
+      "averageReward": 0.62,
+      "totalTokens": 0,
+      "totalCost": 0,
+      "uniqueDataframeCount": 12,
+      "rewardDistribution": { "positive": 88, "neutral": 50, "negative": 4 },
+      "recentTrend": [
+        { "date": "2026-01-14", "successRate": 1.0, "averageReward": 0.7, "count": 12 },
+        { "date": "2026-01-15", "successRate": 0.9, "averageReward": 0.6, "count": 10 }
+      ]
+    }
+  }
+}
+```
+
+**Errors:**
+
+| Status | Code | Cause |
+|---|---|---|
+| 404 | `AGENT_NOT_FOUND` | `agentId` is not registered |
+
+---
+
+### `PATCH /api/v2/agents/:agentId`
+
+Update admin-controlled fields on an agent: stability tier, enabled
+state, or config-defaults overrides. Used by the admin console
+(`/admin/agents/[agentId]`).
+
+**Auth:** Required in production (admin role). Optional in dev. **Rate
+limited:** Yes — admin endpoints, 60 req/min.
+
+**Request:**
+
+```http
+PATCH /api/v2/agents/data_ingestion
+Authorization: Bearer ifl_admin_…
+Content-Type: application/json
+
+{
+  "stability": "stable",
+  "enabled": true,
+  "configDefaults": { "sampleSize": 10 },
+  "updatedBy": "admin-console"
+}
+```
+
+**Body schema (Zod):**
+
+```typescript
+z.object({
+  stability: z.enum(['experimental', 'beta', 'stable', 'deprecated']).optional(),
+  enabled: z.boolean().optional(),
+  configDefaults: z.record(z.string(), z.unknown()).optional(),
+  updatedBy: z.string().optional(),
+})
+```
+
+At least one of `stability`, `enabled`, or `configDefaults` must be
+supplied. `configDefaults` is merged into the existing override (not a
+replacement) — pass only the keys you want to change.
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "agentId": "data_ingestion",
+    "stability": "stable",
+    "enabled": true,
+    "configDefaults": { "sampleSize": 10 },
+    "updatedAt": "2026-01-20T11:42:13.000Z",
+    "updatedBy": "admin-console"
+  }
+}
+```
+
+**Errors:**
+
+| Status | Code | Cause |
+|---|---|---|
+| 400 | `BAD_JSON` | Request body is not valid JSON |
+| 400 | `VALIDATION_ERROR` | Body failed Zod validation |
+| 404 | `AGENT_NOT_FOUND` | `agentId` is not registered |
+
+> **Persistence:** The override is stored in an in-process map (per
+> server instance). In production, this should be backed by a Prisma
+> `AgentOverride` model so the override survives restarts and is shared
+> across instances. The API surface is stable; only the storage layer
+> changes.
 
 ---
 
@@ -515,6 +662,45 @@ GET /api/v2/trajectory/traj_abc123
 
 ---
 
+### `DELETE /api/v2/trajectory/:id`
+
+Delete a single trajectory. Used by the admin console to satisfy GDPR
+right-to-be-forgotten requests and to prune the in-memory store.
+
+**Auth:** Required in production (admin role). **Rate limited:** Yes —
+admin endpoints, 60 req/min.
+
+**Request:**
+
+```http
+DELETE /api/v2/trajectory/traj_abc123
+Authorization: Bearer ifl_admin_…
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": { "id": "traj_abc123", "deleted": true }
+}
+```
+
+**Errors:**
+
+| Status | Code | Cause |
+|---|---|---|
+| 404 | `NOT_FOUND` | Trajectory ID does not exist |
+
+> **GDPR note:** Deletion is permanent. The trajectory is removed from
+> the store entirely — steps, rewards, context snapshot, metrics.
+> Aggregated stats (e.g. `getAgentStats`) are recomputed on the next
+> call. If you need to keep an audit trail of *which* trajectories were
+> deleted and when, log the deletion in a separate `AuditLog` table
+> before calling `DELETE`.
+
+---
+
 ### `POST /api/v2/trajectory/:id/reward`
 
 Attach a reward signal to a trajectory. This is the explicit feedback channel that closes the RL loop.
@@ -607,6 +793,110 @@ GET /api/v2/trajectory/agent/data_ingestion/stats
   }
 }
 ```
+
+---
+
+### `POST /api/v2/trajectory/export`
+
+Export a filtered, scrubbed, deduplicated dataset of trajectories via
+the AReaL DataProxy (Pillar 2). Used by the admin console to ship
+learning datasets to fine-tuning pipelines, external benchmark tools,
+or research collaborators.
+
+**Auth:** Required in production (admin role). **Rate limited:** Yes —
+admin endpoints, 60 req/min.
+
+**Request:**
+
+```http
+POST /api/v2/trajectory/export
+Authorization: Bearer ifl_admin_…
+Content-Type: application/json
+
+{
+  "agentIds": ["data_ingestion", "schema_inference"],
+  "scrubPII": true,
+  "deduplicate": true,
+  "maxPerAgent": 1000,
+  "requireRewards": false,
+  "minQualityScore": 0.4,
+  "purpose": "q1-fine-tuning-run",
+  "exportedBy": "admin-console"
+}
+```
+
+**Body schema (Zod):**
+
+```typescript
+z.object({
+  agentIds: z.array(z.string()).optional(),              // restrict to a set of agents
+  minSuccessRate: z.number().min(0).max(1).optional(),   // drop agents below this rate
+  minQualityScore: z.number().min(0).max(1).optional(),  // drop trajectories below this score
+  scrubPII: z.boolean().optional(),                      // default true
+  deduplicate: z.boolean().optional(),                   // default true
+  maxPerAgent: z.number().int().positive().max(10_000).optional(),
+  requireRewards: z.boolean().optional(),                // default false
+  startDate: z.string().optional(),                      // ISO
+  endDate: z.string().optional(),                        // ISO
+  purpose: z.string().min(1).default('admin-export'),
+  exportedBy: z.string().min(1).default('admin-console'),
+})
+```
+
+**Response (200):**
+
+```json
+{
+  "ok": true,
+  "data": {
+    "id": "dataset_1737849000123_a1b2c3",
+    "createdAt": "2026-01-25T22:30:00.123Z",
+    "config": {
+      "scrubPII": true,
+      "deduplicate": true,
+      "maxPerAgent": 1000,
+      "requireRewards": false,
+      "minQualityScore": 0.4
+    },
+    "trajectories": [ /* Trajectory[] */ ],
+    "stats": {
+      "totalTrajectories": 1842,
+      "uniqueAgents": 2,
+      "uniqueDataframes": 47,
+      "totalSteps": 9210,
+      "totalTokens": 0,
+      "averageQuality": 0.71,
+      "averageReward": 0.58,
+      "dateRange": { "start": "2026-01-01", "end": "2026-01-25" }
+    },
+    "audit": {
+      "exportedBy": "admin-console",
+      "exportedAt": "2026-01-25T22:30:00.123Z",
+      "purpose": "q1-fine-tuning-run",
+      "trajectoryCount": 1842,
+      "agentIds": ["data_ingestion", "schema_inference"]
+    }
+  }
+}
+```
+
+If `agentIds` is supplied, the response is `data: ExportedDataset[]`
+(one dataset per agent).
+
+**Errors:**
+
+| Status | Code | Cause |
+|---|---|---|
+| 400 | `BAD_JSON` | Request body is not valid JSON |
+| 400 | `VALIDATION_ERROR` | Body failed Zod validation |
+| 500 | `EXPORT_ERROR` | DataProxy threw (e.g. store unavailable) |
+
+> **PII scrubbing:** Every string field in every step (observation,
+> action, result, LLM prompts, tool I/O) is passed through the PII
+> regex set — emails, phones, SSNs, credit cards, IPs, API keys — and
+> replaced with `[EMAIL]`, `[PHONE]`, etc. The scrub report is included
+> in each trajectory's metadata. **Never** disable `scrubPII` for
+> exports that leave the production VPC.
 
 ---
 
