@@ -63,7 +63,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Validated and parsed data with metadata',
   inputSchema: {
     schema: z.union([
-      z.array(z.record(z.unknown())),
+      z.array(z.record(z.string(), z.unknown())),
       z.string(),
       z.object({}),
     ]),
@@ -77,7 +77,7 @@ const metadata = createAgentMetadata({
       memorySize: z.number().int().nonnegative(),
       isEmpty: z.boolean(),
       hasHeaders: z.boolean(),
-      sampleRows: z.array(z.record(z.unknown())),
+      sampleRows: z.array(z.record(z.string(), z.unknown())),
       dataTypes: z.record(z.string(), z.string()).optional(),
       statistics: z.record(z.string(), z.record(z.string(), z.number())).optional(),
     }),

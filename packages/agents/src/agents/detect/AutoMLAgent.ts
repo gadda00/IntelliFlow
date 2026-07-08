@@ -68,7 +68,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'AutoML results with best models, hyperparameters, and evaluation metrics',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -145,7 +145,7 @@ const metadata = createAgentMetadata({
         ]),
         maxModels: z.number().int().positive().max(20).default(10),
         timeoutPerModel: z.number().int().positive().max(300000).default(30000),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Hyperparameter tuning
       hyperparameterTuning: z.object({
@@ -153,7 +153,7 @@ const metadata = createAgentMetadata({
         method: z.enum(['grid', 'random', 'bayesian']).default('random'),
         maxIterations: z.number().int().positive().max(100).default(20),
         cvFolds: z.number().int().positive().max(20).default(5),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Cross-validation
       crossValidation: z.object({
@@ -162,7 +162,7 @@ const metadata = createAgentMetadata({
         stratified: z.boolean().default(true),
         shuffle: z.boolean().default(true),
         randomState: z.number().int().default(42),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Feature selection
       featureSelection: z.object({
@@ -170,7 +170,7 @@ const metadata = createAgentMetadata({
         method: z.enum(['variance', 'correlation', 'mutual_info', 'none']).default('variance'),
         maxFeatures: z.number().int().positive().max(100).default(20),
         threshold: z.number().min(0).max(1).default(0.1),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Evaluation
       evaluation: z.object({
@@ -178,7 +178,7 @@ const metadata = createAgentMetadata({
         primaryMetric: z.string().default('r2'),
         testSize: z.number().min(0).max(1).default(0.2),
         randomState: z.number().int().default(42),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Advanced
       advanced: z.object({
@@ -186,7 +186,7 @@ const metadata = createAgentMetadata({
         handleMissingValues: z.boolean().default(true),
         encodeCategorical: z.boolean().default(true),
         useGPU: z.boolean().default(false),
-      }).default({}),
+      }).optional().default(undefined as any),
     }),
     defaults: {
       problemType: 'auto',
@@ -269,7 +269,7 @@ export class AutoMLAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const problemTypeConfig = config.problemType ?? 'auto';
@@ -461,9 +461,9 @@ export class AutoMLAgent extends BaseAgent {
       const executionTimeMs = Date.now() - start;
       
       return this.createResult(output, {
-        problemType,
+        problemType: problemType as any,
         modelsTrained: models.length,
-        bestModel: bestModel?.modelType ?? 'none',
+        bestModel: (bestModel?.modelType ?? 'none') as any,
         bestScore: bestModel?.trainingMetrics[evaluationConfig.primaryMetric ?? 'r2'] ?? 0,
         featuresUsed: selectedFeatures.length,
         trainingTime: executionTimeMs,
@@ -488,11 +488,11 @@ export class AutoMLAgent extends BaseAgent {
     // If problem type is specified, use it
     if (problemTypeConfig !== 'auto') {
       // Find a suitable target column
-      const numericColumns = Object.entries(schema)
+      const numericColumns = Object.entries(schema as Record<string, any>)
         .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
         .map(([col]) => col);
       
-      const categoricalColumns = Object.entries(schema)
+      const categoricalColumns = Object.entries(schema as Record<string, any>)
         .filter(([_, s]) => s.type === 'categorical' || s.type === 'string')
         .map(([col]) => col);
       
@@ -537,11 +537,11 @@ export class AutoMLAgent extends BaseAgent {
     }
     
     // No target specified, check if we can find a suitable one
-    const numericColumns = Object.entries(schema)
+    const numericColumns = Object.entries(schema as Record<string, any>)
       .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
       .map(([col]) => col);
     
-    const categoricalColumns = Object.entries(schema)
+    const categoricalColumns = Object.entries(schema as Record<string, any>)
       .filter(([_, s]) => s.type === 'categorical' || s.type === 'string')
       .map(([col]) => col);
     
@@ -1012,7 +1012,7 @@ export class AutoMLAgent extends BaseAgent {
     const n = features.length;
     const foldSize = Math.floor(n / folds);
     
-    const foldMetrics: number[][] = [];
+    const foldMetrics: Record<string, number>[] = [];
     
     // In a real implementation, perform actual cross-validation
     // For now, return mock results
@@ -1128,7 +1128,7 @@ export class AutoMLAgent extends BaseAgent {
     // Average importance across models
     for (const model of models) {
       if (model.featureImportance) {
-        for (const [feature, value] of Object.entries(model.featureImportance)) {
+        for (const [feature, value] of Object.entries(model.featureImportance as Record<string, number>)) {
           importance[feature] = (importance[feature] ?? 0) + value;
         }
       }

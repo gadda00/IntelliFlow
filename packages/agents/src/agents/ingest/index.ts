@@ -9,6 +9,3 @@
 export * from './DataIngestionAgent';
 export * from './SchemaInferenceAgent';
 export * from './DataProfilerAgent';
-export * from './DataQualityAgent';
-export * from './PrivacyGuardianAgent';
-export * from './NLQInterpreterAgent';

@@ -256,7 +256,7 @@ export class OutlierRemovalAgent extends BaseAgent {
     let totalRemoved = 0;
     const originalCount = dataframe.length;
 
-    for (const [col, profile] of Object.entries(profileResult.output.profile)) {
+    for (const [col, profile] of Object.entries(profileResult.output.profile as Record<string, any>)) {
       if (profile.type !== 'numeric') continue;
       const q1 = profile.stats.q1;
       const q3 = profile.stats.q3;

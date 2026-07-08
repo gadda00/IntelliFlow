@@ -60,7 +60,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Schema definition with column types and statistics',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       columns: z.array(z.string()),
     }),
     description: 'Dataframe and columns from ingestion',

@@ -18,13 +18,13 @@ import { BaseAgent, EnhancedAgentMetadata } from './core';
 // Types
 // ============================================================================
 
-/** Agent factory function */
-export type AgentFactory = () => BaseAgent;
+/** Simple agent factory function (used by registry registrations) */
+export type SimpleAgentFactory = () => BaseAgent;
 
 /** Agent module */
 export interface AgentModule {
   default?: BaseAgent;
-  [key: string]: BaseAgent | AgentFactory | undefined;
+  [key: string]: BaseAgent | SimpleAgentFactory | undefined;
 }
 
 /** Agent registration options */
@@ -66,7 +66,7 @@ export interface RegisteredAgent {
  */
 export class AgentRegistry {
   private agents = new Map<string, RegisteredAgent>();
-  private factories = new Map<string, AgentFactory>();
+  private factories = new Map<string, SimpleAgentFactory>();
   private index: Record<string, Set<string>> = {
     stage: new Set(),
     tier: new Set(),
@@ -116,7 +116,7 @@ export class AgentRegistry {
   /**
    * Register an agent factory
    */
-  registerFactory(id: string, factory: AgentFactory): void {
+  registerFactory(id: string, factory: SimpleAgentFactory): void {
     if (this.factories.has(id)) {
       throw new Error(`Agent factory with ID '${id}' is already registered`);
     }
@@ -184,7 +184,7 @@ export class AgentRegistry {
   /**
    * Get all registered agent metadata
    */
-  getAllMetadata(): AgentMetadata[] {
+  getAllMetadata(): EnhancedAgentMetadata[] {
     return Array.from(this.agents.values()).map(r => r.metadata);
   }
   
@@ -508,7 +508,7 @@ export const defaultRegistry = new AgentRegistry();
 // Exports
 // ============================================================================
 
-export {
+export type {
   AgentMetadata,
   AgentStage,
   AgentTier,

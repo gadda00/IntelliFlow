@@ -67,7 +67,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Knowledge graph with entities, relationships, and network analysis',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -130,7 +130,7 @@ const metadata = createAgentMetadata({
         includeNumeric: z.boolean().default(false),
         includeCategorical: z.boolean().default(true),
         includeText: z.boolean().default(true),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Relationship extraction
       relationshipExtraction: z.object({
@@ -138,7 +138,7 @@ const metadata = createAgentMetadata({
         correlationThreshold: z.number().min(0).max(1).default(0.5),
         minCooccurrence: z.number().int().positive().default(3),
         relationshipTypes: z.array(z.string()).default(['correlated', 'similar', 'connected']),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Graph analysis
       graphAnalysis: z.object({
@@ -146,7 +146,7 @@ const metadata = createAgentMetadata({
         centralityMetrics: z.array(z.enum(['degree', 'betweenness', 'closeness', 'eigenvector'])).default(['degree']),
         communityDetection: z.boolean().default(true),
         maxCommunities: z.number().int().positive().max(20).default(10),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Output
       includeStatistics: z.boolean().default(true),
@@ -213,7 +213,7 @@ export class KnowledgeGraphBuilderAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const entityConfig = config.entityExtraction ?? {};
@@ -303,7 +303,7 @@ export class KnowledgeGraphBuilderAgent extends BaseAgent {
     
     // Extract from categorical columns
     if (config.includeCategorical) {
-      for (const [col, colSchema] of Object.entries(schema)) {
+      for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
         if (colSchema.type === 'categorical' || colSchema.type === 'string') {
           const values = dataframe.map(row => row[col]).filter(v => v !== null && v !== undefined);
           
@@ -339,7 +339,7 @@ export class KnowledgeGraphBuilderAgent extends BaseAgent {
     
     // Extract from numeric columns (if enabled)
     if (config.includeNumeric) {
-      for (const [col, colSchema] of Object.entries(schema)) {
+      for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
         if (colSchema.type === 'integer' || colSchema.type === 'float') {
           const values = this.extractNumericColumn(dataframe, col);
           
@@ -746,8 +746,8 @@ export class KnowledgeGraphBuilderAgent extends BaseAgent {
    */
   private calculateEigenvectorCentrality(graph: any): Record<string, number> {
     const n = graph.nodes.length;
-    const nodeIds = graph.nodes.map((n: any) => n.id);
-    const nodeIndex = new Map(nodeIds.map((id, i) => [id, i]));
+    const nodeIds: string[] = graph.nodes.map((n: any) => n.id);
+    const nodeIndex = new Map<string, number>(nodeIds.map((id, i) => [id, i] as [string, number]));
     
     // Create adjacency matrix
     const adjMatrix: number[][] = new Array(n).fill(0).map(() => new Array(n).fill(0));
@@ -939,7 +939,7 @@ export class KnowledgeGraphBuilderAgent extends BaseAgent {
       
       if (mostCentral) {
         recommendations.push(
-          `Most central entity: ${mostCentral[0]} (centrality: ${mostCentral[1].toFixed(3)})`
+          `Most central entity: ${mostCentral[0]} (centrality: ${(mostCentral[1] as number).toFixed(3)})`
         );
       }
     }

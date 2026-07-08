@@ -67,7 +67,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Strategic analysis plan with recommendations and hypotheses',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -197,11 +197,11 @@ export class AnalysisStrategistAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get cleaning and engineering reports
-      const cleaningReport = previousResults.get('data_cleaner')?.output?.cleaningReport ?? {};
-      const engineeringReport = previousResults.get('data_engineer')?.output?.engineeringReport ?? {};
+      const cleaningReport = (previousResults.get('data_cleaner')?.output as any)?.cleaningReport ?? {};
+      const engineeringReport = (previousResults.get('data_engineer')?.output as any)?.engineeringReport ?? {};
       
       // Get configuration
       const focusAreas = config.focusAreas ?? ['exploratory', 'descriptive'];
@@ -266,7 +266,7 @@ export class AnalysisStrategistAgent extends BaseAgent {
         dataQualityScore,
         hypothesesGenerated: hypotheses.length,
         methodsRecommended: recommendedMethods.length,
-        analysisComplexity,
+        analysisComplexity: analysisComplexity as any,
       }, executionTimeMs);
       
     } catch (error) {
@@ -290,7 +290,7 @@ export class AnalysisStrategistAgent extends BaseAgent {
     
     // Count data types
     const dataTypes: Record<string, number> = {};
-    for (const [col, colSchema] of Object.entries(schema)) {
+    for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
       const type = colSchema.type;
       dataTypes[type] = (dataTypes[type] ?? 0) + 1;
     }
@@ -329,7 +329,7 @@ export class AnalysisStrategistAgent extends BaseAgent {
   ): any[] {
     const featureAnalysis: any[] = [];
     
-    for (const [col, colSchema] of Object.entries(schema)) {
+    for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
       const analysis: any = {
         column: col,
         type: colSchema.type,

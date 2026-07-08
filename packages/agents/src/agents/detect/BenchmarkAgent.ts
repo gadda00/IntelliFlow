@@ -125,7 +125,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Benchmark analysis with performance metrics and recommendations',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -181,7 +181,7 @@ const metadata = createAgentMetadata({
       industry: z.enum(Object.keys(INDUSTRY_BENCHMARKS) as [string, ...string[]]).default('ecommerce'),
       
       // Metric mapping
-      metricMappings: z.record(z.string(), z.string()).default({}),
+      metricMappings: z.record(z.string(), z.string()).optional().default(undefined as any),
       
       // Benchmark settings
       benchmarkSettings: z.object({
@@ -193,8 +193,8 @@ const metadata = createAgentMetadata({
           q3: z.number(),
           min: z.number(),
           max: z.number(),
-        })).default({}),
-      }).default({}),
+        })).optional().default(undefined as any),
+      }).optional().default(undefined as any),
       
       // Analysis settings
       analysisSettings: z.object({
@@ -207,8 +207,8 @@ const metadata = createAgentMetadata({
           below_average: z.number().min(0).max(100).default(40),
           average: z.number().min(0).max(100).default(60),
           above_average: z.number().min(0).max(100).default(80),
-        }).default({}),
-      }).default({}),
+        }).optional().default(undefined as any),
+      }).optional().default(undefined as any),
     }),
     defaults: {
       industry: 'ecommerce',
@@ -264,7 +264,7 @@ export class BenchmarkAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const industry = config.industry ?? 'ecommerce';
@@ -282,8 +282,8 @@ export class BenchmarkAgent extends BaseAgent {
       }
       
       // Extract numeric columns
-      const numericColumns = Object.entries(schema)
-        .filter(([_, colSchema]) => colSchema.type === 'integer' || colSchema.type === 'float')
+      const numericColumns = Object.entries(schema as Record<string, any>)
+        .filter(([_, colSchema]: [string, any]) => colSchema.type === 'integer' || colSchema.type === 'float')
         .map(([col]) => col);
       
       if (numericColumns.length === 0) {
@@ -309,7 +309,7 @@ export class BenchmarkAgent extends BaseAgent {
         above_average: 80,
       };
       
-      for (const [benchmarkMetric, benchmarkData] of Object.entries(industryBenchmarks.metrics)) {
+      for (const [benchmarkMetric, benchmarkData] of Object.entries(industryBenchmarks.metrics as Record<string, any>)) {
         // Find matching column
         let dataColumn = metricMappings[benchmarkMetric];
         
@@ -338,7 +338,7 @@ export class BenchmarkAgent extends BaseAgent {
             performance = 'below_average';
           } else if (percentile < performanceThresholds.above_average) {
             performance = 'average';
-          } else if (percentile < performanceThresholds.excellent ?? 100) {
+          } else if (percentile < (performanceThresholds.excellent ?? 100)) {
             performance = 'above_average';
           } else {
             performance = 'excellent';
@@ -412,10 +412,10 @@ export class BenchmarkAgent extends BaseAgent {
       const executionTimeMs = Date.now() - start;
       
       return this.createResult(output, {
-        industry: industryBenchmarks.name,
+        industry: industryBenchmarks.name as any,
         metricsAnalyzed: totalMetrics,
         averagePercentile,
-        overallPerformance,
+        overallPerformance: overallPerformance as any,
       }, executionTimeMs);
       
     } catch (error) {

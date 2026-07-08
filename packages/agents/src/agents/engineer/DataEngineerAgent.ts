@@ -21,7 +21,7 @@ import {
   AgentResult,
   createAgentMetadata,
 } from '../../core';
-import { mean, stdev, min, max, correlation, covariance } from '../../math';
+import { mean, median, stdev, min, max, correlation, covariance } from '../../math';
 
 // ============================================================================
 // Agent Metadata
@@ -67,7 +67,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Dataframe with engineered features and transformation report',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -80,7 +80,7 @@ const metadata = createAgentMetadata({
   },
   outputSchema: {
     schema: z.object({
-      engineeredDataframe: z.array(z.record(z.unknown())),
+      engineeredDataframe: z.array(z.record(z.string(), z.unknown())),
       engineeringReport: z.object({
         featuresAdded: z.array(z.string()),
         featuresRemoved: z.array(z.string()),
@@ -101,7 +101,7 @@ const metadata = createAgentMetadata({
         method: z.enum(['standard', 'minmax', 'robust', 'none']).default('standard'),
         columns: z.array(z.string()).optional(),
         exclude: z.array(z.string()).optional(),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Encoding
       encoding: z.object({
@@ -109,7 +109,7 @@ const metadata = createAgentMetadata({
         method: z.enum(['onehot', 'label', 'ordinal', 'none']).default('onehot'),
         columns: z.array(z.string()).optional(),
         dropFirst: z.boolean().default(false),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Feature selection
       featureSelection: z.object({
@@ -117,14 +117,14 @@ const metadata = createAgentMetadata({
         method: z.enum(['variance', 'correlation', 'none']).default('variance'),
         threshold: z.number().min(0).max(1).default(0.1),
         targetColumn: z.string().optional(),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Dimensionality reduction
       dimensionalityReduction: z.object({
         enabled: z.boolean().default(false),
         method: z.enum(['pca', 'none']).default('none'),
         nComponents: z.number().int().positive().max(10).default(2),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Feature creation
       featureCreation: z.object({
@@ -134,14 +134,14 @@ const metadata = createAgentMetadata({
         interactionFeatures: z.boolean().default(false),
         timeFeatures: z.boolean().default(true),
         datetimeColumns: z.array(z.string()).optional(),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Outlier handling
       outlierHandling: z.object({
         enabled: z.boolean().default(false),
         method: z.enum(['clip', 'winsorize', 'none']).default('clip'),
         threshold: z.number().min(0).max(10).default(3),
-      }).default({}),
+      }).optional().default(undefined as any),
     }),
     defaults: {
       scaling: {
@@ -204,7 +204,7 @@ export class DataEngineerAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const scalingConfig = config.scaling ?? {};
@@ -336,7 +336,7 @@ export class DataEngineerAgent extends BaseAgent {
   ): Record<string, unknown>[] {
     const result = JSON.parse(JSON.stringify(dataframe));
     
-    for (const [col, colSchema] of Object.entries(schema)) {
+    for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
       if (colSchema.type !== 'integer' && colSchema.type !== 'float') continue;
       
       const values = this.extractNumericColumn(result, col);
@@ -398,7 +398,7 @@ export class DataEngineerAgent extends BaseAgent {
     if (config.timeFeatures) {
       const datetimeColumns = config.datetimeColumns?.length > 0
         ? config.datetimeColumns
-        : Object.entries(schema)
+        : Object.entries(schema as Record<string, any>)
             .filter(([_, s]) => s.type === 'datetime')
             .map(([col]) => col);
       
@@ -448,7 +448,7 @@ export class DataEngineerAgent extends BaseAgent {
     
     // Add polynomial features
     if (config.polynomialFeatures && config.polynomialDegree > 1) {
-      const numericColumns = Object.entries(schema)
+      const numericColumns = Object.entries(schema as Record<string, any>)
         .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
         .map(([col]) => col);
       
@@ -470,7 +470,7 @@ export class DataEngineerAgent extends BaseAgent {
     
     // Add interaction features
     if (config.interactionFeatures) {
-      const numericColumns = Object.entries(schema)
+      const numericColumns = Object.entries(schema as Record<string, any>)
         .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
         .map(([col]) => col);
       
@@ -513,7 +513,7 @@ export class DataEngineerAgent extends BaseAgent {
     const columnsToScale = config.columns?.length > 0
       ? config.columns.filter((col: string) => 
           schema[col]?.type === 'integer' || schema[col]?.type === 'float')
-      : Object.entries(schema)
+      : Object.entries(schema as Record<string, any>)
           .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
           .map(([col]) => col);
     
@@ -591,7 +591,7 @@ export class DataEngineerAgent extends BaseAgent {
     const columnsToEncode = config.columns?.length > 0
       ? config.columns.filter((col: string) => 
           schema[col]?.type === 'categorical' || schema[col]?.type === 'string')
-      : Object.entries(schema)
+      : Object.entries(schema as Record<string, any>)
           .filter(([_, s]) => s.type === 'categorical' || s.type === 'string')
           .map(([col]) => col);
     
@@ -661,7 +661,7 @@ export class DataEngineerAgent extends BaseAgent {
   ): Record<string, unknown>[] {
     const result = JSON.parse(JSON.stringify(dataframe));
     
-    const numericColumns = Object.entries(schema)
+    const numericColumns = Object.entries(schema as Record<string, any>)
       .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
       .map(([col]) => col);
     
@@ -725,7 +725,7 @@ export class DataEngineerAgent extends BaseAgent {
     const result = JSON.parse(JSON.stringify(dataframe));
     
     // Get numeric columns
-    const numericColumns = Object.entries(schema)
+    const numericColumns = Object.entries(schema as Record<string, any>)
       .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
       .map(([col]) => col);
     
@@ -910,7 +910,7 @@ export class DataEngineerAgent extends BaseAgent {
   ): Record<string, Record<string, number>> {
     const correlationMatrix: Record<string, Record<string, number>> = {};
     
-    const numericColumns = Object.entries(schema)
+    const numericColumns = Object.entries(schema as Record<string, any>)
       .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
       .map(([col]) => col);
     

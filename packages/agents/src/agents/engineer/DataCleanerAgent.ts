@@ -67,7 +67,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Cleaned dataframe with cleaning report',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -79,7 +79,7 @@ const metadata = createAgentMetadata({
   },
   outputSchema: {
     schema: z.object({
-      cleanedDataframe: z.array(z.record(z.unknown())),
+      cleanedDataframe: z.array(z.record(z.string(), z.unknown())),
       cleaningReport: z.object({
         originalRowCount: z.number(),
         cleanedRowCount: z.number(),
@@ -185,7 +185,7 @@ export class DataCleanerAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const missingValueStrategy = config.missingValueStrategy ?? 'drop';
@@ -334,7 +334,7 @@ export class DataCleanerAgent extends BaseAgent {
   ): Record<string, unknown>[] {
     const result = JSON.parse(JSON.stringify(dataframe));
     
-    for (const [col, colSchema] of Object.entries(schema)) {
+    for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
       const type = colSchema.type;
       let conversions = 0;
       
@@ -389,7 +389,7 @@ export class DataCleanerAgent extends BaseAgent {
   ): Record<string, unknown>[] {
     const result = JSON.parse(JSON.stringify(dataframe));
     
-    for (const [col, colSchema] of Object.entries(schema)) {
+    for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
       let handled = 0;
       const type = colSchema.type;
       
@@ -498,7 +498,7 @@ export class DataCleanerAgent extends BaseAgent {
   ): Record<string, unknown>[] {
     const result = JSON.parse(JSON.stringify(dataframe));
     
-    for (const [col, colSchema] of Object.entries(schema)) {
+    for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
       if (colSchema.type !== 'integer' && colSchema.type !== 'float') continue;
       
       const values = this.extractNumericColumn(result, col);
@@ -565,7 +565,7 @@ export class DataCleanerAgent extends BaseAgent {
     
     const colsToStandardize = columns?.length > 0 
       ? columns.filter(col => schema[col]?.type === 'integer' || schema[col]?.type === 'float')
-      : Object.entries(schema)
+      : Object.entries(schema as Record<string, any>)
           .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
           .map(([col]) => col);
     
@@ -601,7 +601,7 @@ export class DataCleanerAgent extends BaseAgent {
     
     const colsToNormalize = columns?.length > 0
       ? columns.filter(col => schema[col]?.type === 'integer' || schema[col]?.type === 'float')
-      : Object.entries(schema)
+      : Object.entries(schema as Record<string, any>)
           .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
           .map(([col]) => col);
     
@@ -635,7 +635,7 @@ export class DataCleanerAgent extends BaseAgent {
   ): Record<string, Record<string, number>> {
     const statistics: Record<string, Record<string, number>> = {};
     
-    for (const [col, colSchema] of Object.entries(schema)) {
+    for (const [col, colSchema] of Object.entries(schema as Record<string, any>)) {
       if (colSchema.type === 'integer' || colSchema.type === 'float') {
         const values = this.extractNumericColumn(dataframe, col);
         

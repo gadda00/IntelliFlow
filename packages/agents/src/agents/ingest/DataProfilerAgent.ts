@@ -61,7 +61,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Comprehensive data profile with column statistics',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -148,7 +148,7 @@ export class DataProfilerAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = ((schemaResult?.output as any)?.schema) ?? {};
       
       const profile: Record<string, any> = {};
       let numericColumns = 0;

@@ -66,7 +66,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Transformed dataframe with transformation report',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -79,7 +79,7 @@ const metadata = createAgentMetadata({
   },
   outputSchema: {
     schema: z.object({
-      transformedDataframe: z.array(z.record(z.unknown())),
+      transformedDataframe: z.array(z.record(z.string(), z.unknown())),
       transformationReport: z.object({
         transformationsApplied: z.array(z.string()),
         columnsAdded: z.array(z.string()),
@@ -143,7 +143,7 @@ const metadata = createAgentMetadata({
         preserveOriginal: z.boolean().default(false),
         prefix: z.string().default('transformed_'),
         suffix: z.string().default(''),
-      }).default({}),
+      }).optional().default(undefined as any),
     }),
     defaults: {
       formulas: [],
@@ -192,7 +192,7 @@ export class DataTransformerAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const formulas = config.formulas ?? [];
