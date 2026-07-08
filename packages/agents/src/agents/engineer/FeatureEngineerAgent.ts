@@ -67,7 +67,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Dataframe with advanced features and feature engineering report',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -80,7 +80,7 @@ const metadata = createAgentMetadata({
   },
   outputSchema: {
     schema: z.object({
-      featureEngineeredDataframe: z.array(z.record(z.unknown())),
+      featureEngineeredDataframe: z.array(z.record(z.string(), z.unknown())),
       featureEngineeringReport: z.object({
         featuresAdded: z.array(z.string()),
         polynomialFeatures: z.array(z.string()),
@@ -100,7 +100,7 @@ const metadata = createAgentMetadata({
         degree: z.number().int().positive().max(5).default(2),
         includeBias: z.boolean().default(false),
         columns: z.array(z.string()).optional(),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Interaction features
       interactions: z.object({
@@ -108,7 +108,7 @@ const metadata = createAgentMetadata({
         maxDegree: z.number().int().positive().max(3).default(2),
         columns: z.array(z.string()).optional(),
         includeSelf: z.boolean().default(false),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Domain-specific features
       domainFeatures: z.object({
@@ -117,7 +117,7 @@ const metadata = createAgentMetadata({
         textFeatures: z.boolean().default(false),
         numericBins: z.boolean().default(false),
         binCount: z.number().int().positive().max(20).default(5),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Feature transformation
       transformations: z.object({
@@ -126,7 +126,7 @@ const metadata = createAgentMetadata({
         sqrtTransform: z.array(z.string()).optional(),
         expTransform: z.array(z.string()).optional(),
         boxCox: z.array(z.string()).optional(),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Feature selection
       selection: z.object({
@@ -135,14 +135,14 @@ const metadata = createAgentMetadata({
         threshold: z.number().min(0).max(1).default(0.1),
         targetColumn: z.string().optional(),
         maxFeatures: z.number().int().positive().max(100).default(20),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Advanced options
       advanced: z.object({
         removeOriginal: z.boolean().default(false),
         prefix: z.string().default('fe_'),
         suffix: z.string().default(''),
-      }).default({}),
+      }).optional().default(undefined as any),
     }),
     defaults: {
       polynomial: {
@@ -209,7 +209,7 @@ export class FeatureEngineerAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = ((schemaResult?.output as any)?.schema) ?? {};
       
       // Get configuration
       const polyConfig = config.polynomial ?? {};
@@ -259,7 +259,7 @@ export class FeatureEngineerAgent extends BaseAgent {
           schema,
           polyConfig,
           featureEngineeringReport.polynomialFeatures,
-          advancedConfig.prefix
+          advancedConfig.prefix as string
         );
       }
       
@@ -270,7 +270,7 @@ export class FeatureEngineerAgent extends BaseAgent {
           schema,
           interactionConfig,
           featureEngineeringReport.interactionFeatures,
-          advancedConfig.prefix
+          advancedConfig.prefix as string
         );
       }
       
@@ -410,7 +410,7 @@ export class FeatureEngineerAgent extends BaseAgent {
     
     // Datetime features
     if (config.datetimeFeatures) {
-      const datetimeColumns = Object.entries(schema)
+      const datetimeColumns = Object.entries(schema as Record<string, any>)
         .filter(([_, s]) => s.type === 'datetime')
         .map(([col]) => col);
       
@@ -461,7 +461,7 @@ export class FeatureEngineerAgent extends BaseAgent {
     
     // Numeric binning
     if (config.numericBins) {
-      const numericColumns = Object.entries(schema)
+      const numericColumns = Object.entries(schema as Record<string, any>)
         .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
         .map(([col]) => col);
       
@@ -505,7 +505,7 @@ export class FeatureEngineerAgent extends BaseAgent {
     const columns = config.columns?.length > 0
       ? config.columns.filter((col: string) => 
           schema[col]?.type === 'integer' || schema[col]?.type === 'float')
-      : Object.entries(schema)
+      : Object.entries(schema as Record<string, any>)
           .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
           .map(([col]) => col);
     
@@ -553,7 +553,7 @@ export class FeatureEngineerAgent extends BaseAgent {
     const columns = config.columns?.length > 0
       ? config.columns.filter((col: string) => 
           schema[col]?.type === 'integer' || schema[col]?.type === 'float')
-      : Object.entries(schema)
+      : Object.entries(schema as Record<string, any>)
           .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
           .map(([col]) => col);
     

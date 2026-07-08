@@ -1,9 +1,12 @@
 /**
  * Busara Agents
  * ============
- * 
- * This file exports all the built-in agents for the Busara platform.
- * Agents are organized by stage and can be imported individually or as a group.
+ *
+ * Re-exports all built-in agents for the Busara platform.
+ * Agents are organized by stage (ingest, engineer, detect, forecast, infer,
+ * cluster, report). Not all stages exist yet — `loadStage` gracefully handles
+ * missing directories so the package compiles even while new stages are being
+ * added.
  */
 
 // Re-export all agent types and utilities
@@ -15,310 +18,170 @@ export * from './errors';
 export * from './validation';
 
 // ============================================================================
-// Agent Imports
+// Stage Imports (graceful — missing dirs are skipped)
 // ============================================================================
 
-// These will be imported from their respective files
-// For now, we'll define placeholder exports
+import type { BaseAgent } from './core';
 
-/**
- * Ingest Agents (Stage 0)
- * - DataIngestionAgent
- * - SchemaInferenceAgent
- * - DataProfilerAgent
- * - DataQualityAgent
- * - PrivacyGuardianAgent
- * - NLQInterpreterAgent
- */
+type AgentModule = Record<string, unknown>;
+
+/** Dynamically and safely load a stage module, returning {} on failure. */
+function loadStage(stageName: string): AgentModule {
+  try {
+    // Use require so missing directories throw at runtime, not at type-check.
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const mod = require(`./agents/${stageName}`);
+    return mod as AgentModule;
+  } catch {
+    return {};
+  }
+}
+
+// Eager static imports for stages that exist today (kept for type inference).
 export * from './agents/ingest';
-
-/**
- * Engineer Agents (Stage 1)
- * - DataCleanerAgent
- * - DataEngineerAgent
- * - FeatureEngineerAgent
- * - DataTransformerAgent
- */
 export * from './agents/engineer';
-
-/**
- * Detect Agents (Stage 2)
- * - AnalysisStrategistAgent
- * - AnomalySentinelAgent
- * - ForecastingOracleAgent
- * - CausalArchitectAgent
- * - KnowledgeGraphBuilderAgent
- * - BenchmarkAgent
- * - AutoMLAgent
- */
 export * from './agents/detect';
-
-/**
- * Forecast Agents (Stage 3)
- * - TimeSeriesForecasterAgent
- * - SeasonalDecomposerAgent
- * - TrendAnalyzerAgent
- */
-export * from './agents/forecast';
-
-/**
- * Infer Agents (Stage 4)
- * - InsightGeneratorAgent
- * - ExplainabilityAgent
- * - HypothesisTesterAgent
- */
-export * from './agents/infer';
-
-/**
- * Cluster Agents (Stage 5)
- * - ClusterAnalyzerAgent
- * - SegmenterAgent
- * - PatternDetectorAgent
- */
-export * from './agents/cluster';
-
-/**
- * Report Agents (Stage 6)
- * - NarrativeComposerAgent
- * - VisualizationSpecialistAgent
- * - CodeGeneratorAgent
- * - SyntheticDataGeneratorAgent
- * - ConversationalAnalystAgent
- * - OrchestratorAgent
- */
-export * from './agents/report';
-
-// ============================================================================
-// Agent Groups
-// ============================================================================
-
-/**
- * Get all ingest stage agents
- */
-export function getIngestAgents(): typeof import('./agents/ingest') {
-  // @ts-ignore - Dynamic import will be handled at runtime
-  return require('./agents/ingest');
-}
-
-/**
- * Get all engineer stage agents
- */
-export function getEngineerAgents(): typeof import('./agents/engineer') {
-  // @ts-ignore - Dynamic import will be handled at runtime
-  return require('./agents/engineer');
-}
-
-/**
- * Get all detect stage agents
- */
-export function getDetectAgents(): typeof import('./agents/detect') {
-  // @ts-ignore - Dynamic import will be handled at runtime
-  return require('./agents/detect');
-}
-
-/**
- * Get all forecast stage agents
- */
-export function getForecastAgents(): typeof import('./agents/forecast') {
-  // @ts-ignore - Dynamic import will be handled at runtime
-  return require('./agents/forecast');
-}
-
-/**
- * Get all infer stage agents
- */
-export function getInferAgents(): typeof import('./agents/infer') {
-  // @ts-ignore - Dynamic import will be handled at runtime
-  return require('./agents/infer');
-}
-
-/**
- * Get all cluster stage agents
- */
-export function getClusterAgents(): typeof import('./agents/cluster') {
-  // @ts-ignore - Dynamic import will be handled at runtime
-  return require('./agents/cluster');
-}
-
-/**
- * Get all report stage agents
- */
-export function getReportAgents(): typeof import('./agents/report') {
-  // @ts-ignore - Dynamic import will be handled at runtime
-  return require('./agents/report');
-}
-
-/**
- * Get all agents
- */
-export function getAllAgents() {
-  return [
-    ...Object.values(getIngestAgents()),
-    ...Object.values(getEngineerAgents()),
-    ...Object.values(getDetectAgents()),
-    ...Object.values(getForecastAgents()),
-    ...Object.values(getInferAgents()),
-    ...Object.values(getClusterAgents()),
-    ...Object.values(getReportAgents()),
-  ].filter(agent => agent && typeof agent === 'object' && 'metadata' in agent);
-}
 
 // ============================================================================
 // Agent Pool
 // ============================================================================
 
 /**
- * AgentPool provides a pre-configured set of all built-in agents
+ * AgentPool provides a pre-configured set of all built-in agents.
+ * Each stage is loaded defensively so a single broken agent cannot break
+ * the entire pool.
  */
 export class AgentPool {
-  private agents: Map<string, any> = new Map();
-  
+  private agents: Map<string, BaseAgent> = new Map();
+  private readonly stageNames = [
+    'ingest',
+    'engineer',
+    'detect',
+    'forecast',
+    'infer',
+    'cluster',
+    'report',
+  ];
+
   constructor() {
-    // Register all agents
     this.registerAll();
   }
-  
+
   private registerAll(): void {
-    // Ingest agents
-    try {
-      const ingestAgents = getIngestAgents();
-      for (const [name, AgentClass] of Object.entries(ingestAgents)) {
-        if (name.endsWith('Agent') && !name.startsWith('I')) {
-          const agent = new AgentClass();
-          this.agents.set(agent.metadata.id, agent);
+    for (const stage of this.stageNames) {
+      const mod = loadStage(stage);
+      for (const [exportName, value] of Object.entries(mod)) {
+        if (!exportName.endsWith('Agent')) continue;
+        if (typeof value !== 'function') continue;
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const AgentClass = value as any;
+          const instance: BaseAgent = new AgentClass();
+          if (instance?.metadata?.id) {
+            this.agents.set(instance.metadata.id, instance);
+          }
+        } catch (err) {
+          console.warn(`Failed to instantiate agent "${exportName}" from stage "${stage}":`, err);
         }
       }
-    } catch (error) {
-      console.warn('Failed to load ingest agents:', error);
-    }
-    
-    // Engineer agents
-    try {
-      const engineerAgents = getEngineerAgents();
-      for (const [name, AgentClass] of Object.entries(engineerAgents)) {
-        if (name.endsWith('Agent') && !name.startsWith('I')) {
-          const agent = new AgentClass();
-          this.agents.set(agent.metadata.id, agent);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load engineer agents:', error);
-    }
-    
-    // Detect agents
-    try {
-      const detectAgents = getDetectAgents();
-      for (const [name, AgentClass] of Object.entries(detectAgents)) {
-        if (name.endsWith('Agent') && !name.startsWith('I')) {
-          const agent = new AgentClass();
-          this.agents.set(agent.metadata.id, agent);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load detect agents:', error);
-    }
-    
-    // Forecast agents
-    try {
-      const forecastAgents = getForecastAgents();
-      for (const [name, AgentClass] of Object.entries(forecastAgents)) {
-        if (name.endsWith('Agent') && !name.startsWith('I')) {
-          const agent = new AgentClass();
-          this.agents.set(agent.metadata.id, agent);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load forecast agents:', error);
-    }
-    
-    // Infer agents
-    try {
-      const inferAgents = getInferAgents();
-      for (const [name, AgentClass] of Object.entries(inferAgents)) {
-        if (name.endsWith('Agent') && !name.startsWith('I')) {
-          const agent = new AgentClass();
-          this.agents.set(agent.metadata.id, agent);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load infer agents:', error);
-    }
-    
-    // Cluster agents
-    try {
-      const clusterAgents = getClusterAgents();
-      for (const [name, AgentClass] of Object.entries(clusterAgents)) {
-        if (name.endsWith('Agent') && !name.startsWith('I')) {
-          const agent = new AgentClass();
-          this.agents.set(agent.metadata.id, agent);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load cluster agents:', error);
-    }
-    
-    // Report agents
-    try {
-      const reportAgents = getReportAgents();
-      for (const [name, AgentClass] of Object.entries(reportAgents)) {
-        if (name.endsWith('Agent') && !name.startsWith('I')) {
-          const agent = new AgentClass();
-          this.agents.set(agent.metadata.id, agent);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to load report agents:', error);
     }
   }
-  
-  getAgent(agentId: string) {
+
+  /** Get a registered agent by id. */
+  getAgent(agentId: string): BaseAgent | null {
     return this.agents.get(agentId) ?? null;
   }
-  
-  getAllAgents() {
+
+  /** Get all registered agent instances. */
+  getAllAgents(): BaseAgent[] {
     return Array.from(this.agents.values());
   }
-  
+
+  /** Get metadata for every registered agent. */
   getAgentMetadata() {
-    return Array.from(this.agents.values()).map(agent => agent.metadata);
+    return this.getAllAgents().map((agent) => agent.metadata);
+  }
+
+  /** Check if an agent is registered. */
+  has(agentId: string): boolean {
+    return this.agents.has(agentId);
+  }
+
+  /** Get the count of registered agents. */
+  size(): number {
+    return this.agents.size;
   }
 }
 
-/**
- * Default agent pool instance
- */
+/** Default shared agent pool instance. */
 export const defaultAgentPool = new AgentPool();
 
-/**
- * Get the default agent pool
- */
+/** Get the default agent pool. */
 export function getAgentPool(): AgentPool {
   return defaultAgentPool;
+}
+
+// ============================================================================
+// Stage Accessors (graceful)
+// ============================================================================
+
+/** Get all agents from a specific stage. */
+export function getStageAgents(stageName: string): BaseAgent[] {
+  const mod = loadStage(stageName);
+  const agents: BaseAgent[] = [];
+  for (const [exportName, value] of Object.entries(mod)) {
+    if (!exportName.endsWith('Agent') || typeof value !== 'function') continue;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const instance: BaseAgent = new (value as any)();
+      if (instance?.metadata?.id) agents.push(instance);
+    } catch {
+      // skip broken agent
+    }
+  }
+  return agents;
+}
+
+// Convenience wrappers for each known stage.
+export const getIngestAgents = () => getStageAgents('ingest');
+export const getEngineerAgents = () => getStageAgents('engineer');
+export const getDetectAgents = () => getStageAgents('detect');
+export const getForecastAgents = () => getStageAgents('forecast');
+export const getInferAgents = () => getStageAgents('infer');
+export const getClusterAgents = () => getStageAgents('cluster');
+export const getReportAgents = () => getStageAgents('report');
+
+/** Get all agents across every stage. */
+export function getAllAgents(): BaseAgent[] {
+  return [
+    ...getIngestAgents(),
+    ...getEngineerAgents(),
+    ...getDetectAgents(),
+    ...getForecastAgents(),
+    ...getInferAgents(),
+    ...getClusterAgents(),
+    ...getReportAgents(),
+  ];
 }
 
 // ============================================================================
 // Legacy Compatibility
 // ============================================================================
 
-/**
- * Get agent pool (legacy compatibility)
- */
-export function getAgentPoolLegacy() {
+/** Get agent pool (legacy alias). */
+export function getAgentPoolLegacy(): AgentPool {
   return defaultAgentPool;
 }
 
-/**
- * Parallel agent executor (legacy compatibility)
- */
+/** Parallel agent executor (legacy alias — pipeline is handled by DAGOrchestrator). */
 export class ParallelAgentExecutor {
   private pool: AgentPool;
-  
+
   constructor(pool?: AgentPool) {
     this.pool = pool ?? defaultAgentPool;
   }
-  
-  async runFullPipeline(context: any) {
-    // This will be implemented with the new orchestrator
-    throw new Error('ParallelAgentExecutor.runFullPipeline not yet implemented');
+
+  async runFullPipeline(_context: unknown): Promise<never> {
+    throw new Error('ParallelAgentExecutor.runFullPipeline is deprecated; use DAGOrchestrator instead.');
   }
 }

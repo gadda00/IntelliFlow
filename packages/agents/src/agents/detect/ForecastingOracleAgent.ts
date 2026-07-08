@@ -68,7 +68,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Forecasting results with trend, seasonality, and confidence intervals',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -150,27 +150,27 @@ const metadata = createAgentMetadata({
         beta: z.number().min(0).max(1).default(0.1),
         gamma: z.number().min(0).max(1).default(0.1),
         seasonLength: z.number().int().positive().max(50).default(12),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Trend analysis
       trendAnalysis: z.object({
         enabled: z.boolean().default(true),
         method: z.enum(['linear', 'polynomial', 'ewma']).default('linear'),
         degree: z.number().int().positive().max(5).default(1),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Seasonality analysis
       seasonalityAnalysis: z.object({
         enabled: z.boolean().default(true),
         maxPeriod: z.number().int().positive().max(50).default(24),
         minStrength: z.number().min(0).max(1).default(0.3),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Validation
       validate: z.object({
         enabled: z.boolean().default(true),
         trainTestSplit: z.number().min(0).max(1).default(0.8),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Output
       includeComponents: z.boolean().default(true),
@@ -240,7 +240,7 @@ export class ForecastingOracleAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const targetColumn = config.targetColumn;
@@ -256,12 +256,12 @@ export class ForecastingOracleAgent extends BaseAgent {
       const includeRecommendations = config.includeRecommendations ?? true;
       
       // Find datetime and target columns if not specified
-      const detectedDatetimeColumns = Object.entries(schema)
-        .filter(([_, s]) => s.type === 'datetime')
+      const detectedDatetimeColumns = Object.entries(schema as Record<string, any>)
+        .filter(([_, s]: [string, any]) => s.type === 'datetime')
         .map(([col]) => col);
-      
-      const detectedNumericColumns = Object.entries(schema)
-        .filter(([_, s]) => s.type === 'integer' || s.type === 'float')
+
+      const detectedNumericColumns = Object.entries(schema as Record<string, any>)
+        .filter(([_, s]: [string, any]) => s.type === 'integer' || s.type === 'float')
         .map(([col]) => col);
       
       const finalDatetimeColumn = datetimeColumn ?? detectedDatetimeColumns[0];
@@ -558,10 +558,10 @@ export class ForecastingOracleAgent extends BaseAgent {
   private determineModelType(
     hasTrend: boolean,
     hasSeasonality: boolean,
-    preferredType?: string
+    preferredType?: string,
   ): 'simple' | 'holt' | 'winters' {
     if (preferredType) {
-      return preferredType;
+      return preferredType as 'simple' | 'holt' | 'winters';
     }
     
     if (hasTrend && hasSeasonality) {

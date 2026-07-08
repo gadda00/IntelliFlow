@@ -68,7 +68,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Causal analysis results with relationships and causal graph',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -146,7 +146,7 @@ const metadata = createAgentMetadata({
         enabled: z.boolean().default(true),
         significanceLevel: z.number().min(0).max(1).default(0.05),
         includePValues: z.boolean().default(true),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Regression analysis
       regression: z.object({
@@ -155,28 +155,28 @@ const metadata = createAgentMetadata({
         maxPredictors: z.number().int().positive().max(20).default(10),
         includeIntercept: z.boolean().default(true),
         significanceLevel: z.number().min(0).max(1).default(0.05),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Granger causality
       granger: z.object({
         enabled: z.boolean().default(true),
         maxLags: z.number().int().positive().max(20).default(5),
         significanceLevel: z.number().min(0).max(1).default(0.05),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Causal graph
       causalGraph: z.object({
         enabled: z.boolean().default(true),
         minStrength: z.number().min(0).max(1).default(0.3),
         includeDirections: z.boolean().default(true),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Variable selection
       variables: z.object({
         include: z.array(z.string()).optional(),
         exclude: z.array(z.string()).optional(),
         numericOnly: z.boolean().default(true),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Output
       includeAllPairs: z.boolean().default(false),
@@ -245,7 +245,7 @@ export class CausalArchitectAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const correlationConfig = config.correlation ?? {};
@@ -258,8 +258,8 @@ export class CausalArchitectAgent extends BaseAgent {
       
       // Get variables to analyze
       const allColumns = Object.keys(dataframe[0] || {});
-      const numericColumns = Object.entries(schema)
-        .filter(([col, colSchema]) => 
+      const numericColumns = Object.entries(schema as Record<string, any>)
+        .filter(([col, colSchema]: [string, any]) => 
           (colSchema.type === 'integer' || colSchema.type === 'float') &&
           allColumns.includes(col))
         .map(([col]) => col);
@@ -390,7 +390,8 @@ export class CausalArchitectAgent extends BaseAgent {
     correlationMatrix: Record<string, Record<string, number>>,
     variables: string[],
     significanceLevel: number,
-    includePValues: boolean
+    includePValues: boolean,
+    sampleSize: number = 100,
   ): any[] {
     const analysis: any[] = [];
     
@@ -403,7 +404,7 @@ export class CausalArchitectAgent extends BaseAgent {
         // Calculate p-value (approximate)
         let pValue: number | null = null;
         if (includePValues) {
-          pValue = this.calculateCorrelationPValue(correlation, dataframe.length);
+          pValue = this.calculateCorrelationPValue(correlation, sampleSize);
         }
         
         // Determine strength
@@ -461,7 +462,7 @@ export class CausalArchitectAgent extends BaseAgent {
     const t = 1.0 / (1.0 + 0.2316419 * Math.abs(z));
     const d = 0.3989422804014327;
     const p = d * Math.exp(-z * z / 2.0);
-    const q = p * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429)))));
+    const q = p * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
     
     if (z > 0) {
       return 1.0 - q;
@@ -977,8 +978,8 @@ export class CausalArchitectAgent extends BaseAgent {
     
     // Add edges from regression analysis
     for (const reg of regressionAnalysis) {
-      for (const [predictor, coefficient] of Object.entries(reg.coefficients)) {
-        if (predictor !== 'intercept' && Math.abs(coefficient) >= config.minStrength) {
+      for (const [predictor, coefficient] of Object.entries(reg.coefficients as Record<string, number>)) {
+        if (predictor !== 'intercept' && Math.abs(coefficient as number) >= (config.minStrength as number)) {
           edges.push({
             from: predictor,
             to: reg.target,
@@ -1090,12 +1091,12 @@ export class CausalArchitectAgent extends BaseAgent {
         type: 'correlation',
       })),
       ...regressionAnalysis.flatMap(r =>
-        Object.entries(r.coefficients)
+        Object.entries(r.coefficients as Record<string, number>)
           .filter(([k]) => k !== 'intercept')
           .map(([predictor, coefficient]) => ({
             variable1: predictor,
             variable2: r.target,
-            strength: Math.abs(coefficient),
+            strength: Math.abs(coefficient as number),
             type: 'regression',
           }))
       ),

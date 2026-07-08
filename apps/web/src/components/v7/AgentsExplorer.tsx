@@ -38,9 +38,9 @@ const ICON_MAP: Record<string, any> = {
   Wrench: Zap, Eraser: Layers, CopyX: Layers, Replace: Layers, Shuffle: Layers,
   AlertTriangle, TreePine: Globe, CircleDot, CircleDashed: CircleDot, BlendedSphere: Globe,
   Search, Smile: Sparkles, Grid3x3: Layers, Activity, Calendar,
-  TrendingUp, LineChart: TrendingUp, Waves: Activity, AlertCircle: AlertTriangle,
+  TrendingUp, LineChart: TrendingUp, Waves: Activity,
   TrendingDown: TrendingUp, GitBranch, ListOrdered: Layers, Sparkles, Cpu,
-  Target, Share2, Globe2, Lightbulb, FileText, Code, BarChart3: Activity,
+  Target, Share2, Globe2, Lightbulb, FileText, Code,
   Network: Brain, Bell: AlertTriangle, ScanSearch: Eye,
 };
 

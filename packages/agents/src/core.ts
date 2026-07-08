@@ -65,7 +65,7 @@ export interface EnhancedAgentMetadata extends AgentMetadata {
   
   // Resource requirements
   memoryLimitMB: number;
-  cpuLimit: number;
+  cpuLimit: number | string;
   gpuRequired: boolean;
   
   // Marketplace
@@ -86,6 +86,8 @@ export interface AgentExecutionOptions {
   useCache?: boolean;
   cacheTTLMs?: number;
   priority?: number;
+  enabledAgents?: string[];
+  disabledAgents?: string[];
 }
 
 /** Agent execution context with enhanced features */
@@ -94,6 +96,8 @@ export interface EnhancedAgentContext extends AgentContext {
   executionId: ID;
   attempt: number;
   options: AgentExecutionOptions;
+  agentId?: string;
+  agentName?: string;
   
   // System
   signal?: AbortSignal;
@@ -149,6 +153,7 @@ export interface AgentCache {
   delete: (key: string) => Promise<void>;
   has: (key: string) => Promise<boolean>;
   clear: () => Promise<void>;
+  getStats?: () => { hits: number; misses: number; hitRate: number; size: number; maxSize: number };
 }
 
 /** Agent health status */
@@ -217,7 +222,7 @@ export abstract class BaseAgent {
       if (error instanceof z.ZodError) {
         return {
           valid: false,
-          errors: error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
+          errors: error.issues.map(e => `${e.path.join('.')}: ${e.message}`),
         };
       }
       return { valid: false, errors: ['Unknown validation error'] };
@@ -235,7 +240,7 @@ export abstract class BaseAgent {
       if (error instanceof z.ZodError) {
         return {
           valid: false,
-          errors: error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
+          errors: error.issues.map(e => `${e.path.join('.')}: ${e.message}`),
         };
       }
       return { valid: false, errors: ['Unknown validation error'] };
@@ -253,7 +258,7 @@ export abstract class BaseAgent {
       if (error instanceof z.ZodError) {
         return {
           valid: false,
-          errors: error.errors.map(e => `${e.path.join('.')}: ${e.message}`),
+          errors: error.issues.map(e => `${e.path.join('.')}: ${e.message}`),
         };
       }
       return { valid: false, errors: ['Unknown validation error'] };
@@ -580,7 +585,7 @@ export function createAgentMetadata(
 // Exports
 // ============================================================================
 
-export {
+export type {
   AgentMetadata,
   AgentContext,
   AgentResult,

@@ -68,7 +68,7 @@ const metadata = createAgentMetadata({
   outputDescription: 'Anomaly detection results with scores and explanations',
   inputSchema: {
     schema: z.object({
-      dataframe: z.array(z.record(z.unknown())),
+      dataframe: z.array(z.record(z.string(), z.unknown())),
       schema: z.record(z.string(), z.object({
         type: z.string(),
         confidence: z.number(),
@@ -133,18 +133,18 @@ const metadata = createAgentMetadata({
           enabled: z.boolean().default(true),
           threshold: z.number().min(0).max(10).default(3),
           twoTailed: z.boolean().default(true),
-        }).default({}),
+        }).optional().default(undefined as any),
         iqr: z.object({
           enabled: z.boolean().default(true),
           multiplier: z.number().min(0).max(10).default(1.5),
-        }).default({}),
+        }).optional().default(undefined as any),
         ewma: z.object({
           enabled: z.boolean().default(true),
           lambda: z.number().min(0).max(1).default(0.3),
           threshold: z.number().min(0).max(10).default(3),
           windowSize: z.number().int().positive().max(100).default(10),
-        }).default({}),
-      }).default({}),
+        }).optional().default(undefined as any),
+      }).optional().default(undefined as any),
       
       // Ensemble settings
       ensemble: z.object({
@@ -155,7 +155,7 @@ const metadata = createAgentMetadata({
           ewma: 1,
         }),
         threshold: z.number().min(0).max(1).default(0.67),
-      }).default({}),
+      }).optional().default(undefined as any),
       
       // Sensitivity
       sensitivity: z.enum(['low', 'medium', 'high']).default('medium'),
@@ -236,7 +236,7 @@ export class AnomalySentinelAgent extends BaseAgent {
       
       // Get schema from previous results
       const schemaResult = previousResults.get('schema_inference');
-      const schema = schemaResult?.output?.schema ?? {};
+      const schema = (schemaResult?.output as any)?.schema ?? {};
       
       // Get configuration
       const methodsConfig = config.methods ?? {};
@@ -252,8 +252,8 @@ export class AnomalySentinelAgent extends BaseAgent {
       const sensitivityMultipliers = this.getSensitivityMultipliers(sensitivity);
       
       // Get numeric columns to analyze
-      const numericColumns = Object.entries(schema)
-        .filter(([col, colSchema]) => 
+      const numericColumns = Object.entries(schema as Record<string, any>)
+        .filter(([col, colSchema]: [string, any]) => 
           (colSchema.type === 'integer' || colSchema.type === 'float') &&
           !excludeColumns.includes(col) &&
           (columns?.length === 0 || columns.includes(col)))
@@ -303,7 +303,7 @@ export class AnomalySentinelAgent extends BaseAgent {
       // Update counts based on limited anomalies
       for (const anomaly of limitedAnomalies) {
         if (anomaly.isAnomaly) {
-          for (const [method, result] of Object.entries(anomaly.methods)) {
+          for (const [method, result] of Object.entries(anomaly.methods as Record<string, any>)) {
             if (result.isAnomaly) {
               anomaliesByMethod[method] = (anomaliesByMethod[method] ?? 0) + 1;
             }
@@ -331,15 +331,15 @@ export class AnomalySentinelAgent extends BaseAgent {
         .slice(0, 5)
         .map(([col]) => col);
       
-      const mostAnomalousRows = limitedAnomalies
+      const anomalyCounts = limitedAnomalies
         .filter(a => a.isAnomaly)
         .map(a => a.rowIndex)
         .reduce((acc: Record<number, number>, rowIndex) => {
           acc[rowIndex] = (acc[rowIndex] ?? 0) + 1;
           return acc;
-        }, {})
-        .entries()
-        .sort(([, a], [, b]) => b - a)
+        }, {} as Record<number, number>);
+      const mostAnomalousRows = Object.entries(anomalyCounts)
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 5)
         .map(([rowIndex]) => Number(rowIndex));
       

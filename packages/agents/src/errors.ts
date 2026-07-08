@@ -16,14 +16,21 @@ import { AgentMetadata, ID } from '@busara/core';
  * Base error class for all Busara errors
  */
 export class BusaraError extends Error {
+  code: string;
+  details?: Record<string, unknown>;
+  cause?: Error;
+
   constructor(
     message: string,
-    public readonly code: string,
-    public readonly details?: Record<string, unknown>,
-    public readonly cause?: Error
+    code: string,
+    details?: Record<string, unknown>,
+    cause?: Error,
   ) {
     super(message);
     this.name = this.constructor.name;
+    this.code = code;
+    this.details = details;
+    this.cause = cause;
     
     // Maintain proper stack trace
     if (Error.captureStackTrace) {
@@ -64,11 +71,17 @@ export class BusaraError extends Error {
  * Validation error for invalid input or configuration
  */
 export class ValidationError extends BusaraError {
+  field?: string;
+  value?: unknown;
+  expectedType?: string;
+  context?: Record<string, unknown>;
+
   constructor(
     message: string,
-    public readonly field?: string,
-    public readonly value?: unknown,
-    public readonly expectedType?: string
+    field?: string,
+    value?: unknown,
+    expectedType?: string,
+    context?: Record<string, unknown>,
   ) {
     super(
       message,
@@ -77,8 +90,13 @@ export class ValidationError extends BusaraError {
         field,
         value,
         expectedType,
+        context,
       }
     );
+    this.field = field;
+    this.value = value;
+    this.expectedType = expectedType;
+    this.context = context;
   }
 }
 

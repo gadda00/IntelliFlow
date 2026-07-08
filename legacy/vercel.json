@@ -1,6 +1,0 @@
-{
-  "framework": "vite",
-  "buildCommand": "cd frontend/intelliflow-ui && npm install && npm run build",
-  "outputDirectory": "frontend/intelliflow-ui/dist",
-  "installCommand": "cd frontend/intelliflow-ui && npm install"
-}

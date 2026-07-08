@@ -210,7 +210,7 @@ export interface AgentMetadata {
   
   // Technical requirements
   memoryLimit?: string;
-  cpuLimit?: string;
+  cpuLimit?: number | string;
   gpuRequired?: boolean;
   
   // UI
@@ -299,9 +299,33 @@ export interface AnalysisConfig {
   
   // Performance
   maxConcurrentAgents?: number;
-  
+
   // Caching
   useCache?: boolean;
+
+  // Ingestion
+  sampleSize?: number;
+  inferTypes?: boolean;
+  validateRows?: boolean;
+
+  // Profiling
+  includeDistributions?: boolean;
+  distributionBins?: number;
+  confidenceThreshold?: number;
+
+  // Engineering
+  transformations?: Record<string, unknown>;
+  selection?: Record<string, unknown>;
+  advanced?: Record<string, unknown>;
+  polynomial?: Record<string, unknown>;
+  interactions?: Record<string, unknown>;
+  domainFeatures?: Record<string, unknown>;
+
+  // Misc
+  analysisName?: string;
+
+  // Allow additional agent-specific fields without strict typing
+  [key: string]: any;
 }
 
 /** Agent execution result */
@@ -653,7 +677,7 @@ export interface PaginationParams {
 
 /** Filter parameters */
 export interface FilterParams {
-  [key: string]: string | number | boolean | string[] | number[] | null;
+  [key: string]: string | number | boolean | string[] | number[] | null | undefined;
 }
 
 /** Query parameters */

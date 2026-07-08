@@ -35,19 +35,19 @@ export function getMCPTools(): MCPTool[] {
       name: 'busara_analyze',
       description: 'Run the full 23-agent analysis pipeline on a dataset. Upload CSV/JSON data and get comprehensive insights, forecasts, anomaly detection, causal analysis, and a narrative report.',
       inputSchema: {
-        type: 'object',
+        type: 'object' as const,
         properties: {
           data: {
-            type: 'array',
+            type: 'array' as const,
             description: 'Array of row objects (parsed CSV/JSON data)',
             items: { type: 'object' },
           },
           nlq_query: {
-            type: 'string',
+            type: 'string' as const,
             description: 'Optional natural language question about the data',
           },
           objectives: {
-            type: 'array',
+            type: 'array' as const,
             description: 'Optional analysis objectives',
             items: { type: 'string' },
           },
@@ -60,15 +60,15 @@ export function getMCPTools(): MCPTool[] {
       name: `busara_${agent.id}`,
       description: `${agent.name}: ${agent.description}`,
       inputSchema: {
-        type: 'object',
+        type: 'object' as const,
         properties: {
           data: {
-            type: 'array',
+            type: 'array' as const,
             description: 'Array of row objects',
             items: { type: 'object' },
           },
           context: {
-            type: 'object',
+            type: 'object' as const,
             description: 'Optional context from prior agent runs',
           },
         },
@@ -80,7 +80,7 @@ export function getMCPTools(): MCPTool[] {
       name: 'busara_list_agents',
       description: 'List all 23 Busara agents with their capabilities, tier, and description. Use this to discover what analysis tools are available.',
       inputSchema: {
-        type: 'object',
+        type: 'object' as const,
         properties: {},
       },
     },
@@ -88,14 +88,14 @@ export function getMCPTools(): MCPTool[] {
       name: 'busara_chat',
       description: 'Ask a question about your data in natural language. The Conversational Analyst will interpret the question and route it to the appropriate agent(s).',
       inputSchema: {
-        type: 'object',
+        type: 'object' as const,
         properties: {
           question: {
-            type: 'string',
+            type: 'string' as const,
             description: 'The question to ask about the data',
           },
           data: {
-            type: 'array',
+            type: 'array' as const,
             description: 'Optional: dataset context for the question',
             items: { type: 'object' },
           },
@@ -177,8 +177,7 @@ export async function executeMCPTool(
         return { content: [{ type: 'text', text: 'No data provided' }], isError: true };
       }
 
-      const { AgentExecutionContext } = await import('@/lib/agents/core');
-      const ctx: AgentExecutionContext = {
+      const ctx: any = {
         analysisId: `mcp_${Date.now()}`,
         analysisConfig: {},
         fileContents: data,

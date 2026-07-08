@@ -14,7 +14,7 @@
  * - Persistent state management
  */
 
-import {
+import type {
   AgentMetadata,
   AgentResult,
   AgentStatus,
@@ -40,7 +40,7 @@ import {
 
 /** Execution plan for a workflow */
 export interface ExecutionPlan {
-  stages: AgentMetadata[][];
+  stages: EnhancedAgentMetadata[][];
   totalAgents: number;
   executionOrder: string[];
 }
@@ -59,6 +59,8 @@ export interface ExecutionSummary {
     hits: number;
     misses: number;
     hitRate: number;
+    size?: number;
+    maxSize?: number;
   };
 }
 
@@ -288,7 +290,7 @@ export class SmartCache<T = AgentResult> {
 export class DAGOrchestrator {
   private agents = new Map<string, BaseAgent>();
   private circuitBreakers = new Map<string, CircuitBreaker>();
-  private cache: SmartCache<AgentResult>;
+  private cache: AgentCache;
   private logger: AgentLogger;
   private metrics: AgentMetricsCollector;
   private config: Required<OrchestratorConfig>;
@@ -346,6 +348,7 @@ export class DAGOrchestrator {
       delete: async () => {},
       has: async () => false,
       clear: async () => {},
+      getStats: () => ({ hits: 0, misses: 0, hitRate: 0, size: 0, maxSize: 0 }),
     };
   }
   
@@ -392,7 +395,7 @@ export class DAGOrchestrator {
   /**
    * Get all registered agent metadata
    */
-  getAgentMetadata(): AgentMetadata[] {
+  getAgentMetadata(): EnhancedAgentMetadata[] {
     return Array.from(this.agents.values()).map(a => a.metadata);
   }
   
@@ -478,11 +481,11 @@ export class DAGOrchestrator {
     const executionOrder = stages.flat();
     
     // Convert to metadata
-    const stageMeta: AgentMetadata[][] = stages.map(stage =>
+    const stageMeta: EnhancedAgentMetadata[][] = stages.map(stage =>
       stage
         .map(id => this.agents.get(id)?.metadata)
-        .filter((m): m is AgentMetadata => m !== undefined)
-        .sort((a, b) => a.stageNumber - b.stageNumber)
+        .filter((m): m is EnhancedAgentMetadata => m !== undefined)
+        .sort((a, b) => (a?.stageNumber ?? 0) - (b?.stageNumber ?? 0))
     );
     
     return {
@@ -531,7 +534,7 @@ export class DAGOrchestrator {
     // Check cache
     const cacheKey = `${context.analysisId}:${agentId}`;
     if (this.config.enableCaching && context.options.useCache !== false) {
-      const cached = await this.cache.get(cacheKey);
+      const cached = await this.cache.get<AgentResult>(cacheKey);
       if (cached) {
         this.logger.debug(`Cache hit for agent: ${agentId}`);
         progressCallback?.({
@@ -684,7 +687,7 @@ export class DAGOrchestrator {
    * Execute a stage (all agents in parallel)
    */
   private async executeStage(
-    stage: AgentMetadata[],
+    stage: EnhancedAgentMetadata[],
     context: EnhancedAgentContext,
     progressCallback?: ProgressCallback
   ): Promise<Map<string, AgentResult>> {
@@ -778,7 +781,7 @@ export class DAGOrchestrator {
     // Initialize context
     const context: EnhancedAgentContext = {
       analysisId,
-      analysisName: config.analysisName,
+      analysisName: (config as any).analysisName,
       dataframe,
       metadata,
       previousResults: new Map(),
@@ -790,8 +793,20 @@ export class DAGOrchestrator {
       signal,
       logger: this.logger,
       metrics: this.metrics,
-      cache: this.cache,
-      onProgress: progressCallback,
+      cache: this.cache as unknown as AgentCache,
+      onProgress: progressCallback
+        ? (progress: number, message?: string) =>
+            progressCallback({
+              analysisId,
+              agentId: '',
+              agentName: '',
+              stage: 'ingest' as any,
+              stageNumber: 0,
+              status: 'running' as any,
+              progress,
+              timestamp: new Date().toISOString(),
+            } as any)
+        : undefined,
     };
     
     // Initialize summary
@@ -1014,7 +1029,7 @@ export class DAGOrchestrator {
 // Exports
 // ============================================================================
 
-export {
+export type {
   AgentMetadata,
   AgentResult,
   AgentStatus,
@@ -1023,6 +1038,5 @@ export {
   ProgressUpdate,
   ID,
   ISODateString,
+  AgentContext,
 } from '@busara/core';
-
-export type { AgentContext } from '@busara/core';

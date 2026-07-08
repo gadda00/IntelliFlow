@@ -330,7 +330,7 @@ export class OLSRegressionAgent extends BaseAgent {
       // Find column with highest average absolute correlation
       let bestCol = numericCols[0], bestAvg = 0;
       for (const col of numericCols) {
-        const avg = mean(Object.values(corrResult!.output.matrix[col]).map(Math.abs));
+        const avg = mean((Object.values(corrResult!.output.matrix[col]) as number[]).map(Math.abs));
         if (avg > bestAvg) { bestAvg = avg; bestCol = col; }
       }
       targetCol = bestCol;
@@ -485,7 +485,7 @@ export class FeatureImportanceAgent extends BaseAgent {
       topFeatures: importance.slice(0, 5),
     }, {
       numFeatures: featureCols.length,
-      topFeature: importance[0]?.feature ?? '',
+      topFeature: (importance[0]?.feature ?? '') as any,
     }, Date.now() - start);
   }
 }

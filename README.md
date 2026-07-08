@@ -1,398 +1,298 @@
-# Busara AI - Multi-Agent Data Intelligence Platform
+# Busara AI — Self-Evolving Multi-Agent Data Intelligence Platform
 
-> **Twenty+ agents. One mind.**
->
-> *Busara* (Swahili for *intelligence* / *mind*) is a production-grade multi-agent data analysis platform that orchestrates **23+ specialized AI agents** in a parallel DAG to extract every actionable insight from your dataset.
+> *Busara* (Swahili for *intelligence*) is a multi-agent data analysis platform where **33 AI agents** run a 7-stage pipeline (Ingest → Engineer → Detect → Forecast → Infer → Cluster → Report) and **learn from every execution** via a trajectory-based self-evolution system inspired by the [AReaL paper](https://arxiv.org/abs/2607.01120).
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
-[![Node: 18+](https://img.shields.io/badge/Node.js-18%2B-339933)](https://nodejs.org)
+[![Node: 20+](https://img.shields.io/badge/Node.js-20%2B-339933)](https://nodejs.org)
 [![pnpm: 8+](https://img.shields.io/badge/pnpm-8%2B-f69220)](https://pnpm.io)
 [![Turborepo](https://img.shields.io/badge/Turborepo-2.0-000000)](https://turbo.build/repo)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3-3178C6)](https://typescriptlang.org)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
+[![Tests](https://img.shields.io/badge/Tests-18%20passing-brightgreen)](#tests)
 
 ---
 
-## 🚀 What's New in v8.0
+## What makes Busara different
 
-Busara v8.0 is a **complete transformation** from a hackathon project to a production-grade AI platform:
+Most agent platforms are **static** — agents are frozen at deployment, and any improvement requires manual code changes. Busara implements the three pillars from the AReaL paper (arXiv:2607.01120) to make agents **self-evolving**:
 
-### ✨ Major Improvements
+| Pillar | What it does | Where it lives |
+|---|---|---|
+| **1. Trajectory Data Protocol** | Captures every agent execution as a step-level trajectory with causal links, LLM calls, tool calls, and rewards | `packages/agents/src/trajectory/recorder.ts` |
+| **2. Data Proxy** | Filters production trajectories into governed learning substrates — PII scrubbing, quality scoring, deduplication | `packages/agents/src/trajectory/dataProxy.ts` |
+| **3. Evolution Control Plane** | Automatically detects drift, optimizes configs, promotes/demotes agent stability, schedules fine-tuning | `packages/agents/src/trajectory/evolution.ts` |
 
-1. **🏗️ Monorepo Architecture**
-   - Turborepo for fast, incremental builds
-   - pnpm workspaces for efficient dependency management
-   - Clear separation of concerns (core, agents, web)
+Plus, from related research:
+- **Verification Gates** (from [Verified Multi-Agent Orchestration](https://arxiv.org/abs/2603.07811)) — validate agent output before passing to downstream agents, with automatic replanning on failure
+- **Reward Models** (from [DeepEval](https://confident-ai.com)/[LangSmith](https://smith.langchain.com)) — automatically score agent output quality using heuristics or LLM-as-judge
+- **Guardrails** (from [NeMo Guardrails](https://github.com/NVIDIA/NeMo-Guardrails)) — defend against prompt injection and PII leakage
+- **OpenTelemetry GenAI export** — trajectories are exportable in the OTel v1.37+ standard for interoperability with Langfuse, Arize, Phoenix, MLflow
 
-2. **🤖 Enhanced Agent Framework**
-   - Type-safe agent definitions with Zod schemas
-   - Lifecycle methods (setup, execute, teardown, healthCheck)
-   - Enhanced error handling and retry logic
-   - Circuit breakers for fault tolerance
-   - Smart caching for performance
-
-3. **🎯 Production-Grade Orchestrator**
-   - DAG-based execution with Kahn's algorithm
-   - Parallel execution within stages
-   - Real-time progress broadcasting
-   - Dependency failure cascade handling
-   - Comprehensive metrics collection
-
-4. **🔧 Developer Experience**
-   - Comprehensive documentation
-   - Type-safe everything
-   - Modern tooling (ESLint, Prettier, Vitest)
-   - GitHub best practices (CI/CD, CODEOWNERS, templates)
-
-5. **🛡️ Reliability & Observability**
-   - Structured error handling
-   - Validation at every layer
-   - Health checks for agents
-   - Metrics and monitoring ready
-
----
-
-## 📚 Table of Contents
-
-- [Quick Start](#-quick-start)
-- [Architecture](#-architecture)
-- [Features](#-features)
-- [Agent Framework](#-agent-framework)
-- [Development](#-development)
-- [Contributing](#-contributing)
-- [License](#-license)
-
----
-
-## 🌟 Quick Start
-
-### Prerequisites
-
-- **Node.js** 18+ (recommended: 22+)
-- **pnpm** 8+ (required)
-- **Git** 2+
-
-### Installation
+## Quick start
 
 ```bash
-# Clone the repository
-git clone https://github.com/gadda00/IntelliFlow.git
-cd IntelliFlow
-
-# Install pnpm (if not already installed)
-npm install -g pnpm
-
-# Install dependencies
+git clone https://github.com/gadda00/IntelliFlow.git busara
+cd busara
+git checkout revolution
 pnpm install
-
-# Set up environment
-cp .env.example .env
-# Edit .env with your configuration
-
-# Generate Prisma client
+cp .env.example .env.local
+# Edit .env.local — set DATABASE_URL, DIRECT_URL, JWT_SECRET (32+ chars), DATA_SOURCE_ENCRYPTION_KEY (64 hex chars)
 pnpm db:generate
-
-# Start development server
-pnpm dev
-
-# Open in browser
-# http://localhost:3000
+pnpm db:push
+pnpm typecheck   # 7/7 packages pass
+pnpm --filter @busara/agents test  # 18 tests pass
+pnpm dev:web     # http://localhost:3000
 ```
 
-### Try It Out
+## The 33 agents
 
-1. Open `http://localhost:3000`
-2. Scroll to **Analyze** section
-3. Click **Load Sample Data**
-4. Click **Run Full Analysis**
-5. Watch all 20+ agents complete in ~5 seconds
-6. Explore the 6 result tabs: Overview, Insights, Charts, Advanced, Code, Agents
+| Stage | # | Agents |
+|---|---|---|
+| **0. Ingest** | 5 | DataIngestion, SchemaInference, DataProfiler, DataQuality, PrivacyScan |
+| **1. Engineer** | 5 | DataCleaner, DataTransformer, DataEngineer, FeatureEngineer, MissingValueImputer |
+| **2. Detect** | 12 | AnalysisStrategist, AnomalySentinel, ForecastingOracle, CausalArchitect, KnowledgeGraphBuilder, AutoML, Benchmark, CorrelationHunter, OutlierExplanation, BiasDetector, GeoPattern, Segmentation |
+| **3. Forecast** | 3 | TrendDetector, SeasonalityDetector, TimeSeriesDecomposition |
+| **4. Infer** | 3 | ABTestSignificance, SurvivalAnalysis, CohortAnalysis |
+| **5. Cluster** | 2 | ClusterProfiler, FunnelAnalysis |
+| **6. Report** | 3 | InsightSummarizer, Recommendation, NaturalLanguageQuery |
 
----
+Real statistics, not LLM slop — Holt-Winters, Kaplan-Meier, Cox PH, Mann-Kendall, Cooley-Tukey FFT, regularized incomplete beta function, and more. See `packages/agents/src/agents/` for source.
 
-## 🏗️ Architecture
+## Architecture
 
 ```
-busara/
-├── apps/
-│   └── web/                    # Next.js 15 frontend
-│       ├── src/
-│       │   ├── app/            # App Router
-│       │   ├── components/    # React components
-│       │   └── lib/           # Utilities & services
-│       └── public/            # Static assets
-│
-├── packages/
-│   ├── @busara/core/           # Shared types & constants
-│   ├── @busara/agents/         # Multi-agent framework
-│   └── @busara/eslint-config/  # ESLint configuration
-│
-├── infrastructure/
-│   └── docker/                # Docker configuration
-│
-├── docs/
-│   ├── api/                  # API documentation
-│   ├── architecture/         # Architecture docs
-│   └── guides/              # User guides
-│
-├── tests/
-│   ├── unit/                # Unit tests
-│   ├── integration/          # Integration tests
-│   └── e2e/                 # End-to-end tests
-│
-└── .github/
-    ├── workflows/           # CI/CD pipelines
-    ├── CODEOWNERS           # Code ownership
-    └── templates/           # PR & issue templates
+packages/
+  core/              # Shared types, errors, validation (Zod v4), utils
+  agents/            # 33-agent framework + trajectory/evolution system
+    src/
+      agents/        # 33 agents across 7 stage directories
+      trajectory/    # AReaL paper implementation
+        types.ts           # Pillar 1: Trajectory, TrajectoryStep, RewardSignal
+        recorder.ts        # Runtime trajectory capture
+        store.ts           # InMemory + Prisma persistence
+        dataProxy.ts       # Pillar 2: PII scrub, quality score, dedup
+        evolution.ts       # Pillar 3: drift detection, config optimization
+        verification.ts    # Verification gates + replanning
+        rewardModel.ts     # Heuristic + LLM-judge reward models
+        guardrails.ts      # Prompt injection + PII leakage defense
+        otel.ts            # OpenTelemetry GenAI v1.37+ export
+        agentWrapper.ts    # withTrajectory() — wraps any agent
+      math.ts         # Statistical functions (mean, median, FFT, matrixInverse, etc.)
+      core.ts          # BaseAgent, AgentBuilder, AgentExecutionContext
+      orchestrator.ts  # DAGOrchestrator, SmartCache, CircuitBreaker
+  ui/                # Shared UI primitives
+
+apps/
+  web/               # Next.js 15 app
+    src/
+      app/
+        api/v2/       # Modern API (agents, analyze, trajectory, evolution, templates, orgs)
+        analyze-v2/   # Analysis wizard (Upload → Configure → Pipeline → Results)
+        agents/       # Agent gallery
+      components/v2/  # Wizard components
+      hooks/          # useV2Stream (SSE), etc.
+      lib/
+        security/     # AES-GCM crypto, SSRF-safe fetch, env assertion
+        middleware/   # Upstash rate limiting
+        observability/ # Langfuse tracing
+        api/          # Standardized response helpers + deprecation proxies
+
+prisma/
+  schema.prisma      # User, Organization, Workspace, DataSource, Analysis, Trajectory, EvolutionAction
 ```
 
-### Tech Stack
+## The self-evolution system
 
-| Category | Technology |
-|----------|------------|
-| **Framework** | Next.js 15 (App Router) |
-| **Language** | TypeScript 5.3 |
-| **Package Manager** | pnpm 8 |
-| **Build Tool** | Turborepo 2 |
-| **Database** | PostgreSQL (Supabase) |
-| **ORM** | Prisma 6 |
-| **Styling** | Tailwind CSS 4 |
-| **UI Components** | shadcn/ui |
-| **State Management** | Zustand |
-| **Validation** | Zod 4 |
-| **Testing** | Vitest |
-| **Linting** | ESLint 9 |
-| **Payments** | Flutterwave, Stripe |
-| **Real-time** | WebSocket |
-| **PWA** | Workbox |
+### How trajectories work
 
----
-
-## ✨ Features
-
-### 🎯 Core Features
-
-- **Multi-Agent Orchestration**: 23+ specialized agents working in parallel
-- **DAG-Based Execution**: Topological sorting with dependency resolution
-- **Real-Time Progress**: Live updates via WebSocket
-- **Fault Tolerance**: Circuit breakers, retries, timeouts
-- **Smart Caching**: Intelligent result caching
-- **Type Safety**: 100% TypeScript with comprehensive types
-
-### 📊 Data Analysis
-
-- **Data Ingestion**: CSV, JSON, Excel support
-- **Schema Inference**: Automatic type detection
-- **Data Profiling**: Comprehensive statistics
-- **Data Quality**: Completeness, uniqueness, validity
-- **Privacy Guard**: PII detection (GDPR, CCPA, HIPAA)
-- **Natural Language**: NLQ to structured analysis
-
-### 🔍 Advanced Analytics
-
-- **Anomaly Detection**: Z-score, IQR, EWMA ensemble
-- **Time Series**: Holt-Winters forecasting
-- **Causal Inference**: Correlation, regression, Granger
-- **Machine Learning**: K-Means, Linear Regression
-- **Explainability**: Permutation importance
-- **Benchmarking**: Industry comparisons
-
-### 📈 Visualization
-
-- **Interactive Charts**: Recharts integration
-- **Custom Visualizations**: Tailored to your data
-- **Export Options**: PNG, SVG, PDF
-- **Dashboard**: Real-time results
-
-### 💰 Business Features
-
-- **Multi-Tenancy**: User and organization support
-- **Authentication**: JWT, Supabase Auth, SSO
-- **Payments**: Flutterwave, Stripe, Google Pay, Apple Pay
-- **Subscriptions**: Tiered pricing plans
-- **API Access**: REST API with rate limiting
-- **Usage Tracking**: Monitor resource usage
-
-### 📱 Multi-Platform
-
-- **Web**: Responsive PWA
-- **Mobile**: Android TWA (Trusted Web Activity)
-- **Desktop**: Installable PWA
-- **API**: REST API for integration
-
----
-
-## 🤖 Agent Framework
-
-### Agent Types
-
-Busara agents are organized into **7 stages** with **50+ agents**:
-
-#### Stage 0: Ingest
-- `DataIngestionAgent` - Parse and validate data
-- `SchemaInferenceAgent` - Detect column types
-- `DataProfilerAgent` - Comprehensive data profiling
-- `DataQualityAgent` - Data quality scoring
-- `PrivacyGuardianAgent` - PII detection
-- `NLQInterpreterAgent` - Natural language to SQL
-
-#### Stage 1: Engineer
-- `DataCleanerAgent` - Clean and normalize data
-- `DataEngineerAgent` - Feature engineering
-- `FeatureEngineerAgent` - Advanced feature extraction
-- `DataTransformerAgent` - Data transformation
-
-#### Stage 2: Detect
-- `AnalysisStrategistAgent` - Methodology selection
-- `AnomalySentinelAgent` - Anomaly detection
-- `ForecastingOracleAgent` - Time series forecasting
-- `CausalArchitectAgent` - Causal inference
-- `KnowledgeGraphBuilderAgent` - Entity extraction
-- `BenchmarkAgent` - Industry benchmarks
-- `AutoMLAgent` - Automated ML
-
-#### Stage 3: Forecast
-- `TimeSeriesForecasterAgent` - Advanced forecasting
-- `SeasonalDecomposerAgent` - Seasonality analysis
-- `TrendAnalyzerAgent` - Trend detection
-
-#### Stage 4: Infer
-- `InsightGeneratorAgent` - Actionable insights
-- `ExplainabilityAgent` - Model interpretation
-- `HypothesisTesterAgent` - Statistical testing
-
-#### Stage 5: Cluster
-- `ClusterAnalyzerAgent` - Pattern discovery
-- `SegmenterAgent` - Data segmentation
-- `PatternDetectorAgent` - Anomaly patterns
-
-#### Stage 6: Report
-- `NarrativeComposerAgent` - Executive summaries
-- `VisualizationSpecialistAgent` - Chart generation
-- `CodeGeneratorAgent` - Code export
-- `SyntheticDataGeneratorAgent` - Privacy-preserving data
-- `ConversationalAnalystAgent` - Chat interface
-- `OrchestratorAgent` - Result compilation
-
-### Creating a Custom Agent
+Every agent execution is wrapped by `TrajectoryRecorder`:
 
 ```typescript
-import { z } from 'zod';
-import { AgentStage, AgentTier } from '@busara/core';
-import { BaseAgent, createAgentMetadata } from '@busara/agents';
+import { withTrajectory, InMemoryTrajectoryStore } from '@busara/agents';
 
-const metadata = createAgentMetadata({
-  id: 'my_custom_agent',
-  name: 'My Custom Agent',
-  description: 'Does something amazing',
-  stage: 'detect' as AgentStage,
-  tier: 'specialized' as AgentTier,
-  dependencies: ['data_ingestion'],
-  timeoutMs: 30000,
-  inputSchema: { schema: z.object({ /* ... */ }) },
-  outputSchema: { schema: z.object({ /* ... */ }) },
-  icon: 'Sparkles',
-  color: '#8b5cf6',
+const store = new InMemoryTrajectoryStore();
+const wrappedAgent = withTrajectory(agent, {
+  store,
+  analysisId: 'analysis-123',
+  userId: 'user-456',
 });
 
-export class MyCustomAgent extends BaseAgent {
-  readonly metadata = metadata;
-  
-  async execute(context) {
-    // Your logic here
-    return this.createResult({ /* output */ }, { /* metrics */ });
-  }
-}
+const result = await wrappedAgent.execute(ctx);
+// Trajectory is automatically recorded with:
+//   - Step-level observation/action/LLM call/tool call/result
+//   - Causal links between steps
+//   - Context snapshot (config hash, system prompt, DAG context)
+//   - Metadata (dataframe hash, row count, PII detection)
+//   - Metrics (duration, tokens, cost, errors, retries)
 ```
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for detailed agent development guide.
+### How rewards work
 
----
+Rewards can be explicit (user feedback) or automated (reward model):
 
-## 💻 Development
+```typescript
+import { 
+  createExplicitReward, 
+  HeuristicRewardModel, 
+  LLMJudgeRewardModel, 
+  scoreAndReward 
+} from '@busara/agents';
 
-### Commands
+// Explicit reward (user thumbs up)
+await store.addReward(trajectoryId, createExplicitReward('user_thumbs_up', 1.0));
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start development servers |
-| `pnpm build` | Build all packages |
-| `pnpm lint` | Run linting |
-| `pnpm test` | Run tests |
-| `pnpm typecheck` | Run type checking |
-| `pnpm db:generate` | Generate Prisma client |
-| `pnpm db:push` | Push schema to database |
-
-### Project Structure
-
-```
-├── apps/web/              # Next.js frontend
-├── packages/@busara/core/ # Shared types & utilities
-├── packages/@busara/agents/ # Agent framework
-└── packages/@busara/eslint-config/ # ESLint config
+// Automated reward (heuristic model)
+const model = new HeuristicRewardModel();
+const { score } = await scoreAndReward(trajectory, model);
+// Reward is automatically added to the trajectory
 ```
 
-### Documentation
+### How evolution works
 
-- [Development Guide](DEVELOPMENT.md) - Comprehensive development guide
-- [Transformation Plan](TRANSFORMATION_PLAN.md) - Roadmap and vision
-- [Implementation Summary](IMPLEMENTATION_SUMMARY.md) - Completed work
-- [API Documentation](docs/api/) - REST API reference
-- [Architecture Docs](docs/architecture/) - System architecture
+The `EvolutionControlPlane` analyzes trajectory statistics and proposes actions:
 
----
+```typescript
+import { EvolutionControlPlane } from '@busara/agents';
 
-## 🤝 Contributing
+const controlPlane = new EvolutionControlPlane(store);
+const actions = await controlPlane.analyze('anomaly_sentinel');
 
-### Getting Started
+// Returns actions like:
+//   { type: 'PROMOTE_STABILITY', confidence: 0.85, reason: '...' }
+//   { type: 'OPTIMIZE_CONFIG', suggestedChange: { sensitivity: 'medium' } }
+//   { type: 'FLAG_DRIFT', confidence: 0.72 }
+//   { type: 'SCHEDULE_FINE_TUNE', confidence: 0.6 }
+```
 
-1. Fork the repository
-2. Clone your fork
-3. Install dependencies: `pnpm install`
-4. Create a feature branch
-5. Make your changes
-6. Run tests: `pnpm test`
-7. Run linting: `pnpm lint`
-8. Commit your changes
-9. Push to your fork
-10. Open a pull request
+Actions are human-in-the-loop — they're suggestions until a human approves them via `POST /api/v2/evolution`.
 
-### Pull Request Guidelines
+### How verification works
 
-- Follow [conventional commits](https://www.conventionalcommits.org/)
-- Keep PRs small and focused
-- Include tests for new functionality
-- Update documentation
-- Maintain backward compatibility
-- Follow the code style
+Verification gates validate agent output before passing to downstream agents:
 
-### Code of Conduct
+```typescript
+import { 
+  SchemaVerificationGate, 
+  StatisticalSanityGate, 
+  executeWithVerification 
+} from '@busara/agents';
 
-This project follows a code of conduct. Be respectful and inclusive.
+const result = await executeWithVerification(agent, ctx, {
+  gates: [new SchemaVerificationGate(outputSchema), new StatisticalSanityGate()],
+  maxRetries: 3,
+});
 
----
+// If verification fails:
+//   Attempt 1 → RETRY (transient errors)
+//   Attempt 2 → RETRY_ADJUSTED (lower sensitivity, etc.)
+//   Attempt 3 → SKIP (continue pipeline without this agent)
+```
 
-## 📄 License
+## API
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+### v2 API (modern)
 
----
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/v2/agents` | List all 33 agents (filter by stage/tier/stability) |
+| GET | `/api/v2/stages` | Get the 7-stage DAG |
+| GET | `/api/v2/templates` | List 8 analysis templates |
+| POST | `/api/v2/analyze` | Execute a single agent |
+| POST | `/api/v2/analyze-stream` | SSE streaming pipeline execution |
+| GET | `/api/v2/trajectory` | Query trajectories |
+| GET | `/api/v2/trajectory/:id` | Get a single trajectory |
+| POST | `/api/v2/trajectory/:id/reward` | Add a reward signal |
+| GET | `/api/v2/trajectory/agent/:agentId/stats` | Agent trajectory statistics |
+| GET | `/api/v2/evolution` | Get evolution actions |
+| POST | `/api/v2/evolution` | Approve/reject/apply actions |
+| POST | `/api/v2/orgs` | Create organization |
+| GET | `/api/v2/orgs` | List my orgs |
+| POST | `/api/v2/workspaces` | Create workspace |
+| POST | `/api/v2/data-sources` | Register data source (AES-GCM encrypted) |
 
-## 🙏 Acknowledgments
+### Legacy API
 
-- Built by **Victor Ndunda** & contributors
-- Inspired by the Swahili word *busara* (intelligence)
-- African heritage, global ambition
+Legacy `/api/*` routes are deprecated with RFC 8594 headers (Sunset: Sep 1, 2026). Single-agent routes proxy to `/api/v2/analyze`. See `MIGRATION.md` for details.
 
----
+## Tests
 
-## 📞 Support
+```bash
+pnpm --filter @busara/agents test
+# 18 tests pass:
+#   - TrajectoryRecorder (step recording, causal links, LLM calls, rewards)
+#   - InMemoryTrajectoryStore (save, query, stats)
+#   - DataProxy (PII scrubbing, quality scoring)
+#   - EvolutionControlPlane (promotion detection)
+#   - Verification Gates (schema validation)
+#   - RewardModel (heuristic + composite scoring)
+#   - Guardrails (prompt injection, PII leakage detection)
+```
 
-- **Documentation**: [DEVELOPMENT.md](DEVELOPMENT.md)
-- **Issues**: [GitHub Issues](https://github.com/gadda00/IntelliFlow/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/gadda00/IntelliFlow/discussions)
-- **Email**: victor@busara.ai
+## Required environment variables
 
----
+```bash
+# Required (app fails to boot without)
+DATABASE_URL=postgresql://...
+DIRECT_URL=postgresql://...
+JWT_SECRET=$(openssl rand -hex 32)
+DATA_SOURCE_ENCRYPTION_KEY=$(openssl rand -hex 32)  # for DataSource.config encryption
 
-**Twenty agents. One mind. Built in Nairobi for the world.**
+# Recommended (graceful no-op if missing)
+UPSTASH_REDIS_REST_URL=...         # rate limiting
+UPSTASH_REDIS_REST_TOKEN=...
+LANGFUSE_PUBLIC_KEY=...            # LLM observability
+LANGFUSE_SECRET_KEY=...
+WS_SERVER_SECRET=...               # WebSocket auth
+WS_ALLOWED_ORIGINS=https://...
+```
+
+See `.env.example` for the full list.
+
+## Documentation
+
+- **[RESEARCH.md](./RESEARCH.md)** — Deep research on the AReaL paper + 7 related works
+- **[EVOLUTION.md](./EVOLUTION.md)** — How the self-evolution system works
+- **[DEVELOPMENT.md](./DEVELOPMENT.md)** — Local setup, scripts, conventions
+- **[DEPLOYMENT.md](./DEPLOYMENT.md)** — Deploy targets, env vars, mobile
+- **[MIGRATION.md](./MIGRATION.md)** — Upgrading from pre-revolution codebase
+
+## Research foundation
+
+This implementation is based on deep research of:
+
+1. **[AReaL paper](https://arxiv.org/abs/2607.01120)** — Next-Generation Agentic RL Systems Enable Self-Evolving Agents (Yan et al., 2026)
+2. **[Self-Evolving Agents Survey](https://arxiv.org/abs/2507.21046)** — What, When, How, Where to Evolve (Gao et al., 2026)
+3. **CLaaS** — Continual Learning as a Service
+4. **Verified Multi-Agent Orchestration** — Plan-Execute-Verify-Replan
+5. **OpenTelemetry GenAI semantic conventions** v1.37+
+6. **NeMo Guardrails** — Agent safety
+7. **DeepEval / LangSmith** — Agent evaluation
+8. **LangGraph / Mastra / Inngest** — Orchestration patterns
+
+See `RESEARCH.md` for the full research brief.
+
+## Status
+
+| Component | Status |
+|---|---|
+| 33 agents (7 stages) | ✅ Done |
+| Trajectory data protocol (Pillar 1) | ✅ Done |
+| Data proxy (Pillar 2) | ✅ Done |
+| Evolution control plane (Pillar 3) | ✅ Done |
+| Verification gates + replanning | ✅ Done |
+| Reward models (heuristic + LLM judge) | ✅ Done |
+| Guardrails (prompt injection + PII) | ✅ Done |
+| OTel GenAI v1.37+ export | ✅ Done |
+| v2 API (agents, analyze, trajectory, evolution, orgs) | ✅ Done |
+| v2 wizard UI | ✅ Done |
+| Multi-tenant workspaces | ✅ Done |
+| AES-GCM DataSource encryption | ✅ Done |
+| 18 tests passing | ✅ Done |
+| LLM gateway proxy (zero-code trajectory capture) | ⏳ Planned |
+| Checkpointing + resume | ⏳ Planned |
+| Episodic memory | ⏳ Planned |
+| Playwright e2e tests | ⏳ Planned |
+
+## License
+
+MIT © Victor Ndunda

@@ -688,3 +688,57 @@ export {
   quantile as percentileValue,
   correlation as pearsonCorrelation,
 };
+
+// ============================================================================
+// Matrix Operations
+// ============================================================================
+
+/**
+ * Compute the inverse of a square matrix using Gaussian elimination.
+ * Returns null if the matrix is singular.
+ *
+ * @param matrix Square matrix as number[m][n]
+ */
+export function matrixInverse(matrix: number[][]): number[][] | null {
+  const n = matrix.length;
+  if (n === 0) return null;
+  for (const row of matrix) {
+    if (row.length !== n) return null;
+  }
+
+  // Build augmented matrix [A | I]
+  const aug: number[][] = matrix.map((row, i) => {
+    const identity = new Array(n).fill(0);
+    identity[i] = 1;
+    return [...row, ...identity];
+  });
+
+  // Forward elimination with partial pivoting
+  for (let col = 0; col < n; col++) {
+    // Find pivot
+    let pivotRow = col;
+    for (let r = col + 1; r < n; r++) {
+      if (Math.abs(aug[r][col]) > Math.abs(aug[pivotRow][col])) pivotRow = r;
+    }
+    if (Math.abs(aug[pivotRow][col]) < 1e-12) return null; // singular
+    if (pivotRow !== col) {
+      [aug[col], aug[pivotRow]] = [aug[pivotRow], aug[col]];
+    }
+
+    // Scale pivot row
+    const pivotVal = aug[col][col];
+    for (let j = 0; j < 2 * n; j++) aug[col][j] /= pivotVal;
+
+    // Eliminate other rows
+    for (let r = 0; r < n; r++) {
+      if (r === col) continue;
+      const factor = aug[r][col];
+      for (let j = 0; j < 2 * n; j++) {
+        aug[r][j] -= factor * aug[col][j];
+      }
+    }
+  }
+
+  // Extract right half (the inverse)
+  return aug.map((row) => row.slice(n));
+}
