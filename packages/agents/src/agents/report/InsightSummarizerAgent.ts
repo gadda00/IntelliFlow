@@ -31,6 +31,7 @@ import {
   createAgentMetadata,
 } from '../../core';
 import { LLMGateway, type ChatMessage } from '../../llm-gateway';
+import { chatWithGatewayFallback } from './llmFallback';
 
 // ============================================================================
 // Agent Metadata
@@ -148,12 +149,19 @@ Return ${maxInsights} insights max, ranked by business impact (revenue > risk > 
       const userPrompt = this.buildUserPrompt(findings, context.dataframe);
 
       // Route through the LLM Gateway — trajectory capture is automatic.
+      // If the gateway exhausts every provider, fall back to a direct GLM
+      // SDK call so the agent still produces a result.
       const gateway = new LLMGateway({ recorder: context.trajectoryRecorder });
       const messages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ];
-      const response = await gateway.chat(messages, { complexity, maxTokens: 1500, temperature: 0.3 });
+      const response = await chatWithGatewayFallback(
+        gateway,
+        messages,
+        { complexity, maxTokens: 1500, temperature: 0.3 },
+        { maxTokens: 1500, temperature: 0.3 },
+      );
 
       const insights = this.parseInsights(response.text, maxInsights);
 

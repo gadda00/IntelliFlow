@@ -10,10 +10,16 @@
  * The wrapper:
  *   1. Snapshots the agent context (config, DAG position, dataframe hash)
  *   2. Records the input observation
- *   3. Delegates to the original execute()
- *   4. Records the output + completes the trajectory
- *   5. Persists via the TrajectoryStore (if provided)
- *   6. Stashes the trajectory ID on the agent as `_lastTrajectoryId`
+ *   3. If `options.memory` is provided, queries episodic memory for similar
+ *      past trajectories and surfaces them on `ctx.similarExperiences`.
+ *      Also calls `getBestPractice()` and merges the resulting config with
+ *      the user's config (user config takes precedence). Both consultations
+ *      are recorded as trajectory steps so the agent's policy decisions are
+ *      fully reproducible.
+ *   4. Delegates to the original execute()
+ *   5. Records the output + completes the trajectory
+ *   6. Persists via the TrajectoryStore (if provided)
+ *   7. Stashes the trajectory ID on the agent as `_lastTrajectoryId`
  *      so callers (e.g. API routes) can return it to clients for later
  *      reward attribution.
  */
@@ -21,6 +27,7 @@
 import type { BaseAgent } from '../core';
 import type { AgentResult } from '@busara/core';
 import { TrajectoryRecorder, createContextSnapshot, createMetadata, type TrajectoryStore } from './';
+import type { EpisodicMemoryStore, DataProfile } from '../memory';
 
 export interface TrajectoryWrapperOptions {
   store?: TrajectoryStore;  // if not provided, trajectory is not persisted
@@ -28,6 +35,19 @@ export interface TrajectoryWrapperOptions {
   userId: string;
   workspaceId?: string;
   organizationId?: string;
+  /**
+   * Optional episodic memory store. When provided, the wrapper queries past
+   * trajectories for similar situations BEFORE calling agent.execute() and:
+   *   - Attaches the top-3 recalled experiences to `ctx.similarExperiences`
+   *     (array of `{ trajectoryId, similarity, reward, config, summary }`)
+   *     so the agent can reuse configs / prompts that worked before.
+   *   - Calls `getBestPractice()` and merges the resulting config with the
+   *     user's config (user config takes precedence — the agent never
+   *     silently overrides an explicit user setting).
+   *   - Records both memory consultations as trajectory steps so the
+   *     agent's reasoning is fully reproducible downstream.
+   */
+  memory?: EpisodicMemoryStore;
 }
 
 export function withTrajectory(agent: BaseAgent, options: TrajectoryWrapperOptions): BaseAgent {
@@ -71,6 +91,57 @@ export function withTrajectory(agent: BaseAgent, options: TrajectoryWrapperOptio
         rowCount: ctx.dataframe?.length ?? 0,
         config: ctx.config,
       }, { phase: 'input' });
+
+      // ── Episodic memory recall ──────────────────────────────────────
+      // Before the agent runs, consult episodic memory for similar past
+      // trajectories. If found, surface them on `ctx.similarExperiences`
+      // and merge any "best practice" config (user config wins). This is
+      // the in-context retrieval half of the AReaL self-evolution loop:
+      // agents reuse configs that worked on similar data, then evolve
+      // those configs via the Evolution Control Plane.
+      if (options.memory) {
+        const dataProfile: DataProfile = {
+          rowCount: ctx.dataframe?.length ?? 0,
+          columnCount: ctx.dataframe?.[0] ? Object.keys(ctx.dataframe[0]).length : 0,
+          columnNames: ctx.dataframe?.[0] ? Object.keys(ctx.dataframe[0]) : [],
+        };
+
+        try {
+          const experiences = await options.memory.search({
+            agentId: agent.metadata.id,
+            dataProfile,
+            limit: 3,
+          });
+
+          if (experiences.length > 0) {
+            recorder.observe({ experiences }, { phase: 'memory_recall' });
+            // Surface recalled experiences on the context so the agent can
+            // reuse prior configs / prompts that worked on similar data.
+            (enrichedCtx as any).similarExperiences = experiences;
+          }
+
+          // Suggest best-practice config (merged with user config; user wins).
+          const bestPractice = await options.memory.getBestPractice(
+            agent.metadata.id,
+            dataProfile,
+          );
+          if (bestPractice) {
+            recorder.observe({ bestPractice }, { phase: 'best_practice' });
+            // Merge: user config takes precedence so an explicit user setting
+            // is never silently overridden by a recalled best-practice value.
+            enrichedCtx.config = { ...bestPractice, ...(enrichedCtx.config ?? {}) };
+          }
+        } catch (memErr) {
+          // Memory recall failures must never crash the agent — log to the
+          // trajectory as an error step and continue with the original ctx.
+          recorder.error(
+            `Episodic memory recall failed: ${
+              memErr instanceof Error ? memErr.message : String(memErr)
+            }`,
+            { phase: 'memory_recall' },
+          );
+        }
+      }
 
       // Execute the agent (the agent's own execute may record sub-steps via the recorder if passed in ctx)
       const result = await originalExecute(enrichedCtx);

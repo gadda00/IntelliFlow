@@ -24,6 +24,7 @@ import {
   createAgentMetadata,
 } from '../../core';
 import { LLMGateway, type ChatMessage } from '../../llm-gateway';
+import { chatWithGatewayFallback } from './llmFallback';
 
 // ============================================================================
 // Agent Metadata
@@ -140,12 +141,19 @@ Heuristic intent: ${heuristicIntent}
 Interpret the question:`;
 
       // Route through the LLM Gateway — trajectory capture is automatic.
+      // If the gateway exhausts every provider, fall back to a direct GLM
+      // SDK call so the agent still produces a result.
       const gateway = new LLMGateway({ recorder: context.trajectoryRecorder });
       const messages: ChatMessage[] = [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt },
       ];
-      const response = await gateway.chat(messages, { complexity, maxTokens: 600, temperature: 0.2 });
+      const response = await chatWithGatewayFallback(
+        gateway,
+        messages,
+        { complexity, maxTokens: 600, temperature: 0.2 },
+        { maxTokens: 600, temperature: 0.2 },
+      );
 
       const parsed = this.parseResponse(response.text, query, columns, heuristicIntent);
 
