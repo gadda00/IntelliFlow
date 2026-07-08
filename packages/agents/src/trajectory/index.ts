@@ -86,3 +86,12 @@ export type {
   EvolutionControlPlaneConfig,
   DriftDetectionResult,
 } from './evolution';
+
+// Reward Models — automated quality scoring (feeds the Evolution Control Plane)
+export {
+  HeuristicRewardModel,
+  LLMJudgeRewardModel,
+  CompositeRewardModel,
+  scoreAndReward,
+} from './rewardModel';
+export type { RewardModel, RewardScore, RewardScoreComponent } from './rewardModel';

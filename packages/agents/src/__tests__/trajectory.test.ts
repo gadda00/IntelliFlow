@@ -9,6 +9,9 @@ import {
   EvolutionControlPlane,
   SchemaVerificationGate,
   executeWithVerification,
+  HeuristicRewardModel,
+  CompositeRewardModel,
+  scoreAndReward,
 } from '../trajectory';
 import { defaultAgentPool } from '../agents';
 
@@ -284,5 +287,64 @@ describe('Verification Gates', () => {
       output: { mean: 'not a number' }, metrics: {}, executionTimeMs: 100, timestamp: '',
     };
     expect(gate.verify(badResult, {} as any).status).toBe('fail');
+  });
+});
+
+describe('RewardModel', () => {
+  it('heuristic model scores successful trajectory positively', async () => {
+    const model = new HeuristicRewardModel();
+    const recorder = new TrajectoryRecorder({
+      analysisId: 'a1', userId: 'u1', agentId: 'agent-1',
+      agentVersion: '1.0.0', agentStability: 'beta',
+      contextSnapshot: createContextSnapshot({}),
+      metadata: createMetadata([]),
+    });
+    recorder.observe({ input: 'data' });
+    recorder.compute('mean', [1,2,3], 2);
+    recorder.result({ mean: 2 });
+    const trajectory = recorder.complete('success');
+
+    const score = await model.score(trajectory);
+    expect(score.value).toBeGreaterThan(0);
+    expect(score.confidence).toBeGreaterThan(0);
+    expect(score.components).toHaveLength(4);
+  });
+
+  it('composite model combines multiple models', async () => {
+    const model = new CompositeRewardModel([
+      new HeuristicRewardModel(),
+      new HeuristicRewardModel(), // use twice for test simplicity
+    ]);
+    const recorder = new TrajectoryRecorder({
+      analysisId: 'a1', userId: 'u1', agentId: 'agent-1',
+      agentVersion: '1.0.0', agentStability: 'beta',
+      contextSnapshot: createContextSnapshot({}),
+      metadata: createMetadata([]),
+    });
+    recorder.observe({ input: 'data' });
+    recorder.result({ output: 'test' });
+    const trajectory = recorder.complete('success');
+
+    const score = await model.score(trajectory);
+    expect(score.value).toBeGreaterThan(-1);
+    expect(score.value).toBeLessThan(1);
+  });
+
+  it('scoreAndReward adds reward to trajectory', async () => {
+    const model = new HeuristicRewardModel();
+    const recorder = new TrajectoryRecorder({
+      analysisId: 'a1', userId: 'u1', agentId: 'agent-1',
+      agentVersion: '1.0.0', agentStability: 'beta',
+      contextSnapshot: createContextSnapshot({}),
+      metadata: createMetadata([]),
+    });
+    recorder.observe({ input: 'data' });
+    const trajectory = recorder.complete('success');
+
+    const { trajectory: rewarded, score } = await scoreAndReward(trajectory, model);
+    expect(rewarded.rewards).toHaveLength(1);
+    expect(rewarded.rewards[0].type).toBe('automated');
+    expect(rewarded.rewards[0].source).toBe('quality_score');
+    expect(score.value).toBeGreaterThan(0);
   });
 });
