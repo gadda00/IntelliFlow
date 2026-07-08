@@ -19,52 +19,23 @@ import { NextResponse } from 'next/server';
 import os from 'node:os';
 import { getAgentIds } from '@/lib/agents/v7/registry';
 import { trajectoryStore } from '@/lib/trajectory/store';
+import {
+  readErrorLog,
+  readRateBuckets,
+} from '@/lib/admin/systemMetrics';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 // ----------------------------------------------------------------------------
-// Process-level metrics (kept in this module so they survive across requests)
+// Process-level uptime baseline (kept in this module so it survives across requests)
 // ----------------------------------------------------------------------------
 
 const STARTED_AT = Date.now();
 
-interface ErrorRecord {
-  timestamp: string;
-  message: string;
-  code?: string;
-  source?: string;
-}
-
-interface RateBucket {
-  window: string; // ISO minute
-  blocked: number;
-  total: number;
-}
-
-const _errorLog: ErrorRecord[] = [];
-const _rateBuckets = new Map<string, RateBucket>();
-const MAX_ERRORS = 50;
-const MAX_BUCKETS = 30;
-
-/** Public hook for the rest of the app to push errors into the admin log. */
-export function recordError(err: { message: string; code?: string; source?: string }): void {
-  _errorLog.unshift({ timestamp: new Date().toISOString(), ...err });
-  if (_errorLog.length > MAX_ERRORS) _errorLog.length = MAX_ERRORS;
-}
-
-/** Public hook for rate-limit middleware to report a blocked request. */
-export function recordRateLimitBlocked(): void {
-  const minute = new Date().toISOString().slice(0, 16); // YYYY-MM-DDTHH:MM
-  const bucket = _rateBuckets.get(minute) ?? { window: minute, blocked: 0, total: 0 };
-  bucket.blocked += 1;
-  bucket.total += 1;
-  _rateBuckets.set(minute, bucket);
-  if (_rateBuckets.size > MAX_BUCKETS) {
-    const oldest = Array.from(_rateBuckets.keys()).sort()[0];
-    if (oldest) _rateBuckets.delete(oldest);
-  }
-}
+// NOTE: error log + rate-limit buckets live in @/lib/admin/systemMetrics —
+// Next.js route files only allow HTTP-method exports, so the `recordError` /
+// `recordRateLimitBlocked` helpers had to move out of this file.
 
 function formatUptime(ms: number): string {
   const s = Math.floor(ms / 1000);
@@ -152,9 +123,7 @@ export async function GET() {
   ]);
 
   // Rate-limit buckets
-  const rateBuckets = Array.from(_rateBuckets.values()).sort((a, b) =>
-    a.window.localeCompare(b.window),
-  );
+  const rateBuckets = readRateBuckets();
   const blockedTotal = rateBuckets.reduce((acc, b) => acc + b.blocked, 0);
 
   // Trajectory store snapshot
@@ -211,8 +180,8 @@ export async function GET() {
         configured: !!process.env.UPSTASH_REDIS_REST_URL,
       },
       errors: {
-        recent: _errorLog,
-        total: _errorLog.length,
+        recent: readErrorLog(),
+        total: readErrorLog().length,
       },
       agents: {
         total: getAgentIds().length,

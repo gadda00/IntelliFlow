@@ -4,9 +4,19 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  directUrl    = env("DIRECT_URL")
+  // relationMode = "prisma" is REQUIRED when DATABASE_URL points at the
+  // Supabase PgBouncer transaction-mode pooler (port 6543). PgBouncer in
+  // transaction mode cannot carry prepared statements across transactions,
+  // which breaks Prisma's default foreign-key enforcement. With
+  // relationMode = "prisma", referential integrity is enforced in the
+  // Prisma client instead of via SQL FK constraints — making the pooler
+  // safe to use. Migrations still create the FKs (they use directUrl),
+  // so existing FKs in the DB are not dropped; Prisma simply stops
+  // emitting new FK DDL on `db push`.
+  relationMode = "prisma"
 }
 
 model User {

@@ -25,8 +25,9 @@ const RewardSchema = z.object({
 
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
+  const { id } = await params;
   const body = await request.json();
   const parse = RewardSchema.safeParse(body);
   if (!parse.success) {
@@ -41,6 +42,6 @@ export async function POST(
     provider: parse.data.provider,
   });
 
-  await store.addReward(params.id, reward);
+  await store.addReward(id, reward);
   return NextResponse.json({ ok: true, data: { reward } });
 }

@@ -10,8 +10,9 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(
   _request: Request,
-  { params }: { params: { agentId: string } },
+  { params }: { params: Promise<{ agentId: string }> },
 ) {
-  const stats = await store.getAgentStats(params.agentId);
+  const { agentId } = await params;
+  const stats = await store.getAgentStats(agentId);
   return NextResponse.json({ ok: true, data: stats });
 }

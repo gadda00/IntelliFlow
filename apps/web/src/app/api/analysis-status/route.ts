@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecentUpdates } from '@/app/api/analyze/route';
+import { getRecentUpdates } from '@/lib/analysis/progress';
 
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);

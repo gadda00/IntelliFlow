@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { Suspense, useCallback, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { AdminPageHeader } from '@/components/admin/AdminPageHeader';
 import { DataTable, type DataTableColumn } from '@/components/admin/DataTable';
@@ -70,6 +70,14 @@ function formatRelative(iso: string): string {
 }
 
 export default function AdminTrajectoriesPage() {
+  return (
+    <Suspense fallback={null}>
+      <AdminTrajectoriesPageInner />
+    </Suspense>
+  );
+}
+
+function AdminTrajectoriesPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialAgentId = searchParams?.get('agentId') ?? '';

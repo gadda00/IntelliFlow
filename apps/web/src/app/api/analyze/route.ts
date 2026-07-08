@@ -1,34 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ParallelAgentExecutor, getAgentPool, ProgressBroadcast } from '@/lib/agents';
+import { ParallelAgentExecutor, getAgentPool } from '@/lib/agents';
 import { parseFile } from '@/lib/data/parsers';
 import { db } from '@/lib/db';
 import { getUserFromRequest, AuthUser, incrementUsage } from '@/lib/auth/server';
-import { EventEmitter } from 'events';
+import {
+  broadcastAnalysisProgress,
+} from '@/lib/analysis/progress';
 
-// In-memory pub/sub for real-time progress updates.
-// The WebSocket mini-service subscribes to this; clients poll or connect via WS.
-export const analysisEvents = new EventEmitter();
-analysisEvents.setMaxListeners(1000);
-
-// Recent updates buffer (per analysisId) so polling clients can catch up
-const recentUpdates = new Map<string, ProgressBroadcast[]>();
-const MAX_BUFFER = 200;
-
-function broadcast(update: ProgressBroadcast) {
-  analysisEvents.emit('agent_update', update);
-  const list = recentUpdates.get(update.analysisId) ?? [];
-  list.push(update);
-  if (list.length > MAX_BUFFER) list.shift();
-  recentUpdates.set(update.analysisId, list);
-}
-
-export function getRecentUpdates(analysisId: string): ProgressBroadcast[] {
-  return recentUpdates.get(analysisId) ?? [];
-}
-
-export function clearUpdates(analysisId: string) {
-  recentUpdates.delete(analysisId);
-}
+// (In-memory pub/sub + recent-updates buffer moved to @/lib/analysis/progress —
+// Next.js route files only allow HTTP-method exports, so the EventEmitter
+// and helper functions had to move out of this file.)
 
 export async function POST(req: NextRequest) {
   const startTime = Date.now();
@@ -91,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     // Build executor
     const pool = getAgentPool();
-    const executor = new ParallelAgentExecutor(pool, broadcast);
+    const executor = new ParallelAgentExecutor(pool, broadcastAnalysisProgress);
 
     const result = await executor.runFullPipeline({
       analysisId,
