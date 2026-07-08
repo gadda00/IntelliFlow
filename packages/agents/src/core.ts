@@ -21,6 +21,7 @@ import {
   ID,
   ISODateString,
 } from '@busara/core';
+import type { TrajectoryRecorder } from './trajectory/recorder';
 
 // ============================================================================
 // Enhanced Agent Types
@@ -113,6 +114,14 @@ export interface EnhancedAgentContext extends AgentContext {
   
   // Progress
   onProgress?: (progress: number, message?: string) => void;
+
+  // Trajectory
+  // Injected by the `withTrajectory` wrapper so agents can record sub-steps
+  // (LLM calls, tool calls) directly into the active trajectory. Agents that
+  // use the LLMGateway will read this and pass it to the gateway so every
+  // LLM call is automatically captured — the AReaL paper's "HTTP boundary"
+  // instrumentation pattern.
+  trajectoryRecorder?: TrajectoryRecorder;
 }
 
 /** Agent logger interface */

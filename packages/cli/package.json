@@ -1,41 +1,36 @@
 {
-  "name": "@busara/agents",
+  "name": "@busara/cli",
   "version": "8.0.0-alpha.1",
   "private": true,
-  "description": "Busara Agents - Multi-agent orchestration framework",
+  "description": "Busara CLI — run agents, manage templates, inspect trajectories, and approve evolution from the terminal",
+  "bin": {
+    "busara": "dist/index.js"
+  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
     "lint": "eslint src --ext .ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@busara/core": "workspace:*",
-    "z-ai-web-dev-sdk": "^0.0.18",
-    "zod": "^4.0.0"
+    "commander": "^12.1.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
-    "eslint": "^9.0.0",
-    "eslint-config-busara": "workspace:*",
-    "typescript": "^5.3.0",
-    "vitest": "^1.0.0"
+    "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "keywords": [
     "busara",
+    "cli",
     "agents",
-    "orchestration",
-    "multi-agent",
-    "dag"
+    "developer-tools",
+    "multi-agent"
   ],
   "author": "Victor Ndunda <victor@busara.ai>",
   "license": "MIT"

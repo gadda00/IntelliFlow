@@ -38,15 +38,24 @@
    pnpm db:generate
    ```
 
-6. **Start the development server**
+7. **Start the development server**
    ```bash
    pnpm dev
    ```
 
-7. **Open in browser**
+8. **Open in browser**
    ```
    http://localhost:3000
    ```
+
+9. **(Optional) Install the Busara CLI**
+   ```bash
+   pnpm --filter @busara/cli build
+   pnpm --filter @busara/cli link --global   # makes `busara` available on $PATH
+   busara config set apiUrl http://localhost:3000
+   busara agents list                         # verify it works
+   ```
+   See [§ Busara CLI](#-busara-cli) below for the full command reference.
 
 ---
 
@@ -77,6 +86,15 @@
 | `pnpm lint:web` | Lint web app |
 | `pnpm lint:agents` | Lint agents package |
 | `pnpm lint:core` | Lint core package |
+
+### CLI
+
+| Command | Description |
+|---------|-------------|
+| `pnpm --filter @busara/cli build` | Build the `busara` CLI to `packages/cli/dist/` |
+| `pnpm --filter @busara/cli typecheck` | Typecheck the CLI package |
+| `pnpm --filter @busara/cli dev` | Watch mode for CLI development |
+| `pnpm --filter @busara/cli link --global` | Make the `busara` command available on `$PATH` |
 
 ### Database
 
@@ -130,6 +148,14 @@ busara/
 │   │   │       └── report/     # Report stage agents
 │   │   └── package.json
 │   │
+│   ├── @busara/cli/            # Busara CLI (`busara` command)
+│   │   ├── src/
+│   │   │   ├── index.ts        # CLI entry (commander.js)
+│   │   │   ├── commands/       # agents, analyze, templates, trajectory, evolution, serve, init, config
+│   │   │   ├── lib/            # client (HTTP+SSE), config, output
+│   │   │   └── templates/      # Scaffolding for `busara init`
+│   │   └── package.json
+│   │
 │   └── @busara/eslint-config/  # ESLint configuration
 │       ├── index.js
 │       └── package.json
@@ -162,7 +188,72 @@ busara/
 
 ---
 
+## 🖥️ Busara CLI
+
+The `@busara/cli` package provides a `busara` terminal command for running agents, inspecting trajectories, approving evolution actions, and scaffolding new projects — all without leaving the shell.
+
+### Install
+
+```bash
+pnpm --filter @busara/cli build
+pnpm --filter @busara/cli link --global   # makes `busara` available on $PATH
+```
+
+### Configure
+
+```bash
+busara config set apiUrl http://localhost:3000
+busara config set apiKey ifl_xxxxxxxxxxxxxxxx   # optional
+busara config list
+```
+
+Config is stored at `~/.busara/config.json`. CLI flags and env vars (`BUSARA_API_URL`, `BUSARA_API_KEY`, `BUSARA_OUTPUT`) override the file.
+
+### Common commands
+
+```bash
+# Agents
+busara agents list                              # table of all 33 agents
+busara agents list --stage detect --tier core   # filtered
+busara agents info data_ingestion               # full details + schemas
+
+# Analyze
+busara analyze data_ingestion --data sample.csv
+busara analyze data_ingestion --data sample.csv --config '{"sampleSize":10}'
+busara analyze data_ingestion --data sample.csv --stream    # SSE stream
+
+# Templates
+busara templates list
+busara templates run quick-profile --data sample.csv --stream
+
+# Trajectories
+busara trajectory list --agent data_ingestion --status success --limit 20
+busara trajectory show <trajectory-id>
+busara trajectory reward <id> --type explicit --source user_thumbs_up --value 1
+
+# Evolution
+busara evolution list --agent data_ingestion
+busara evolution approve data_ingestion --index 0
+
+# Dev server
+busara serve --port 3000
+
+# Scaffold a new project
+busara init my-analysis
+cd my-analysis && pnpm install
+
+# Output formats
+busara agents list --output json                # machine-readable
+busara config set output json                   # persist as default
+```
+
+See `packages/cli/README.md` for the full command reference.
+
+---
+
 ## 🧩 Adding a New Agent
+
+> **Full guide:** see [`docs/AGENTS.md`](./docs/AGENTS.md) for the complete step-by-step with a copy-paste template, Zod patterns, testing guide, and a promotion checklist. The short version is below.
 
 ### Step 1: Create the Agent File
 
@@ -512,6 +603,30 @@ The project uses Prisma with PostgreSQL:
    const result = await agent.execute(context);
    console.log(result);
    ```
+
+4. **Use the Busara CLI to test against the running API**
+   The CLI is the fastest way to test an agent end-to-end without writing a test harness:
+   ```bash
+   # Make sure the dev server is running
+   pnpm dev:web
+
+   # In another terminal, run your agent against a CSV
+   busara analyze my_agent_id --data test-fixture.csv
+
+   # Stream events to see each step
+   busara analyze my_agent_id --data test-fixture.csv --stream
+
+   # Inspect what was recorded
+   busara trajectory list --agent my_agent_id --limit 5
+   busara trajectory show <trajectory-id>
+   ```
+   The trajectory will show you every step the agent took, the inputs/outputs at each step, and any rewards that were attached — invaluable for debugging.
+
+5. **Run the agent through the test suite**
+   ```bash
+   pnpm --filter @busara/agents test MyAgent
+   ```
+   See [`docs/AGENTS.md`](./docs/AGENTS.md) for the test file template.
 
 ---
 

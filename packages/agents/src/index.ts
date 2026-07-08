@@ -7,6 +7,11 @@
 //   2. Enterprise-grade data proxy (trajectory/dataProxy.ts)
 //   3. Unified agent evolution control plane (trajectory/evolution.ts)
 // Plus verification gates from the Verified Multi-Agent Orchestration paper.
+//
+// LLM Gateway (llm-gateway/) — zero-code trajectory capture at the HTTP
+// boundary, per the AReaL paper's central architectural insight: every
+// LLM call funnels through one gateway so instrumentation is automatic
+// and universal across all agents.
 
 export * from './core';
 export * from './orchestrator';
@@ -15,3 +20,4 @@ export * from './agents';
 export * from './math';
 export * from './errors';
 export * from './trajectory';
+export * from './llm-gateway';

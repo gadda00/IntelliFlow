@@ -58,6 +58,13 @@ export function withTrajectory(agent: BaseAgent, options: TrajectoryWrapperOptio
 
     recorder.start();
 
+    // Inject the recorder into the context so agents that use the LLMGateway
+    // can pass it to the gateway — every LLM call then lands as a trajectory
+    // step automatically. This is the AReaL paper's "HTTP boundary"
+    // instrumentation pattern: zero-code capture for any agent that routes
+    // its LLM access through the gateway.
+    const enrichedCtx = { ...ctx, trajectoryRecorder: recorder };
+
     try {
       // Record the input observation
       recorder.observe({
@@ -66,7 +73,7 @@ export function withTrajectory(agent: BaseAgent, options: TrajectoryWrapperOptio
       }, { phase: 'input' });
 
       // Execute the agent (the agent's own execute may record sub-steps via the recorder if passed in ctx)
-      const result = await originalExecute(ctx);
+      const result = await originalExecute(enrichedCtx);
 
       // Record the output
       recorder.result(result.output, { phase: 'output' });
