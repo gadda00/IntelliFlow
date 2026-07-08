@@ -95,3 +95,17 @@ export {
   scoreAndReward,
 } from './rewardModel';
 export type { RewardModel, RewardScore, RewardScoreComponent } from './rewardModel';
+
+// Guardrails — input/output safety filtering (OWASP #1 LLM threat defense)
+export {
+  PromptInjectionGuardrail,
+  PIILeakageGuardrail,
+  CompositeGuardrail,
+  createDefaultGuardrail,
+} from './guardrails';
+export type {
+  Guardrail,
+  GuardrailResult,
+  GuardrailViolation,
+  GuardrailContext,
+} from './guardrails';
