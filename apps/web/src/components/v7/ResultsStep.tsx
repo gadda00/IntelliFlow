@@ -171,7 +171,7 @@ function ResultCard({ title, icon: Icon, children, color = 'text-primary' }: {
   color?: string;
 }) {
   return (
-    <Card className="p-5 border-border/30">
+    <Card data-testid="agent-result-card" className="p-5 border-border/30">
       <div className="flex items-center gap-2 mb-3">
         <Icon className={`h-4 w-4 ${color}`} />
         <h4 className="font-semibold text-sm">{title}</h4>

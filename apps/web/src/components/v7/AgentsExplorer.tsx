@@ -153,6 +153,7 @@ export function AgentsExplorer() {
                   transition={{ delay: i * 0.02 }}
                 >
                   <Card
+                    data-testid="agent-card"
                     className="agent-card-glow p-5 h-full hover:shadow-xl transition-all cursor-pointer group relative overflow-hidden"
                     style={{ '--agent-color': agent.color } as any}
                     onClick={() => setSelectedAgent(agent)}

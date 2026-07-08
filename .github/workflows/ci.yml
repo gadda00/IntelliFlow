@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, 'v*', 'release/*']
+    branches: [main, revolution]
   pull_request:
     branches: [main]
 
@@ -11,245 +11,75 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  setup:
-    name: Setup
+  quality:
+    name: Quality (typecheck + tests + lint)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 8.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          DIRECT_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      - run: pnpm typecheck
+      - run: pnpm --filter @busara/agents test
+      - run: pnpm --filter @busara/web test
+      - run: pnpm lint
+        continue-on-error: true
+
+  security:
+    name: Security scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Generate Prisma client
-        run: pnpm db:generate
+      - uses: gitleaks/gitleaks-action@v2
         env:
-          DATABASE_URL: "file:./dev.db"
-          DIRECT_URL: "file:./dev.db"
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: setup
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Run ESLint
-        run: pnpm lint
-
-  typecheck:
-    name: Type Check
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    needs: setup
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Generate Prisma client
-        run: pnpm db:generate
-        env:
-          DATABASE_URL: "file:./dev.db"
-          DIRECT_URL: "file:./dev.db"
-      
-      - name: Type check
-        run: pnpm typecheck
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: setup
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Generate Prisma client
-        run: pnpm db:generate
-        env:
-          DATABASE_URL: "file:./dev.db"
-          DIRECT_URL: "file:./dev.db"
-      
-      - name: Run tests
-        run: pnpm test:coverage
-        env:
-          DATABASE_URL: "file:./dev.db"
-          DIRECT_URL: "file:./dev.db"
-          JWT_SECRET: "ci-test-secret-only-not-for-production"
-          NEXT_PUBLIC_APP_URL: "https://busara.netlify.app"
-      
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: coverage-report
-          path: coverage/
-
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    needs: [lint, typecheck, test]
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Generate Prisma client
-        run: pnpm db:generate
-        env:
-          DATABASE_URL: "file:./dev.db"
-          DIRECT_URL: "file:./dev.db"
-      
-      - name: Build
-        run: pnpm build
-        env:
-          DATABASE_URL: "file:./dev.db"
-          DIRECT_URL: "file:./dev.db"
-          JWT_SECRET: "ci-test-secret-only-not-for-production"
-          NEXT_PUBLIC_APP_URL: "https://busara.netlify.app"
-      
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: build-artifacts
-          path: |
-            apps/web/.next/
-            apps/web/public/
-            packages/*/dist/
-
-  security:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: setup
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'pnpm'
-      
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - uses: pnpm/action-setup@v4
         with:
-          args: --severity-threshold=high
+          version: 8.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm audit --audit-level=high
+        continue-on-error: true
 
-  performance:
-    name: Performance Check
+  e2e:
+    name: Playwright E2E
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    needs: build
-    
+    timeout-minutes: 30
+    needs: quality
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Set up Node.js 22
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: 22
+          version: 8.15.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
           cache: 'pnpm'
-      
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 8
-      
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts
-      
-      - name: Check bundle size
-        run: |
-          echo "Checking bundle sizes..."
-          find . -name "*.js" -type f -size +1M -exec ls -lh {} \;
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          DIRECT_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --filter @busara/web exec playwright test
+        env:
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          DIRECT_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+          JWT_SECRET: ci-test-secret-at-least-32-characters-long

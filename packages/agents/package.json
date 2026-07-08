@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@busara/core": "workspace:*",
+    "z-ai-web-dev-sdk": "^0.0.18",
     "zod": "^4.0.0"
   },
   "devDependencies": {

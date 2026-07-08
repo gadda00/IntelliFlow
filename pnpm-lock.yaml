@@ -163,7 +163,7 @@ importers:
         version: 0.525.0(react@19.2.7)
       next:
         specifier: '15'
-        version: 15.5.20(react-dom@19.2.7)(react@19.2.7)
+        version: 15.5.20(@playwright/test@1.61.1)(react-dom@19.2.7)(react@19.2.7)
       next-auth:
         specifier: ^4.24.11
         version: 4.24.14(next@15.5.20)(react-dom@19.2.7)(react@19.2.7)
@@ -234,6 +234,9 @@ importers:
       '@netlify/plugin-nextjs':
         specifier: ^5.15.12
         version: 5.15.12
+      '@playwright/test':
+        specifier: ^1.61.1
+        version: 1.61.1
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.3.2
@@ -273,6 +276,9 @@ importers:
       '@busara/core':
         specifier: workspace:*
         version: link:../core
+      z-ai-web-dev-sdk:
+        specifier: ^0.0.18
+        version: 0.0.18
       zod:
         specifier: ^4.0.0
         version: 4.4.3
@@ -292,6 +298,19 @@ importers:
       vitest:
         specifier: ^1.0.0
         version: 1.6.1(@types/node@20.19.43)
+
+  packages/cli:
+    dependencies:
+      commander:
+        specifier: ^12.1.0
+        version: 12.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.10.0
+        version: 20.19.43
+      typescript:
+        specifier: ^5.3.0
+        version: 5.9.3
 
   packages/core:
     dependencies:
@@ -1335,6 +1354,13 @@ packages:
       '@parcel/watcher-win32-ia32': 2.5.6
       '@parcel/watcher-win32-x64': 2.5.6
     dev: false
+
+  /@playwright/test@1.61.1:
+    resolution: {integrity: sha512-8nKv6+0RJSL9FE4jYOEGXnPeM/Hg12qZpmqzZjRh3qM0Y7c3z1mrOTfFLids72RDQYVh9WpLEfR5WdpNX4fkig==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dependencies:
+      playwright: 1.61.1
 
   /@prisma/client@6.19.3(prisma@6.19.3)(typescript@5.9.3):
     resolution: {integrity: sha512-mKq3jQFhjvko5LTJFHGilsuQs+W+T3Gm451NzuTDGQxwCzwXHYnIu2zGkRoW+Exq3Rob7yp2MfzSrdIiZVhrBg==}
@@ -4393,6 +4419,11 @@ packages:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
     dev: false
 
+  /commander@12.1.0:
+    resolution: {integrity: sha512-Vw8qHK3bZM9y/P10u3Vib8o/DdkvA2OtPtZvD871QKjy74Wj1WSKFILMPRPSdUSx5RFK1arlJzEtA4PkFgnbuA==}
+    engines: {node: '>=18'}
+    dev: false
+
   /concat-map@0.0.1:
     resolution: {integrity: sha512-/Srv4dswyQNBfohGpz9o6Yb3Gz3SrUDqBH5rTuhGR7ahtlbYKnVxw2bCFMRljaA7EXHaXZ8wsHdodFvbkhKmqg==}
 
@@ -5443,6 +5474,13 @@ packages:
   /fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
     dev: false
+
+  /fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+    requiresBuild: true
+    optional: true
 
   /fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -6682,7 +6720,7 @@ packages:
       '@panva/hkdf': 1.2.1
       cookie: 0.7.2
       jose: 4.15.9
-      next: 15.5.20(react-dom@19.2.7)(react@19.2.7)
+      next: 15.5.20(@playwright/test@1.61.1)(react-dom@19.2.7)(react@19.2.7)
       oauth: 0.9.15
       openid-client: 5.7.1
       preact: 10.29.6
@@ -6711,7 +6749,7 @@ packages:
       '@swc/core': 1.15.43
       icu-minify: 4.13.1
       negotiator: 1.0.0
-      next: 15.5.20(react-dom@19.2.7)(react@19.2.7)
+      next: 15.5.20(@playwright/test@1.61.1)(react-dom@19.2.7)(react@19.2.7)
       next-intl-swc-plugin-extractor: 4.13.1
       po-parser: 2.1.1
       react: 19.2.7
@@ -6731,7 +6769,7 @@ packages:
       react-dom: 19.2.7(react@19.2.7)
     dev: false
 
-  /next@15.5.20(react-dom@19.2.7)(react@19.2.7):
+  /next@15.5.20(@playwright/test@1.61.1)(react-dom@19.2.7)(react@19.2.7):
     resolution: {integrity: sha512-cvyS3/geydan1xLtE3FA8VCgdoQ/Gg/dlOldFkFCbB5VcVYJV7090hQLBnvTW2PwT76Z/dHdzDZCsVhZpoOlUA==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
     hasBin: true
@@ -6753,6 +6791,7 @@ packages:
         optional: true
     dependencies:
       '@next/env': 15.5.20
+      '@playwright/test': 1.61.1
       '@swc/helpers': 0.5.15
       caniuse-lite: 1.0.30001803
       postcss: 8.4.31
@@ -7112,6 +7151,20 @@ packages:
       confbox: 0.2.4
       exsolve: 1.1.0
       pathe: 2.0.3
+
+  /playwright-core@1.61.1:
+    resolution: {integrity: sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  /playwright@1.61.1:
+    resolution: {integrity: sha512-DWnY5o3YbLWK4GovuAVwpqL+1VwGNdUGrRr++8j8PtQQzvAVZUIMjKQ90fY689sEJZJBbZVw1rXaOKSTitkzPQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+    dependencies:
+      playwright-core: 1.61.1
+    optionalDependencies:
+      fsevents: 2.3.2
 
   /po-parser@2.1.1:
     resolution: {integrity: sha512-ECF4zHLbUItpUgE3OTtLKlPjeBN+fKEczj2zYjDfCGOzicNs0GK3Vg2IoAYwx7LH/XYw43fZQP6xnZ4TkNxSLQ==}

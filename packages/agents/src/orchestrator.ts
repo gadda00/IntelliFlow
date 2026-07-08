@@ -33,6 +33,7 @@ import {
   AgentMetricsCollector,
   AgentCache,
 } from './core';
+import { CheckpointManager } from './checkpoint';
 
 // ============================================================================
 // Types
@@ -95,6 +96,14 @@ export interface OrchestratorConfig {
   logger?: AgentLogger;
   metrics?: AgentMetricsCollector;
   cache?: AgentCache;
+  /**
+   * Optional checkpoint manager. When provided, the orchestrator saves a
+   * checkpoint after each completed stage so an interrupted pipeline (server
+   * crash, OOM, deployment) can resume from the last successful stage instead
+   * of restarting from scratch. On pipeline completion the checkpoint is
+   * deleted; on failure it is kept so the user can resume.
+   */
+  checkpointManager?: CheckpointManager;
 }
 
 /** Progress callback */
@@ -293,7 +302,22 @@ export class DAGOrchestrator {
   private cache: AgentCache;
   private logger: AgentLogger;
   private metrics: AgentMetricsCollector;
-  private config: Required<OrchestratorConfig>;
+  /**
+   * Orchestrator config with all the "infrastructure" fields (cache, logger,
+   * metrics, retry policy, etc.) marked Required (filled in with defaults by
+   * the constructor). The `checkpointManager` field stays optional — it's
+   * only set when callers want pipeline resume-on-crash behavior.
+   */
+  private config: Required<Omit<OrchestratorConfig, 'checkpointManager'>> & {
+    checkpointManager?: CheckpointManager;
+  };
+  /**
+   * Optional checkpoint manager — kept as a separate field (rather than part
+   * of `this.config`, which is `Required<OrchestratorConfig>`) because
+   * `undefined` is a valid state for it. When set, the orchestrator saves a
+   * checkpoint after each completed stage and restores it on resume.
+   */
+  private readonly checkpointManager: CheckpointManager | undefined;
   
   constructor(config: OrchestratorConfig = {}) {
     this.config = {
@@ -317,6 +341,7 @@ export class DAGOrchestrator {
     this.logger = this.config.logger.child({ component: 'DAGOrchestrator' });
     this.metrics = this.config.metrics;
     this.cache = this.config.cache;
+    this.checkpointManager = config.checkpointManager;
   }
   
   private createDefaultLogger(): AgentLogger {
@@ -836,9 +861,39 @@ export class DAGOrchestrator {
       });
     }
     
+    // ── Checkpoint restore ─────────────────────────────────────────────
+    // If a checkpoint exists for this analysisId (e.g. because a previous run
+    // crashed mid-pipeline), restore the prior-stage results and resume from
+    // the next stage. The checkpoint's `stageNumber` is the index of the last
+    // successfully completed stage, so we resume at `stageNumber + 1`.
+    let startStageIndex = 0;
+    if (this.checkpointManager) {
+      const checkpoint = await this.checkpointManager.restoreCheckpoint(analysisId);
+      if (checkpoint) {
+        startStageIndex = checkpoint.stageNumber + 1;
+        // Re-hydrate summary.results so the next stage sees prior-stage outputs.
+        let restoredCount = 0;
+        for (const [agentId, result] of Object.entries(checkpoint.agentResults)) {
+          summary.results.set(agentId, result);
+          restoredCount++;
+        }
+        this.logger.info(
+          `Resumed from checkpoint at stage ${checkpoint.stageNumber}`,
+          {
+            analysisId,
+            checkpointId: checkpoint.id,
+            restoredResults: restoredCount,
+            startStage: startStageIndex,
+            checkpointTimestamp: checkpoint.timestamp,
+          },
+        );
+      }
+    }
+    
     try {
-      // Execute each stage sequentially
-      for (let stageIndex = 0; stageIndex < plan.stages.length; stageIndex++) {
+      // Execute each stage sequentially (skipping stages already completed
+      // per the restored checkpoint).
+      for (let stageIndex = startStageIndex; stageIndex < plan.stages.length; stageIndex++) {
         const stage = plan.stages[stageIndex];
         const stageStart = Date.now();
         
@@ -875,6 +930,33 @@ export class DAGOrchestrator {
         // Record stage timing
         summary.stageTimings[stageIndex] = Date.now() - stageStart;
         
+        // ── Checkpoint save ────────────────────────────────────────────
+        // After each stage completes, persist a checkpoint so an interrupted
+        // run can resume from this point. The checkpoint holds every agent
+        // result produced so far (not just this stage's), so a resumed run
+        // has all prior-stage outputs available to downstream agents.
+        if (this.checkpointManager) {
+          const stageName = stage[0]?.stage ?? `stage_${stageIndex}`;
+          try {
+            await this.checkpointManager.saveCheckpoint(
+              analysisId,
+              stageName,
+              stageIndex,
+              summary.results,
+            );
+            this.logger.debug(`Saved checkpoint at stage ${stageIndex}`, {
+              analysisId,
+              stageName,
+              resultsCount: summary.results.size,
+            });
+          } catch (ckptErr) {
+            // Checkpoint save failures must not crash the pipeline — log and continue.
+            this.logger.warn(`Failed to save checkpoint at stage ${stageIndex}: ${
+              ckptErr instanceof Error ? ckptErr.message : String(ckptErr)
+            }`);
+          }
+        }
+        
         // Calculate progress
         const totalAgents = plan.totalAgents;
         const completedAgents = summary.agentsSucceeded + summary.agentsFailed + summary.agentsSkipped + summary.agentsTimedOut;
@@ -910,6 +992,25 @@ export class DAGOrchestrator {
         summary.status = 'cancelled';
       }
       
+      // ── Checkpoint cleanup ───────────────────────────────────────────
+      // On pipeline completion (i.e. the loop ran to completion or broke
+      // early without throwing), delete the checkpoint so we don't leave
+      // stale state. On a thrown error (the catch block below), the
+      // checkpoint is kept so the user can resume.
+      if (this.checkpointManager) {
+        try {
+          await this.checkpointManager.deleteCheckpoint(analysisId);
+          this.logger.debug(`Deleted checkpoint after pipeline completion`, {
+            analysisId,
+            finalStatus: summary.status,
+          });
+        } catch (ckptErr) {
+          this.logger.warn(`Failed to delete checkpoint for ${analysisId}: ${
+            ckptErr instanceof Error ? ckptErr.message : String(ckptErr)
+          }`);
+        }
+      }
+      
       summary.totalDurationMs = Date.now() - startTime;
       summary.cacheStats = this.cache.getStats();
       
@@ -917,6 +1018,17 @@ export class DAGOrchestrator {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Pipeline execution failed: ${errorMessage}`, error instanceof Error ? error : undefined);
+      
+      // ── Checkpoint preservation ──────────────────────────────────────
+      // Intentionally do NOT delete the checkpoint here — keep it so the
+      // user can resume the pipeline from the last completed stage instead
+      // of restarting from scratch.
+      if (this.checkpointManager) {
+        this.logger.info(
+          `Pipeline failed; checkpoint preserved for resume`,
+          { analysisId, errorMessage },
+        );
+      }
       
       return {
         status: 'failed',
