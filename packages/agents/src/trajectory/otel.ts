@@ -11,6 +11,15 @@
  * format, we ensure trajectory data is portable and not locked into Busara's
  * internal format.
  *
+ * v1.37+ compliance (https://opentelemetry.io/docs/specs/semconv/registry/attributes/gen-ai):
+ *   - `gen_ai.system` was renamed to `gen_ai.provider.name` in v1.37.
+ *   - `gen_ai.usage.prompt_tokens` was renamed to `gen_ai.usage.input_tokens`.
+ *   - `gen_ai.usage.completion_tokens` was renamed to `gen_ai.usage.output_tokens`.
+ *   - `gen_ai.operation.name` is now required on every GenAI span.
+ *   - `gen_ai.agent.*` attributes (id, name, version, ...) are required for agent spans.
+ *   - Span name format is `gen_ai.{operation.name} {agent.name}`.
+ * Pre-v1.37 attribute names are silently dropped by most backends.
+ *
  * Reference: https://github.com/open-telemetry/semantic-conventions/tree/main/docs/gen-ai
  */
 
@@ -54,7 +63,12 @@ function stepToSpan(
     ? `${(new Date(step.timestamp).getTime() + step.durationMs) * 1_000_000}`
     : startTimeUnixNano;
 
-  const attributes = buildSpanAttributes(step, trajectory);
+  // The root span is the one without a causal parent (first step of the
+  // trajectory). Per OTel GenAI v1.37+, the root/agent span carries the
+  // end-to-end duration attribute.
+  const isRoot = step.causalParentSteps.length === 0;
+
+  const attributes = buildSpanAttributes(step, trajectory, isRoot);
   const events = buildSpanEvents(step);
 
   return {
@@ -73,32 +87,52 @@ function stepToSpan(
   };
 }
 
+/**
+ * Build the span name per OTel GenAI v1.37+ convention: `gen_ai.{operation} {agent.name}`.
+ * The agent name falls back to the agent ID when a human-readable name is not
+ * recorded on the trajectory (Trajectory currently only tracks agentId).
+ */
 function spanName(step: TrajectoryStep, trajectory: Trajectory): string {
+  const agentName = trajectory.agentId;
   switch (step.type) {
     case 'observation':
-      return `${trajectory.agentId}.observe`;
+      return `gen_ai.observe ${agentName}`;
     case 'reasoning':
-      return `${trajectory.agentId}.reason`;
+      return `gen_ai.reason ${agentName}`;
     case 'llm_call':
-      return `${trajectory.agentId}.llm.${step.llmCall?.provider ?? 'unknown'}`;
+      // v1.37 spec: agent execution spans use `gen_ai.execute {agent.name}`.
+      return `gen_ai.execute ${agentName}`;
     case 'tool_call':
-      return `${trajectory.agentId}.tool.${step.toolCall?.tool ?? 'unknown'}`;
+      return `gen_ai.tool ${agentName}`;
     case 'computation':
-      return `${trajectory.agentId}.compute`;
+      return `gen_ai.compute ${agentName}`;
     case 'output':
-      return `${trajectory.agentId}.output`;
+      return `gen_ai.output ${agentName}`;
     case 'error':
-      return `${trajectory.agentId}.error`;
+      return `gen_ai.error ${agentName}`;
     default:
-      return `${trajectory.agentId}.step`;
+      return `gen_ai.step ${agentName}`;
   }
 }
 
 function buildSpanAttributes(
   step: TrajectoryStep,
   trajectory: Trajectory,
+  isRoot: boolean,
 ): Record<string, string | number | boolean | string[]> {
   const attrs: Record<string, string | number | boolean | string[]> = {
+    // ─── OTel GenAI v1.37+ required attributes ─────────────────────────
+    // Every GenAI span MUST carry `gen_ai.operation.name`. For Busara agents
+    // every step is part of an agent execution, so the operation is 'execute'.
+    'gen_ai.operation.name': 'execute',
+    // Agent identification (v1.37+). `gen_ai.agent.name` falls back to agentId
+    // — Trajectory doesn't yet track a human-readable agent name.
+    'gen_ai.agent.id': trajectory.agentId,
+    'gen_ai.agent.name': trajectory.agentId,
+    'gen_ai.agent.version': trajectory.agentVersion,
+    'gen_ai.agent.stability': trajectory.agentStability,
+
+    // ─── Busara-specific attributes (non-gen_ai namespace) ─────────────
     'agent.id': trajectory.agentId,
     'agent.version': trajectory.agentVersion,
     'agent.stability': trajectory.agentStability,
@@ -111,11 +145,20 @@ function buildSpanAttributes(
   if (trajectory.workspaceId) attrs['workspace.id'] = trajectory.workspaceId;
   if (trajectory.organizationId) attrs['organization.id'] = trajectory.organizationId;
 
+  // End-to-end duration goes on the root span (the agent-level span).
+  if (isRoot) {
+    attrs['gen_ai.e2e.duration_ms'] = trajectory.metrics.totalDurationMs;
+  }
+
   if (step.llmCall) {
-    attrs['gen_ai.system'] = step.llmCall.provider;
+    // v1.37+ renames:
+    //   gen_ai.system           → gen_ai.provider.name
+    //   gen_ai.usage.prompt_tokens     → gen_ai.usage.input_tokens
+    //   gen_ai.usage.completion_tokens → gen_ai.usage.output_tokens
+    attrs['gen_ai.provider.name'] = step.llmCall.provider;
     attrs['gen_ai.request.model'] = step.llmCall.model;
-    attrs['gen_ai.usage.prompt_tokens'] = step.llmCall.tokensIn;
-    attrs['gen_ai.usage.completion_tokens'] = step.llmCall.tokensOut;
+    attrs['gen_ai.usage.input_tokens'] = step.llmCall.tokensIn;
+    attrs['gen_ai.usage.output_tokens'] = step.llmCall.tokensOut;
     attrs['gen_ai.usage.total_tokens'] = step.llmCall.tokensIn + step.llmCall.tokensOut;
     if (step.llmCall.cost) attrs['gen_ai.cost'] = step.llmCall.cost;
     if (step.llmCall.temperature !== undefined)
