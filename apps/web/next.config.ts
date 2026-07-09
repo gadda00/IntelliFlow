@@ -35,6 +35,16 @@ const nextConfig: NextConfig = {
   // chunks from a previous local build leaking into the Vercel artifact.
   cleanDistDir: true,
 
+  // Transpile workspace packages from source. This is CRITICAL for Vercel:
+  // without it, Next.js tries to import from `dist/index.js` which doesn't
+  // exist (the workspace packages haven't been built). With transpilePackages,
+  // Next.js compiles the TypeScript source directly.
+  transpilePackages: [
+    '@busara/agents',
+    '@busara/core',
+    '@busara/ui',
+  ],
+
   typescript: {
     ignoreBuildErrors: false,
   },
