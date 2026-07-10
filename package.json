@@ -40,11 +40,11 @@
     "db:studio": "turbo run db:studio --filter=@busara/web",
     "docker:build": "docker-compose -f infrastructure/docker/docker-compose.yml build",
     "docker:up": "docker-compose -f infrastructure/docker/docker-compose.yml up -d",
-    "docker:down": "docker-compose -f infrastructure/docker/docker-compose.yml down",
-    "preinstall": "npx only-allow pnpm"
+    "docker:down": "docker-compose -f infrastructure/docker/docker-compose.yml down"
   },
   "devDependencies": {
     "@prisma/client": "6.19.3",
+    "next": "15",
     "prisma": "6.19.3",
     "turbo": "^2.0.0",
     "typescript": "^5.3.0"

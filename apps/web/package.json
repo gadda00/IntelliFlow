@@ -5,7 +5,8 @@
   "description": "Busara Web Application - Next.js frontend",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "next build",
+    "build": "prisma generate && next build",
+    "postinstall": "prisma generate",
     "start": "next start -p 3000",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",

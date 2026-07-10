@@ -37,7 +37,6 @@ import { z } from 'zod';
 import {
   AgentPool,
   withTrajectory,
-  InMemoryTrajectoryStore,
 } from '@busara/agents';
 import { getUserFromRequest } from '@/lib/auth/server';
 
@@ -48,9 +47,9 @@ import { getUserFromRequest } from '@/lib/auth/server';
 // src/lib/trajectory/store.ts).
 import { trajectoryStore } from '@/lib/trajectory/store';
 
-// Backwards-compat: if a caller imports the store from this module directly,
-// re-export the shared instance under the legacy name.
-export const store = trajectoryStore;
+// NOTE: `export const store = trajectoryStore;` was removed — Next.js route
+// files only allow HTTP-method exports (GET/POST/...). Callers should import
+// `trajectoryStore` directly from `@/lib/trajectory/store`.
 
 // Agent pool — lazily constructed. Built once per server lifetime.
 let _pool: AgentPool | null = null;

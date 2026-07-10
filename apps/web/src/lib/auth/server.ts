@@ -4,7 +4,52 @@
 import crypto from 'crypto';
 import { db } from '@/lib/db';
 
-const JWT_SECRET = process.env.JWT_SECRET ?? 'busara-dev-secret-change-in-production-2026';
+const JWT_SECRET_FALLBACK = 'busara-dev-secret-change-in-production-2026';
+
+/**
+ * Resolve the JWT signing secret.
+ *
+ * In dev / preview / build: fall back to a known dev secret so the app
+ * boots even when JWT_SECRET isn't configured.
+ *
+ * In Vercel production runtime: REFUSE to use the fallback. A missing
+ * JWT_SECRET in prod is a critical security hole (anyone who knows the
+ * public fallback value can forge tokens). We throw at first use rather
+ * than at module load so that other routes (health, public agents list)
+ * keep working even if auth is misconfigured — only auth-touching
+ * requests fail with a clear 500.
+ */
+function resolveJwtSecret(): string {
+  const fromEnv = process.env.JWT_SECRET;
+  const isProdRuntime =
+    process.env.VERCEL_ENV === 'production' && process.env.NEXT_RUNTIME === 'nodejs';
+
+  if (fromEnv && fromEnv.length >= 32 && fromEnv !== JWT_SECRET_FALLBACK) {
+    return fromEnv;
+  }
+  if (isProdRuntime) {
+    throw new Error(
+      '[auth] JWT_SECRET is missing or too short (need >= 32 chars) in Vercel production. ' +
+        'Set it via `openssl rand -hex 32` in Vercel → Settings → Environment Variables.',
+    );
+  }
+  // Dev / preview / build: use fallback so the app boots.
+  if (process.env.NODE_ENV !== 'production' && !fromEnv) {
+    console.warn(
+      '[auth] JWT_SECRET not set — using insecure dev fallback. ' +
+        'Do NOT use this in production.',
+    );
+  }
+  return fromEnv ?? JWT_SECRET_FALLBACK;
+}
+
+// Lazily resolved on first use (so module import is safe during build).
+let _jwtSecret: string | null = null;
+function jwtSecret(): string {
+  if (_jwtSecret === null) _jwtSecret = resolveJwtSecret();
+  return _jwtSecret;
+}
+
 const API_KEY_PREFIX = 'ifl_';
 
 export interface AuthUser {
@@ -52,7 +97,7 @@ export function signToken(user: AuthUser, expiresInSec = 86400): string {
   const headerB64 = base64UrlEncode(JSON.stringify(header));
   const payloadB64 = base64UrlEncode(JSON.stringify(payload));
   const data = `${headerB64}.${payloadB64}`;
-  const sig = crypto.createHmac('sha256', JWT_SECRET).update(data).digest();
+  const sig = crypto.createHmac('sha256', jwtSecret()).update(data).digest();
   return `${data}.${base64UrlEncode(sig)}`;
 }
 
@@ -62,7 +107,7 @@ export function verifyToken(token: string): AuthUser | null {
     if (parts.length !== 3) return null;
     const [headerB64, payloadB64, sigB64] = parts;
     const data = `${headerB64}.${payloadB64}`;
-    const expectedSig = crypto.createHmac('sha256', JWT_SECRET).update(data).digest();
+    const expectedSig = crypto.createHmac('sha256', jwtSecret()).update(data).digest();
     const providedSig = base64UrlDecode(sigB64);
     if (!crypto.timingSafeEqual(expectedSig, providedSig)) return null;
     const payload = JSON.parse(base64UrlDecode(payloadB64).toString());

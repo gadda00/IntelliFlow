@@ -20,33 +20,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createAgent, getAgentIds } from '@/lib/agents/v7/registry';
 import { trajectoryStore } from '@/lib/trajectory/store';
+import {
+  getOverride,
+  readOverrideForPatch,
+  setOverride,
+  type AgentOverride,
+} from '@/lib/agents/v7/overrides';
 
 export const dynamic = 'force-dynamic';
 
-// ----------------------------------------------------------------------------
-// Admin override store — module-level (per server process)
-// ----------------------------------------------------------------------------
-
-export interface AgentOverride {
-  agentId: string;
-  stability?: 'experimental' | 'beta' | 'stable' | 'deprecated';
-  enabled?: boolean;
-  configDefaults?: Record<string, unknown>;
-  updatedAt: string;
-  updatedBy?: string;
-}
-
-const _overrides = new Map<string, AgentOverride>();
-
-/** Read an override (or undefined). Exported for the GET /api/v7/agents route. */
-export function getOverride(agentId: string): AgentOverride | undefined {
-  return _overrides.get(agentId);
-}
-
-/** Public test hook — not exposed over HTTP. */
-export function _resetOverrides(): void {
-  _overrides.clear();
-}
+// (Admin override store moved to @/lib/agents/v7/overrides — Next.js route
+// files only allow HTTP-method exports, so non-HTTP helpers must live in a
+// separate module.)
 
 function inferStability(
   tier: string,
@@ -156,7 +141,7 @@ export async function PATCH(
     );
   }
 
-  const prev = _overrides.get(agentId) ?? {
+  const prev = readOverrideForPatch(agentId) ?? {
     agentId,
     configDefaults: {},
   };
@@ -167,7 +152,7 @@ export async function PATCH(
     updatedAt: new Date().toISOString(),
     updatedBy: parse.data.updatedBy,
   };
-  _overrides.set(agentId, next);
+  setOverride(agentId, next);
 
   return NextResponse.json({
     ok: true,

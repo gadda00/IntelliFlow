@@ -1,0 +1,32 @@
+# Vercel build ignore — don't ship these to the builder cache.
+# Reduces build time + stays under Vercel's 100 MB repo-size check.
+
+# CI / docs / meta
+.github/
+docs/
+*.md
+!README.md
+!DEPLOY_VERCEL.md
+
+# E2E + test artifacts
+apps/web/e2e/
+apps/web/playwright-report/
+apps/web/test-results/
+packages/cli/
+packages/agents/src/__tests__/
+**/__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Local-only config / state
+.env*.local
+.DS_Store
+
+# Build artifacts (Vercel rebuilds these)
+.next/
+dist/
+.turbo/
+coverage/
+*.tsbuildinfo
