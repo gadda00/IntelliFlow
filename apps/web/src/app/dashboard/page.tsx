@@ -134,7 +134,7 @@ export default function DashboardOverviewPage() {
               <Brain className="h-5 w-5 text-cyan-400" />
               Agent Pipeline Visualizer
             </h2>
-            <p className="text-xs text-slate-500">Real-time DAG pipeline with 33+ agents across 7 stages</p>
+            <p className="text-xs text-slate-500">Real-time DAG pipeline with 50 agents across 7 stages</p>
           </div>
           <Link href="/dashboard/agents">
             <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:text-cyan-400">

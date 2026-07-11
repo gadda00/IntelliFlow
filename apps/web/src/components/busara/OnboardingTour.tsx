@@ -28,7 +28,7 @@ const TOUR_STEPS: TourStep[] = [
   {
     targetId: 'analyze',
     title: 'Analyze Your Data',
-    description: 'This is the core of Busara. Upload a CSV or JSON file, paste data, fetch from a URL, or use our sample dataset. Then hit "Run Full Analysis" and watch 26 agents process your data in real time.',
+    description: 'This is the core of Busara. Upload a CSV or JSON file, paste data, fetch from a URL, or use our sample dataset. Then hit "Run Full Analysis" and watch 50 agents process your data in real time.',
     icon: Zap,
   },
   {

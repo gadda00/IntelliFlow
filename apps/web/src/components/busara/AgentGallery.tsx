@@ -162,7 +162,7 @@ export function AgentGallery() {
                 <div className="flex items-center gap-2 mb-4">
                   <Activity className="h-4 w-4 text-primary" />
                   <h3 className="text-sm font-semibold">Agent Pipeline DAG</h3>
-                  <Badge variant="secondary" className="text-[10px]">7 stages · 26 agents</Badge>
+                  <Badge variant="secondary" className="text-[10px]">7 stages · 50 agents</Badge>
                 </div>
                 <AgentDAGVisualizer agentStatuses={
                   Object.fromEntries(agents.map(a => [a.id, 'completed']))

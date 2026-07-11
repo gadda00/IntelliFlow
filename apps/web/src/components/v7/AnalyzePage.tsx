@@ -2,7 +2,8 @@
 
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, X, Zap, Upload } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, ArrowRight, Check, X, Zap, Upload, Home, Download, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useV7Analysis, V7AnalysisConfig } from '@/hooks/useV7Analysis';
@@ -37,7 +38,6 @@ export function AnalyzePage() {
   const handleConfigure = useCallback((newConfig: V7AnalysisConfig) => {
     setConfig(newConfig);
     setStep('pipeline');
-    // Start the analysis
     analysis.startAnalysis(data, { ...newConfig, fileName });
   }, [data, analysis]);
 
@@ -52,28 +52,80 @@ export function AnalyzePage() {
   const handleBack = useCallback(() => {
     if (step === 'configure') setStep('upload');
     else if (step === 'pipeline' && !analysis.isStreaming && !analysis.isComplete) setStep('configure');
+    else if (step === 'results') setStep('pipeline');
   }, [step, analysis]);
+
+  const handleStepClick = useCallback((targetStep: WizardStep) => {
+    const targetIndex = STEPS.findIndex(s => s.id === targetStep);
+    const currentIndex = STEPS.findIndex(s => s.id === step);
+    // Allow navigating to any completed or current step
+    if (targetIndex <= currentIndex) {
+      setStep(targetStep);
+    }
+  }, [step]);
 
   const currentStepIndex = STEPS.findIndex(s => s.id === step);
 
   return (
-    <div className="min-h-screen bg-background pt-20 pb-12">
-      <div className="container mx-auto px-4 max-w-7xl">
+    <div className="min-h-screen bg-background pb-12">
+      {/* Top Navigation Bar */}
+      <div className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="flex h-14 items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Link href="/" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                <Home className="h-4 w-4" />
+                <span className="hidden sm:inline">Back to Home</span>
+              </Link>
+              <div className="h-4 w-px bg-border" />
+              <Badge variant="secondary" className="border border-primary/20 bg-primary/5">
+                <Zap className="h-3 w-3 mr-1 text-primary" />
+                50-Agent Analysis
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2">
+              {step !== 'upload' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleBack}
+                  className="gap-1.5"
+                  disabled={step === 'pipeline' && (analysis.isStreaming || analysis.isComplete)}
+                >
+                  <ArrowLeft className="h-3.5 w-3.5" />
+                  Back
+                </Button>
+              )}
+              {step === 'results' && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRestart}
+                    className="gap-1.5"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    New Analysis
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 max-w-7xl pt-6">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <Badge variant="secondary" className="mb-3 border border-primary/20 bg-primary/5">
-            <Zap className="h-3 w-3 mr-1 text-primary" />
-            Busara v7.0 — 50-Agent Analysis
-          </Badge>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">
+        <div className="mb-6 text-center">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight mb-1">
             Analysis Workspace
           </h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-sm max-w-2xl mx-auto">
             Upload your data, configure the analysis, and watch 50 AI agents process it in real time.
           </p>
         </div>
 
-        {/* Step Progress Bar */}
+        {/* Step Progress Bar — Clickable */}
         <div className="mb-8">
           <div className="flex items-center justify-between max-w-3xl mx-auto">
             {STEPS.map((s, i) => {
@@ -83,7 +135,12 @@ export function AnalyzePage() {
 
               return (
                 <div key={s.id} className="flex items-center flex-1 last:flex-none">
-                  <div className="flex flex-col items-center gap-1.5">
+                  <button
+                    onClick={() => isAccessible && handleStepClick(s.id)}
+                    disabled={!isAccessible}
+                    className={`flex flex-col items-center gap-1.5 transition-opacity ${isAccessible ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                    aria-label={`Go to ${s.label} step`}
+                  >
                     <div
                       className={`h-10 w-10 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                         isActive
@@ -91,7 +148,7 @@ export function AnalyzePage() {
                           : isComplete
                           ? 'border-primary bg-primary/10 text-primary'
                           : 'border-border bg-muted text-muted-foreground'
-                      } ${!isAccessible ? 'opacity-40' : ''}`}
+                      } ${!isAccessible ? 'opacity-40' : ''} ${isAccessible && !isActive ? 'hover:border-primary/50' : ''}`}
                     >
                       {isComplete ? (
                         <Check className="h-4 w-4" />
@@ -102,7 +159,7 @@ export function AnalyzePage() {
                     <span className={`text-[10px] md:text-xs font-medium ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
                       {s.label}
                     </span>
-                  </div>
+                  </button>
                   {i < STEPS.length - 1 && (
                     <div className={`flex-1 h-0.5 mx-2 md:mx-4 transition-colors duration-300 ${
                       isComplete ? 'bg-primary' : 'bg-border'
@@ -160,6 +217,9 @@ export function AnalyzePage() {
                   agentStates={analysis.agentStates}
                   executionSummary={analysis.executionSummary}
                   onRestart={handleRestart}
+                  onBack={handleBack}
+                  data={data}
+                  fileName={fileName}
                 />
               </div>
             )}

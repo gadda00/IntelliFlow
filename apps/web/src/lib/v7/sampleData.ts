@@ -1,6 +1,10 @@
 /**
  * Sample datasets for the v7 analysis wizard.
  * Each dataset is designed to showcase different agent capabilities.
+ *
+ * Data is generated deterministically using a seeded PRNG (mulberry32)
+ * so that every page load produces the same dataset — critical for
+ * reproducible demos, screenshots, and E2E tests.
  */
 
 export interface SampleDataset {
@@ -11,6 +15,21 @@ export interface SampleDataset {
   highlights: string[];
   data: Record<string, any>[];
 }
+
+// ─── Seeded PRNG (mulberry32) — deterministic across page loads ──────
+function mulberry32(seed: number): () => number {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Replace Math.random with seeded version for reproducible data
+const seededRandom = mulberry32(42);
+const random = () => seededRandom();
 
 // ─── E-commerce Sales (default — shows forecasting, anomalies, correlations) ──
 
@@ -24,9 +43,9 @@ for (let i = 0; i < 60; i++) {
   date.setDate(date.getDate() + i * 3);
   const trend = i * 25;
   const seasonal = Math.sin(i * 0.3) * 400;
-  const noise = (Math.random() - 0.5) * 300;
+  const noise = (random() - 0.5) * 300;
   const sales = Math.round(baseSales + trend + seasonal + noise);
-  const qty = Math.round(sales / 40 + (Math.random() - 0.5) * 5);
+  const qty = Math.round(sales / 40 + (random() - 0.5) * 5);
 
   ecommerceData.push({
     date: date.toISOString().split('T')[0],
@@ -36,8 +55,8 @@ for (let i = 0; i < 60; i++) {
     sales,
     quantity: qty,
     unit_price: Math.round((sales / qty) * 100) / 100,
-    discount: Math.round(Math.random() * 20 * 100) / 100,
-    customer_rating: Math.round((3 + Math.random() * 2) * 10) / 10,
+    discount: Math.round(random() * 20 * 100) / 100,
+    customer_rating: Math.round((3 + random() * 2) * 10) / 10,
   });
 }
 
@@ -50,7 +69,7 @@ const merchants = ['Safaricom', 'KPLC', 'Nairobi Water', 'Jumia', 'Naivas', 'Tus
 for (let i = 0; i < 80; i++) {
   const date = new Date(2024, 0, 1);
   date.setHours(date.getHours() + i * 6);
-  const amount = Math.round(Math.random() * 5000 + 50);
+  const amount = Math.round(random() * 5000 + 50);
   const isAnomaly = i % 15 === 0;
   const finalAmount = isAnomaly ? amount * 10 : amount;
 
@@ -62,8 +81,8 @@ for (let i = 0; i < 80; i++) {
     type: transactionTypes[i % transactionTypes.length],
     amount: finalAmount,
     merchant: merchants[i % merchants.length],
-    status: Math.random() > 0.05 ? 'success' : 'failed',
-    balance: Math.round(Math.random() * 10000),
+    status: random() > 0.05 ? 'success' : 'failed',
+    balance: Math.round(random() * 10000),
   });
 }
 
@@ -73,8 +92,8 @@ const healthData: Record<string, any>[] = [];
 const departments = ['Emergency', 'ICU', 'General Ward', 'Pediatrics', 'Surgery', 'Maternity'];
 const diagnoses = ['Malaria', 'Hypertension', 'Diabetes', 'Respiratory Infection', 'Injury', 'Maternal Care'];
 for (let i = 0; i < 50; i++) {
-  const admitDate = new Date(2024, Math.floor(Math.random() * 12), Math.floor(Math.random() * 28) + 1);
-  const stayDays = Math.floor(Math.random() * 10) + 1;
+  const admitDate = new Date(2024, Math.floor(random() * 12), Math.floor(random() * 28) + 1);
+  const stayDays = Math.floor(random() * 10) + 1;
   const dischargeDate = new Date(admitDate);
   dischargeDate.setDate(dischargeDate.getDate() + stayDays);
 
@@ -84,11 +103,11 @@ for (let i = 0; i < 50; i++) {
     discharge_date: dischargeDate.toISOString().split('T')[0],
     department: departments[i % departments.length],
     diagnosis: diagnoses[i % diagnoses.length],
-    age: Math.floor(Math.random() * 70) + 10,
+    age: Math.floor(random() * 70) + 10,
     length_of_stay: stayDays,
-    cost: Math.round(stayDays * (500 + Math.random() * 1500)),
-    satisfaction: Math.round((3 + Math.random() * 2) * 10) / 10,
-    readmitted: Math.random() > 0.85 ? 1 : 0,
+    cost: Math.round(stayDays * (500 + random() * 1500)),
+    satisfaction: Math.round((3 + random() * 2) * 10) / 10,
+    readmitted: random() > 0.85 ? 1 : 0,
   });
 }
 

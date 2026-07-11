@@ -1,22 +1,31 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import {
   FileText, ShieldCheck, AlertTriangle, TrendingUp, GitBranch,
   CircleDot, Lightbulb, Code, Globe2, Sparkles, RotateCcw,
   Download, Eye, Target, Brain, Activity, CheckCircle2, XCircle, Database,
+  ArrowLeft, FileJson, FileSpreadsheet,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  ResponsiveContainer, LineChart, Line, AreaChart, Area, BarChart, Bar,
+  ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  PieChart, Pie, Cell, ZAxis,
+} from 'recharts';
 import { V7AgentState, V7ExecutionSummary } from '@/hooks/useV7Analysis';
 
 interface ResultsStepProps {
   agentStates: Record<string, V7AgentState>;
   executionSummary: V7ExecutionSummary | null;
   onRestart: () => void;
+  onBack?: () => void;
+  data?: Record<string, any>[];
+  fileName?: string;
 }
 
 interface TabConfig {
@@ -41,20 +50,76 @@ const TABS: TabConfig[] = [
   { id: 'knowledge', label: 'Knowledge Graph', icon: Brain, agentIds: ['knowledge_graph'] },
 ];
 
-export function ResultsStep({ agentStates, executionSummary, onRestart }: ResultsStepProps) {
+const CHART_COLORS = ['#00d4ff', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'];
+
+export function ResultsStep({ agentStates, executionSummary, onRestart, onBack, data, fileName }: ResultsStepProps) {
   const [activeTab, setActiveTab] = useState('overview');
 
   const successfulAgents = useMemo(() => {
     return Object.values(agentStates).filter(s => s.status === 'success');
   }, [agentStates]);
 
-  const getAgentResult = (id: string): any => {
+  const getAgentResult = useCallback((id: string): any => {
     return agentStates[id]?.result?.output ?? agentStates[id]?.result;
-  };
+  }, [agentStates]);
 
   const tabBadgeCount = (tab: TabConfig): number => {
     return tab.agentIds.filter(id => agentStates[id]?.status === 'success').length;
   };
+
+  // Export results as JSON
+  const handleExportJSON = useCallback(() => {
+    const exportData = {
+      fileName: fileName || 'analysis',
+      timestamp: new Date().toISOString(),
+      executionSummary,
+      results: Object.fromEntries(
+        Object.entries(agentStates).map(([id, state]) => [
+          id,
+          { status: state.status, output: state.result?.output ?? state.result, durationMs: state.durationMs }
+        ])
+      ),
+    };
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `busara-analysis-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [agentStates, executionSummary, fileName]);
+
+  // Export anomalies as CSV
+  const handleExportCSV = useCallback(() => {
+    const anomalyResult = getAgentResult('anomaly_ensemble');
+    const anomalies = anomalyResult?.anomalies || [];
+    if (anomalies.length === 0) {
+      alert('No anomalies to export');
+      return;
+    }
+    const headers = ['rowIndex', 'column', 'value', 'zScore', 'severity', 'methods'];
+    const rows = anomalies.map((a: any) => [
+      a.rowIndex ?? '',
+      a.column ?? '',
+      a.value ?? '',
+      a.zScore ?? '',
+      a.severity ?? '',
+      a.methods ? Object.keys(a.methods).join(';') : '',
+    ]);
+    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `anomalies-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [getAgentResult]);
+
+  // Print/PDF export
+  const handlePrint = useCallback(() => {
+    window.print();
+  }, []);
 
   return (
     <div className="space-y-4">
@@ -66,10 +131,24 @@ export function ResultsStep({ agentStates, executionSummary, onRestart }: Result
             {successfulAgents.length} agents produced results · {(executionSummary?.totalDurationMs / 1000).toFixed(1)}s total
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-1.5">
+        <div className="flex gap-2 flex-wrap">
+          {onBack && (
+            <Button variant="ghost" size="sm" onClick={onBack} className="gap-1.5">
+              <ArrowLeft className="h-3.5 w-3.5" />
+              Back to Pipeline
+            </Button>
+          )}
+          <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5">
             <Download className="h-3.5 w-3.5" />
             Export PDF
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportJSON} className="gap-1.5">
+            <FileJson className="h-3.5 w-3.5" />
+            JSON
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExportCSV} className="gap-1.5">
+            <FileSpreadsheet className="h-3.5 w-3.5" />
+            Anomalies CSV
           </Button>
           <Button variant="outline" size="sm" onClick={onRestart} className="gap-1.5">
             <RotateCcw className="h-3.5 w-3.5" />
@@ -210,6 +289,66 @@ function OverviewResults({ getAgentResult, executionSummary, agentStates }: any)
   const narrative = getAgentResult('narrative_composer');
   const quality = getAgentResult('data_quality_scorer');
   const ingestion = getAgentResult('data_ingestion');
+  const anomalies = getAgentResult('anomaly_ensemble');
+  const forecast = getAgentResult('holt_winters_forecast');
+  const causal = getAgentResult('causal_inference');
+
+  const [aiNarrative, setAiNarrative] = useState<any>(null);
+  const [narrativeLoading, setNarrativeLoading] = useState(false);
+  const [narrativeError, setNarrativeError] = useState<string | null>(null);
+
+  const handleGenerateAINarrative = useCallback(async () => {
+    setNarrativeLoading(true);
+    setNarrativeError(null);
+    try {
+      const response = await fetch('/api/ai-narrative', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          datasetSummary: {
+            rowCount: ingestion?.rowCount ?? 0,
+            columnCount: ingestion?.columnCount ?? 0,
+            columnTypes: {},
+            qualityScore: quality?.overallScore ?? 0,
+            detectedDomain: 'auto-detected',
+          },
+          keyFindings: (narrative?.keyFindings || []).map((f: any) => ({
+            title: f.title,
+            description: f.description,
+            confidence: f.confidence ?? 0.8,
+          })),
+          anomalies: {
+            total: anomalies?.totalAnomalies ?? 0,
+            topAnomalies: (anomalies?.anomalies || []).slice(0, 5),
+          },
+          forecast: forecast ? {
+            method: forecast.method ?? 'Holt-Winters',
+            accuracy: forecast.accuracy ?? 0,
+            trend: forecast.trend ?? 'unknown',
+            periods: forecast.forecast?.length ?? 0,
+          } : null,
+          causalRelationships: (causal?.relationships || []).slice(0, 5).map((r: any) => ({
+            cause: r.cause,
+            effect: r.effect,
+            strength: r.strength ?? 'moderate',
+            correlation: r.correlation ?? 0,
+          })),
+          recommendations: (narrative?.recommendations || []).map((r: any) => ({
+            title: r.title,
+            description: r.description,
+            priority: r.priority ?? 'medium',
+          })),
+        }),
+      });
+      const result = await response.json();
+      if (result.error) throw new Error(result.error);
+      setAiNarrative(result);
+    } catch (err: any) {
+      setNarrativeError(err.message || 'Failed to generate AI narrative');
+    } finally {
+      setNarrativeLoading(false);
+    }
+  }, [ingestion, quality, narrative, anomalies, forecast, causal]);
 
   if (!orchestrator && !narrative) {
     return <EmptyResult message="Overview results not available" />;
@@ -227,9 +366,79 @@ function OverviewResults({ getAgentResult, executionSummary, agentStates }: any)
         ]} />
       </ResultCard>
 
-      {/* Executive Summary */}
+      {/* AI-Powered Narrative (LLM) */}
+      <ResultCard title="AI-Powered Executive Narrative" icon={Sparkles} color="text-chart-3">
+        {!aiNarrative && !narrativeLoading && (
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground mb-3">
+              Generate a personalized, LLM-powered narrative summary of your analysis — with specific numbers, business context, and actionable recommendations.
+            </p>
+            <Button onClick={handleGenerateAINarrative} size="sm" className="gap-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              Generate AI Narrative
+            </Button>
+            {narrativeError && (
+              <p className="text-xs text-red-500 mt-2">{narrativeError}</p>
+            )}
+          </div>
+        )}
+        {narrativeLoading && (
+          <div className="text-center py-4">
+            <div className="inline-block animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent mb-2" />
+            <p className="text-sm text-muted-foreground">Analyzing results with AI…</p>
+          </div>
+        )}
+        {aiNarrative && (
+          <div className="space-y-3">
+            {aiNarrative.aiPowered && (
+              <Badge variant="secondary" className="text-[10px] gap-1">
+                <Sparkles className="h-3 w-3" />
+                AI-Powered · {aiNarrative.model}
+              </Badge>
+            )}
+            {aiNarrative.executiveSummary && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Executive Summary</p>
+                <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">{aiNarrative.executiveSummary}</p>
+              </div>
+            )}
+            {aiNarrative.keyInsights && aiNarrative.keyInsights.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Key Insights</p>
+                <ul className="space-y-1">
+                  {aiNarrative.keyInsights.map((insight: string, i: number) => (
+                    <li key={i} className="text-sm text-foreground/90 flex items-start gap-2">
+                      <span className="text-primary mt-0.5">•</span>
+                      <span>{insight}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {aiNarrative.strategicRecommendations && aiNarrative.strategicRecommendations.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-1">Strategic Recommendations</p>
+                <ul className="space-y-1">
+                  {aiNarrative.strategicRecommendations.map((rec: string, i: number) => (
+                    <li key={i} className="text-sm text-foreground/90 flex items-start gap-2">
+                      <span className="text-chart-3 mt-0.5">→</span>
+                      <span>{rec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            <Button onClick={handleGenerateAINarrative} variant="ghost" size="sm" className="gap-1.5 mt-2">
+              <RotateCcw className="h-3 w-3" />
+              Regenerate
+            </Button>
+          </div>
+        )}
+      </ResultCard>
+
+      {/* Executive Summary (rule-based) */}
       {narrative?.executiveSummary && (
-        <ResultCard title="Executive Summary" icon={FileText}>
+        <ResultCard title="Executive Summary (Rule-Based)" icon={FileText}>
           <p className="text-sm leading-relaxed text-foreground/90">{narrative.executiveSummary}</p>
         </ResultCard>
       )}
@@ -402,6 +611,14 @@ function ForecastResults({ getAgentResult }: any) {
     return <EmptyResult message="Forecast results not available" />;
   }
 
+  // Build chart data from forecast
+  const forecastChartData = (holtWinters?.forecast || arima?.forecast || []).map((f: any) => ({
+    step: `T+${f.step}`,
+    forecast: f.value,
+    lower: f.lower,
+    upper: f.upper,
+  }));
+
   return (
     <div className="space-y-4">
       {holtWinters && (
@@ -412,10 +629,61 @@ function ForecastResults({ getAgentResult }: any) {
             { label: 'RMSE', value: holtWinters.rmse?.toFixed(2) ?? '—' },
             { label: 'MAPE', value: `${holtWinters.mape?.toFixed(1)}%` },
           ]} />
+          {forecastChartData.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-medium mb-2">Forecast with Confidence Interval</p>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={forecastChartData}>
+                    <defs>
+                      <linearGradient id="ciGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#00d4ff" stopOpacity={0.05} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="step" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'hsl(var(--background))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                      }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px' }} />
+                    <Area
+                      type="monotone"
+                      dataKey="upper"
+                      stroke="none"
+                      fill="url(#ciGradient)"
+                      name="Upper CI"
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="lower"
+                      stroke="none"
+                      fill="hsl(var(--background))"
+                      name="Lower CI"
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="forecast"
+                      stroke="#00d4ff"
+                      strokeWidth={2}
+                      dot={{ fill: '#00d4ff', r: 3 }}
+                      name="Forecast"
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
           {holtWinters.forecast && (
             <div className="mt-3">
-              <p className="text-xs font-medium mb-2">Forecast ({holtWinters.forecast.length} periods):</p>
-              <div className="space-y-1">
+              <p className="text-xs font-medium mb-2">Forecast Values ({holtWinters.forecast.length} periods):</p>
+              <div className="space-y-1 max-h-48 overflow-y-auto">
                 {holtWinters.forecast.map((f: any, i: number) => (
                   <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30 text-xs">
                     <span className="font-medium w-16">Step {f.step}</span>
@@ -436,6 +704,7 @@ function ForecastResults({ getAgentResult }: any) {
           <StatGrid stats={[
             { label: 'Seasonal', value: seasonality.isSeasonal ? 'Yes' : 'No' },
             { label: 'Period', value: seasonality.dominantPeriod ?? '—' },
+            { label: 'Strength', value: seasonality.seasonalityStrength ? `${(seasonality.seasonalityStrength * 100).toFixed(0)}%` : '—' },
           ]} />
         </ResultCard>
       )}
@@ -708,14 +977,73 @@ function VizResults({ getAgentResult }: any) {
 
   return (
     <div className="space-y-4">
-      {viz.visualizations.map((v: any, i: number) => (
-        <ResultCard key={i} title={v.title} icon={Eye}>
-          <p className="text-xs text-muted-foreground mb-2">Type: {v.type} · {v.data?.length ?? 0} data points</p>
-          <div className="p-3 rounded-lg bg-muted/30 border border-border/30 max-h-64 overflow-y-auto scrollbar-thin">
-            <pre className="text-[10px] font-mono">{JSON.stringify(v.data?.slice(0, 5), null, 2)}</pre>
-          </div>
-        </ResultCard>
-      ))}
+      {viz.visualizations.map((v: any, i: number) => {
+        // Render chart based on type
+        const chartData = v.data || [];
+        return (
+          <ResultCard key={i} title={v.title} icon={Eye}>
+            <p className="text-xs text-muted-foreground mb-3">Type: {v.type} · {chartData.length} data points</p>
+            {chartData.length > 0 && (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  {v.type === 'line' || v.type === 'time_series' ? (
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey={Object.keys(chartData[0])[0]} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                      {Object.keys(chartData[0]).slice(1).map((key, idx) => (
+                        <Line key={key} type="monotone" dataKey={key} stroke={CHART_COLORS[idx % CHART_COLORS.length]} strokeWidth={2} dot={false} />
+                      ))}
+                    </LineChart>
+                  ) : v.type === 'bar' || v.type === 'histogram' ? (
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey={Object.keys(chartData[0])[0]} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                      {Object.keys(chartData[0]).slice(1).map((key, idx) => (
+                        <Bar key={key} dataKey={key} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                      ))}
+                    </BarChart>
+                  ) : v.type === 'scatter' ? (
+                    <ScatterChart>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="x" name="X" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis dataKey="y" name="Y" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <ZAxis dataKey="z" range={[60, 400]} name="Z" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                      <Scatter data={chartData} fill="#00d4ff" />
+                    </ScatterChart>
+                  ) : v.type === 'pie' ? (
+                    <PieChart>
+                      <Pie data={chartData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={{ fontSize: 11 }}>
+                        {chartData.map((_: any, idx: number) => (
+                          <Cell key={idx} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                      <Legend wrapperStyle={{ fontSize: '11px' }} />
+                    </PieChart>
+                  ) : (
+                    <BarChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey={Object.keys(chartData[0])[0]} tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
+                      <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))', borderRadius: '8px', fontSize: '12px' }} />
+                      {Object.keys(chartData[0]).slice(1).map((key, idx) => (
+                        <Bar key={key} dataKey={key} fill={CHART_COLORS[idx % CHART_COLORS.length]} />
+                      ))}
+                    </BarChart>
+                  )}
+                </ResponsiveContainer>
+              </div>
+            )}
+          </ResultCard>
+        );
+      })}
     </div>
   );
 }

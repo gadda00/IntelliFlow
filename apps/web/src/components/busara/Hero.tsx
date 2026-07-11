@@ -11,7 +11,7 @@ interface HeroProps {
 }
 
 const STATS = [
-  { icon: Brain, label: 'Specialized Agents', value: '26', color: 'text-primary' },
+  { icon: Brain, label: 'Specialized Agents', value: '50', color: 'text-primary' },
   { icon: Layers, label: 'Parallel DAG Stages', value: '7', color: 'text-chart-2' },
   { icon: Cpu, label: 'Algorithms/Agent', value: '3-5', color: 'text-chart-3' },
   { icon: Globe, label: 'Languages Generated', value: '3', color: 'text-chart-4' },
@@ -45,11 +45,11 @@ export function Hero({ onAnalyze, onSeeAgents }: HeroProps) {
           >
             <Badge variant="secondary" className="mb-6 py-1.5 px-3.5 text-xs font-medium rounded-full border border-primary/20 bg-primary/5">
               <Sparkles className="h-3 w-3 mr-1.5 text-primary" />
-              Busara v6.1 · Swahili for &ldquo;intelligence&rdquo; · Built in Nairobi
+              Busara v7.0 · Swahili for &ldquo;intelligence&rdquo; · Built in Nairobi
             </Badge>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05]">
-              26 agents.
+              50 agents.
               <br />
               <span className="gradient-text-hero animate-gradient">One mind.</span>
             </h1>

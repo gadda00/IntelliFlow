@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: "Busara — 26-Agent Data Intelligence Platform",
+  title: "Busara — 50-Agent Data Intelligence Platform",
   description: "Twenty-six agents. One mind. Busara orchestrates 26 specialized AI agents in a parallel DAG to extract every actionable insight from your data. Built in Nairobi for the world.",
   keywords: ["Busara", "multi-agent", "data analysis", "AI agents", "TypeScript", "Next.js", "Flutterwave", "anomaly detection", "forecasting", "causal inference", "Africa", "Nairobi"],
   authors: [{ name: "Victor Ndunda" }],
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "Busara — 26-Agent Data Intelligence Platform",
+    title: "Busara — 50-Agent Data Intelligence Platform",
     description: "Twenty-six agents. One mind. Built in Nairobi for the world.",
     url: "https://busara.ai",
     siteName: "Busara",
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Busara — 26-Agent Data Intelligence",
+    title: "Busara — 50-Agent Data Intelligence",
     description: "Twenty-six agents. One mind.",
     images: ["/og-image.png"],
   },
