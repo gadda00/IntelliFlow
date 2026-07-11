@@ -134,7 +134,7 @@ jobs:
           name: release-build
       
       - name: Deploy to Netlify
-        uses: nwtgck/actions-netlify@v2
+        uses: # netlify deploy removed — using Vercel
         with:
           publish-dir: './apps/web/.next'
           production-branch: main

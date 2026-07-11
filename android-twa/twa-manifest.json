@@ -1,6 +1,6 @@
 {
   "packageId": "ai.busara.app",
-  "host": "busara.netlify.app",
+  "host": "busaraai.com",
   "name": "Busara",
   "launcherName": "Busara",
   "display": "standalone",
@@ -11,8 +11,8 @@
   "backgroundColor": "#0a0f0d",
   "enableNotifications": true,
   "startUrl": "/",
-  "iconUrl": "https://busara.netlify.app/icon-512.png",
-  "maskableIconUrl": "https://busara.netlify.app/icon-maskable-512.png",
+  "iconUrl": "https://busaraai.com/icon-512.png",
+  "maskableIconUrl": "https://busaraai.com/icon-maskable-512.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
     "path": "/home/z/.android/debug.keystore",
@@ -21,9 +21,21 @@
   "appVersionName": "3.3.0",
   "appVersionCode": 33,
   "shortcuts": [
-    { "name": "Analyze", "shortName": "Analyze", "url": "/?section=analyze" },
-    { "name": "Chat", "shortName": "Chat", "url": "/?section=chat" },
-    { "name": "Pricing", "shortName": "Pricing", "url": "/?section=pricing" }
+    {
+      "name": "Analyze",
+      "shortName": "Analyze",
+      "url": "/?section=analyze"
+    },
+    {
+      "name": "Chat",
+      "shortName": "Chat",
+      "url": "/?section=chat"
+    },
+    {
+      "name": "Pricing",
+      "shortName": "Pricing",
+      "url": "/?section=pricing"
+    }
   ],
   "generatorSignatures": [],
   "generatorApp": "bubblewrap-cli-manual"

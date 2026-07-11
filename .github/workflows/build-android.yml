@@ -7,9 +7,9 @@ on:
   workflow_dispatch:
     inputs:
       pwa_url:
-        description: 'Deployed PWA URL (e.g., https://busara.netlify.app)'
+        description: 'Deployed PWA URL (e.g., https://busaraai.com)'
         required: true
-        default: 'https://busara.netlify.app'
+        default: 'https://busaraai.com'
 
 jobs:
   build:
@@ -52,7 +52,7 @@ jobs:
           if [ -n "${{ github.event.inputs.pwa_url }}" ]; then
             echo "url=${{ github.event.inputs.pwa_url }}" >> $GITHUB_OUTPUT
           else
-            echo "url=https://busara-ai.netlify.app" >> $GITHUB_OUTPUT
+            echo "url=https://busaraai.com" >> $GITHUB_OUTPUT
           fi
 
       - name: Initialize TWA project

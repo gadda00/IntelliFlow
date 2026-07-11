@@ -1,8 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "buildCommand": "cd apps/web && pnpm run build",
+  "buildCommand": "pnpm --filter @busara/web run build",
   "outputDirectory": "apps/web/.next",
   "framework": "nextjs",
-  "regions": ["iad1"]
+  "rootDirectory": ".",
+  "regions": ["iad1"],
+  "domains": ["busaraai.com"],
+  "redirects": [
+    { "source": "/www.busaraai.com/:path*", "destination": "https://busaraai.com/:path*", "permanent": true }
+  ]
 }

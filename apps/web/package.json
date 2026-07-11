@@ -5,8 +5,8 @@
   "description": "Busara Web Application - Next.js frontend",
   "scripts": {
     "dev": "next dev -p 3000",
-    "build": "prisma generate && next build",
-    "postinstall": "prisma generate",
+    "build": "prisma generate --schema=../../prisma/schema.prisma && next build",
+    "postinstall": "prisma generate --schema=../../prisma/schema.prisma",
     "start": "next start -p 3000",
     "lint": "eslint src --ext .ts,.tsx",
     "test": "vitest run",
@@ -14,10 +14,10 @@
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .next dist",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:generate": "prisma generate --schema=../../prisma/schema.prisma",
+    "db:push": "prisma db push --schema=../../prisma/schema.prisma",
+    "db:migrate": "prisma migrate dev --schema=../../prisma/schema.prisma",
+    "db:studio": "prisma studio --schema=../../prisma/schema.prisma"
   },
   "dependencies": {
     "@busara/agents": "workspace:*",
