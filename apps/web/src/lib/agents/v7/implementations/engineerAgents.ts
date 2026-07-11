@@ -169,7 +169,26 @@ export class StandardScalerAgent extends BaseAgent {
       scaledColumns[col] = s === 0 ? values.map(() => 0) : values.map(v => (v - m) / s);
     }
 
-    return this.createResult({ scalers, scaledColumns }, {
+    // Apply scaling to the dataframe — downstream agents get normalized data
+    const transformedData = dataframe.map(row => {
+      const newRow = { ...row };
+      for (const col of Object.keys(scalers)) {
+        const m = scalers[col].mean;
+        const s = scalers[col].stdev;
+        const v = Number(newRow[col]);
+        if (!isNaN(v) && s !== 0) {
+          newRow[col] = (v - m) / s;
+        }
+      }
+      return newRow;
+    });
+
+    return this.createResult({ 
+      scalers, 
+      scaledColumns,
+      transformedData,
+      message: `Z-score normalized ${Object.keys(scalers).length} columns`,
+    }, {
       columnsScaled: Object.keys(scalers).length,
     }, Date.now() - start);
   }
@@ -219,7 +238,26 @@ export class MinMaxScalerAgent extends BaseAgent {
       scaledColumns[col] = r === 0 ? values.map(() => 0.5) : values.map(v => (v - mn) / r);
     }
 
-    return this.createResult({ scalers, scaledColumns }, {
+    // Apply min-max scaling to the dataframe — downstream agents get normalized data
+    const transformedData = dataframe.map(row => {
+      const newRow = { ...row };
+      for (const col of Object.keys(scalers)) {
+        const mn = scalers[col].min;
+        const r = scalers[col].range;
+        const v = Number(newRow[col]);
+        if (!isNaN(v) && r !== 0) {
+          newRow[col] = (v - mn) / r;
+        }
+      }
+      return newRow;
+    });
+
+    return this.createResult({ 
+      scalers, 
+      scaledColumns,
+      transformedData,
+      message: `Min-max scaled ${Object.keys(scalers).length} columns to [0, 1]`,
+    }, {
       columnsScaled: Object.keys(scalers).length,
     }, Date.now() - start);
   }

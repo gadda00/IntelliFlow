@@ -180,6 +180,12 @@ export class DAGOrchestrator {
       startedAt: new Date().toISOString(),
     };
 
+    // Track the current (potentially transformed) dataframe — engineer agents
+    // can produce a `transformedData` field in their output, which replaces the
+    // dataframe for all downstream stages. This enables real data engineering:
+    // imputation fills missing values, scalers normalize columns, etc.
+    let currentDataframe: Record<string, any>[] = opts.dataframe;
+
     let agentsSucceeded = 0;
     let agentsFailed = 0;
     let agentsSkipped = 0;
@@ -193,6 +199,12 @@ export class DAGOrchestrator {
       const stageAgents = plan.stages[stageIdx];
       const stageStart = Date.now();
       const stageNumber = stageAgents[0]?.stageNumber ?? stageIdx;
+
+      // Use the current (potentially transformed) dataframe for this stage
+      const stageContext: Omit<AgentContext, 'previousResults'> = {
+        ...baseContext,
+        dataframe: currentDataframe,
+      };
 
       const tasks: Promise<AgentResult>[] = [];
 
@@ -250,7 +262,7 @@ export class DAGOrchestrator {
         }
 
         const ctx: AgentContext = {
-          ...baseContext,
+          ...stageContext,
           previousResults,
         };
 
@@ -269,6 +281,16 @@ export class DAGOrchestrator {
             if (result.status === 'success') agentsSucceeded++;
             else if (result.status === 'skipped') agentsSkipped++;
             else agentsFailed++;
+
+            // Check if this agent produced transformed data — if so, update
+            // the dataframe for all downstream stages. Engineer agents (imputation,
+            // scalers, feature engineering, outlier removal, duplicate removal)
+            // use this to actually mutate the data pipeline.
+            const output = result.output as any;
+            if (output?.transformedData && Array.isArray(output.transformedData) && output.transformedData.length > 0) {
+              currentDataframe = output.transformedData;
+              console.log(`[Orchestrator] Agent ${result.agentId} transformed dataframe: ${output.transformedData.length} rows (was ${currentDataframe.length})`);
+            }
           }
         }
       }
