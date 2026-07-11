@@ -422,9 +422,64 @@ export class DataQualityScorerAgent extends BaseAgent {
       qualityScore: overallScore,
     }, Date.now() - start);
   }
-}
 
-// ─── 8. Text Length Profiler ───────────────────────────────────────────
+  // ─── Real validity check: do values match inferred types? ────────
+  private calculateValidity(schemaResult: any): number {
+    if (!schemaResult) return 70;
+    let totalCols = 0;
+    let validCols = 0;
+    for (const [col, info] of Object.entries(schemaResult)) {
+      const typed = info as any;
+      totalCols++;
+      // If a column is inferred as numeric but has high null count or many unparseable values, lower validity
+      if (typed.type === 'numeric' && (typed.nullCount || 0) / (typed.totalCount || 1) < 0.3) {
+        validCols += 100;
+      } else if (typed.type === 'categorical' || typed.type === 'string') {
+        validCols += 90;
+      } else if (typed.confidence && typed.confidence > 0.7) {
+        validCols += 80;
+      } else {
+        validCols += 50;
+      }
+    }
+    return totalCols > 0 ? Math.round(validCols / totalCols) : 70;
+  }
+
+  // ─── Real consistency check: cross-column logic ──────────────────
+  private calculateConsistency(dataframe: any[], schemaResult: any): number {
+    if (!dataframe.length || !schemaResult) return 80;
+    let issues = 0;
+    const totalChecks = Math.min(dataframe.length, 100); // Sample first 100 rows
+
+    const numericCols = Object.entries(schemaResult)
+      .filter(([_, v]: [string, any]) => v.type === 'numeric')
+      .map(([k]) => k);
+
+    // Check: numeric columns shouldn't have negative values where unexpected (e.g., counts, prices)
+    for (const col of numericCols) {
+      if (col.match(/count|qty|quantity|price|amount|total|sum/i)) {
+        for (let i = 0; i < totalChecks; i++) {
+          const val = Number(dataframe[i]?.[col]);
+          if (!isNaN(val) && val < 0) issues++;
+        }
+      }
+    }
+
+    // Check: dates should be parseable
+    const dateCols = Object.entries(schemaResult)
+      .filter(([_, v]: [string, any]) => v.type === 'datetime' || v.type === 'date')
+      .map(([k]) => k);
+    for (const col of dateCols) {
+      for (let i = 0; i < totalChecks; i++) {
+        const val = dataframe[i]?.[col];
+        if (val && isNaN(new Date(val).getTime())) issues++;
+      }
+    }
+
+    const consistency = Math.max(0, 100 - (issues / Math.max(1, totalChecks)) * 100);
+    return Math.round(consistency);
+  }
+}
 
 export class TextLengthProfilerAgent extends BaseAgent {
   readonly metadata: AgentMetadata = {

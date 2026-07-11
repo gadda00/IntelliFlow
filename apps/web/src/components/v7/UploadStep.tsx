@@ -83,12 +83,13 @@ export function UploadStep({ onDataLoaded }: UploadStepProps) {
     try {
       const resp = await fetch(`/api/proxy-url?url=${encodeURIComponent(urlInput)}`);
       if (!resp.ok) throw new Error('Fetch failed');
-      const text = await resp.text();
+      const json = await resp.json();
+      const text = json.data || '';
       let rows: Record<string, any>[] = [];
       const fileName = urlInput.split('/').pop() ?? 'data.csv';
       if (fileName.toLowerCase().endsWith('.json')) {
         const parsed = JSON.parse(text);
-        rows = Array.isArray(parsed) ? parsed : (parsed.data ?? [parsed]);
+        rows = Array.isArray(parsed) ? parsed : (parsed.data ?? parsed.rows ?? parsed.records ?? [parsed]);
       } else {
         rows = parseCSVText(text);
       }

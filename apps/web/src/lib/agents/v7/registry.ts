@@ -99,10 +99,10 @@ export const AgentRegistry: Map<string, AgentFactory> = new Map([
   ['mode_imputation', () => new ModeImputationAgent()],
   ['standard_scaler', () => new StandardScalerAgent()],
   ['minmax_scaler', () => new MinMaxScalerAgent()],
-  ['outlier_removal', () => new OutlierRemovalAgent()],
+  ['outlier_detector', () => new OutlierRemovalAgent()],
   ['feature_engineering', () => new FeatureEngineeringAgent()],
   ['text_normalizer', () => new TextNormalizerAgent()],
-  ['duplicate_remover', () => new DuplicateRemoverAgent()],
+  ['duplicate_reporter', () => new DuplicateRemoverAgent()],
   ['type_coercion', () => new TypeCoercionAgent()],
   ['data_sampling', () => new DataSamplingAgent()],
 
@@ -120,7 +120,7 @@ export const AgentRegistry: Map<string, AgentFactory> = new Map([
 
   // ─── Stage 3: Forecasting (31-34) ────────────────────────────────────
   ['holt_winters_forecast', () => new HoltWintersForecastAgent()],
-  ['arima_forecast', () => new ARIMAAgent()],
+  ['autoregressive_forecast', () => new ARIMAAgent()],
   ['moving_average_forecast', () => new MovingAverageForecastAgent()],
   ['anomaly_forecasting', () => new AnomalyForecastingAgent()],
 
@@ -128,8 +128,8 @@ export const AgentRegistry: Map<string, AgentFactory> = new Map([
   ['ols_regression', () => new OLSRegressionAgent()],
   ['causal_inference', () => new CausalInferenceAgent()],
   ['feature_importance', () => new FeatureImportanceAgent()],
-  ['shap_explainer', () => new SHAPExplainerAgent()],
-  ['auto_ml', () => new AutoMLAgent()],
+  ['feature_contribution', () => new SHAPExplainerAgent()],
+  ['model_comparison', () => new AutoMLAgent()],
   ['benchmark_agent', () => new BenchmarkAgent()],
   ['knowledge_graph', () => new KnowledgeGraphBuilderAgent()],
   ['africa_market_intel', () => new AfricaMarketIntelAgent()],

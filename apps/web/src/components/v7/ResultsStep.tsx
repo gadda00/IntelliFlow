@@ -39,8 +39,8 @@ const TABS: TabConfig[] = [
   { id: 'overview', label: 'Overview', icon: FileText, agentIds: ['orchestrator', 'narrative_composer', 'data_quality_scorer', 'data_ingestion'] },
   { id: 'profile', label: 'Data Profile', icon: Database, agentIds: ['data_profiling', 'schema_inference', 'missing_value_analyzer', 'cardinality_checker', 'duplicate_detector', 'data_quality_scorer'] },
   { id: 'anomalies', label: 'Anomalies', icon: AlertTriangle, agentIds: ['anomaly_ensemble', 'isolation_forest', 'fraud_detection', 'realtime_alert'] },
-  { id: 'forecast', label: 'Forecast', icon: TrendingUp, agentIds: ['holt_winters_forecast', 'arima_forecast', 'moving_average_forecast', 'anomaly_forecasting', 'seasonality_detector', 'stationarity_tester'] },
-  { id: 'inference', label: 'Inference', icon: GitBranch, agentIds: ['correlation_matrix', 'ols_regression', 'causal_inference', 'feature_importance', 'shap_explainer', 'auto_ml'] },
+  { id: 'forecast', label: 'Forecast', icon: TrendingUp, agentIds: ['holt_winters_forecast', 'autoregressive_forecast', 'moving_average_forecast', 'anomaly_forecasting', 'seasonality_detector', 'stationarity_tester'] },
+  { id: 'inference', label: 'Inference', icon: GitBranch, agentIds: ['correlation_matrix', 'ols_regression', 'causal_inference', 'feature_importance', 'feature_contribution', 'model_comparison'] },
   { id: 'clusters', label: 'Clusters', icon: CircleDot, agentIds: ['kmeans_cluster', 'dbscan_cluster', 'gaussian_mixture'] },
   { id: 'insights', label: 'Insights', icon: Lightbulb, agentIds: ['insight_generator', 'reflection_agent'] },
   { id: 'code', label: 'Code', icon: Code, agentIds: ['code_generator'] },
@@ -51,6 +51,39 @@ const TABS: TabConfig[] = [
 ];
 
 const CHART_COLORS = ['#00d4ff', '#a855f7', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#ec4899', '#06b6d4'];
+
+// ─── Domain detection from schema columns ──────────────────────────
+function detectDomain(schema: any, ingestion: any): string {
+  if (!schema) return 'unknown';
+  const cols = Object.keys(schema).map(c => c.toLowerCase());
+  const colStr = cols.join(' ');
+  
+  if (colStr.match(/sales|revenue|product|customer|order|cart|discount/)) return 'e-commerce';
+  if (colStr.match(/patient|diagnosis|admit|discharge|readmission|medical|health/)) return 'healthcare';
+  if (colStr.match(/transaction|amount|balance|transfer|payment|fraud|mpesa|bank/)) return 'fintech';
+  if (colStr.match(/crop|farm|yield|weather|rainfall|temperature|soil|harvest/)) return 'agriculture';
+  if (colStr.match(/employee|salary|department|hire|attrition|performance/)) return 'hr';
+  if (colStr.match(/click|impression|conversion|bounce|session|page|traffic/)) return 'marketing';
+  if (colStr.match(/stock|inventory|warehouse|supply|demand|sku/)) return 'supply-chain';
+  
+  return 'general';
+}
+
+// ─── Metric translation (plain English) ────────────────────────────
+function translateRMSE(rmse: number, unit = 'units'): string {
+  return `predictions are typically off by ±${rmse.toFixed(2)} ${unit}`;
+}
+function translateRSquared(r2: number): string {
+  const pct = (r2 * 100).toFixed(0);
+  return `this model explains ${pct}% of what drives the outcome`;
+}
+function translatePValue(p: number): string {
+  const conf = ((1 - p) * 100).toFixed(0);
+  return `${conf}% confident the effect is real (not random)`;
+}
+function translateMAPE(mape: number): string {
+  return `average prediction error is ${mape.toFixed(1)}%`;
+}
 
 export function ResultsStep({ agentStates, executionSummary, onRestart, onBack, data, fileName }: ResultsStepProps) {
   const [activeTab, setActiveTab] = useState('overview');
@@ -237,6 +270,9 @@ export function ResultsStep({ agentStates, executionSummary, onRestart, onBack, 
           <KnowledgeGraphResults getAgentResult={getAgentResult} />
         </TabsContent>
       </Tabs>
+
+      {/* Suggested Follow-Up Questions */}
+      <SuggestedFollowUps getAgentResult={getAgentResult} data={data} />
     </div>
   );
 }
@@ -282,6 +318,87 @@ function EmptyResult({ message }: { message: string }) {
   );
 }
 
+// ─── Data Sufficiency Warning ──────────────────────────────────────
+function DataSufficiencyWarning({ rowCount, testType }: { rowCount: number; testType: string }) {
+  const MIN_ROWS: Record<string, number> = {
+    forecasting: 10,
+    clustering: 20,
+    correlation: 10,
+    regression: 15,
+    anomaly: 30,
+    default: 5,
+  };
+  const minRequired = MIN_ROWS[testType] || MIN_ROWS.default;
+  
+  if (rowCount >= minRequired) return null;
+  
+  return (
+    <div className="mb-4 p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-start gap-2">
+      <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+      <div>
+        <p className="text-sm font-medium text-amber-500">Low confidence: insufficient data</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Only {rowCount} rows — {testType} typically needs {minRequired}+ for reliable results.
+          Consider collecting more data or interpreting results with caution.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Suggested Follow-Up Questions ─────────────────────────────────
+function SuggestedFollowUps({ getAgentResult, data }: { getAgentResult: (id: string) => any; data?: any[] }) {
+  const suggestions: string[] = [];
+  const anomalies = getAgentResult('anomaly_ensemble');
+  const forecast = getAgentResult('holt_winters_forecast');
+  const correlation = getAgentResult('correlation_matrix');
+  const ols = getAgentResult('ols_regression');
+  const clusters = getAgentResult('kmeans_cluster');
+  
+  if (anomalies?.totalAnomalies > 0) {
+    suggestions.push(`What's driving the ${anomalies.totalAnomalies} anomalies?`);
+    suggestions.push('Which rows have the most critical anomalies?');
+  }
+  if (forecast?.forecast?.length > 0) {
+    suggestions.push(`Will the ${forecast.trend || 'current'} trend continue?`);
+    suggestions.push('What factors are driving the forecast?');
+  }
+  if (correlation?.strongCorrelations?.length > 0) {
+    const top = correlation.strongCorrelations[0];
+    suggestions.push(`Why are ${top.col1} and ${top.col2} correlated?`);
+  }
+  if (ols?.rSquared) {
+    suggestions.push(`Which variables matter most for ${ols.targetColumn || 'the outcome'}?`);
+  }
+  if (clusters?.bestK) {
+    suggestions.push(`What defines each of the ${clusters.bestK} clusters?`);
+  }
+  
+  // Generic suggestions if no specific ones
+  if (suggestions.length === 0) {
+    suggestions.push('What are the biggest patterns in this data?');
+    suggestions.push('What should I investigate next?');
+    suggestions.push('Are there any data quality issues I should fix?');
+  }
+  
+  return (
+    <Card className="p-4 border-primary/20 bg-primary/5">
+      <div className="flex items-center gap-2 mb-3">
+        <Sparkles className="h-4 w-4 text-primary" />
+        <p className="text-sm font-medium">Suggested Next Steps</p>
+      </div>
+      <div className="space-y-2">
+        {suggestions.slice(0, 5).map((q, i) => (
+          <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-background/50 hover:bg-background cursor-pointer transition-colors">
+            <span className="text-primary text-xs mt-0.5">→</span>
+            <span className="text-sm text-foreground/80">{q}</span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 // ─── Individual Tab Content Components ─────────────────────────────────
 
 function OverviewResults({ getAgentResult, executionSummary, agentStates }: any) {
@@ -289,6 +406,7 @@ function OverviewResults({ getAgentResult, executionSummary, agentStates }: any)
   const narrative = getAgentResult('narrative_composer');
   const quality = getAgentResult('data_quality_scorer');
   const ingestion = getAgentResult('data_ingestion');
+  const schema = getAgentResult('schema_inference');
   const anomalies = getAgentResult('anomaly_ensemble');
   const forecast = getAgentResult('holt_winters_forecast');
   const causal = getAgentResult('causal_inference');
@@ -308,9 +426,11 @@ function OverviewResults({ getAgentResult, executionSummary, agentStates }: any)
           datasetSummary: {
             rowCount: ingestion?.rowCount ?? 0,
             columnCount: ingestion?.columnCount ?? 0,
-            columnTypes: {},
+            columnTypes: schema ? Object.fromEntries(
+              Object.entries(schema).map(([col, info]: [string, any]) => [col, info.type || 'unknown'])
+            ) : {},
             qualityScore: quality?.overallScore ?? 0,
-            detectedDomain: 'auto-detected',
+            detectedDomain: detectDomain(schema, ingestion),
           },
           keyFindings: (narrative?.keyFindings || []).map((f: any) => ({
             title: f.title,
@@ -563,6 +683,34 @@ function AnomalyResults({ getAgentResult }: any) {
     <div className="space-y-4">
       {ensemble && (
         <ResultCard title="Anomaly Ensemble (Z-Score + IQR + EWMA)" icon={AlertTriangle} color="text-destructive">
+          {/* Conclusion-first + So What + Action */}
+          <div className="mb-4 p-3 rounded-lg bg-destructive/5 border border-destructive/20 space-y-2">
+            <div>
+              <span className="text-xs font-bold text-destructive">OBSERVATION: </span>
+              <span className="text-sm text-foreground">
+                {ensemble.totalAnomalies} anomalies detected ({(ensemble.anomalyRate * 100).toFixed(1)}% of data)
+                — {ensemble.bySeverity?.critical ?? 0} critical, {ensemble.bySeverity?.warning ?? 0} warnings.
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-bold text-chart-3">SO WHAT: </span>
+              <span className="text-sm text-muted-foreground">
+                {ensemble.bySeverity?.critical > 5
+                  ? 'High number of critical anomalies suggests data quality issues or genuine business events requiring investigation.'
+                  : ensemble.totalAnomalies > 0
+                  ? 'Anomalies may indicate data entry errors, system glitches, or genuine outliers worth investigating.'
+                  : 'No significant anomalies detected — data appears clean and within expected ranges.'}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-bold text-primary">ACTION: </span>
+              <span className="text-sm text-muted-foreground">
+                {ensemble.bySeverity?.critical > 0
+                  ? 'Review critical anomalies first — check for data entry errors, then investigate as business events.'
+                  : 'No immediate action required. Monitor anomaly rate over time for trend changes.'}
+              </span>
+            </div>
+          </div>
           <StatGrid stats={[
             { label: 'Total Anomalies', value: ensemble.totalAnomalies, color: 'text-destructive' },
             { label: 'Anomaly Rate', value: `${(ensemble.anomalyRate * 100).toFixed(2)}%` },
@@ -604,7 +752,7 @@ function AnomalyResults({ getAgentResult }: any) {
 
 function ForecastResults({ getAgentResult }: any) {
   const holtWinters = getAgentResult('holt_winters_forecast');
-  const arima = getAgentResult('arima_forecast');
+  const arima = getAgentResult('autoregressive_forecast');
   const seasonality = getAgentResult('seasonality_detector');
 
   if (!holtWinters && !arima) {
@@ -623,6 +771,19 @@ function ForecastResults({ getAgentResult }: any) {
     <div className="space-y-4">
       {holtWinters && (
         <ResultCard title="Holt-Winters Forecast" icon={TrendingUp} color="text-chart-4">
+          {/* Conclusion-first: plain English summary */}
+          <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+            <p className="text-sm font-semibold text-foreground">
+              {holtWinters.accuracy >= 80
+                ? `Forecast is ${holtWinters.accuracy.toFixed(0)}% accurate — reliable for planning.`
+                : holtWinters.accuracy >= 60
+                ? `Forecast is ${holtWinters.accuracy.toFixed(0)}% accurate — use with caution for planning.`
+                : `Forecast is only ${holtWinters.accuracy.toFixed(0)}% accurate — consider collecting more data.`}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {translateRMSE(holtWinters.rmse, 'units')} · {translateMAPE(holtWinters.mape)}
+            </p>
+          </div>
           <StatGrid stats={[
             { label: 'Method', value: holtWinters.method?.split(' ')[0] ?? 'HW' },
             { label: 'Accuracy', value: `${holtWinters.accuracy?.toFixed(1)}%`, color: 'text-primary' },

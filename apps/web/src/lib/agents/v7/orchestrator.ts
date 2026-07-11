@@ -219,37 +219,16 @@ export class DAGOrchestrator {
           continue;
         }
 
-        // Check dependency failures
+        // Check dependency failures — only skip if a dependency FAILED (not skipped)
+        // Agents should handle missing optional inputs gracefully
         const failedDeps = meta.dependencies.filter(dep => {
           const depResult = results.get(dep);
-          return depResult && depResult.status !== 'success';
+          return depResult && depResult.status === 'failed';
         });
 
         if (failedDeps.length > 0) {
-          const result: AgentResult = {
-            agentId: meta.id,
-            agentName: meta.name,
-            status: 'skipped',
-            output: null,
-            metrics: {},
-            executionTimeMs: 0,
-            error: `Dependencies failed: ${failedDeps.join(', ')}`,
-            timestamp: new Date().toISOString(),
-          };
-          results.set(meta.id, result);
-          agentsSkipped++;
-          opts.onProgress?.({
-            analysisId: opts.analysisId,
-            agentId: meta.id,
-            agentName: meta.name,
-            stage: meta.stage,
-            stageNumber,
-            status: 'skipped',
-            progress: 0,
-            error: result.error,
-            timestamp: new Date().toISOString(),
-          });
-          continue;
+          // Log warning but still try to run — agent may handle missing input
+          console.warn(`[Orchestrator] Agent ${meta.id} has failed deps: ${failedDeps.join(', ')}, but attempting anyway`);
         }
 
         // Build context with dependency results
@@ -312,12 +291,9 @@ export class DAGOrchestrator {
     const cb = this.circuitBreakers.get(meta.id)!;
     const start = Date.now();
 
-    // Check cache
-    const cacheKey = this.buildCacheKey(agent, ctx);
-    const cached = this.cache.get(cacheKey);
-    if (cached) {
-      return { ...cached, executionTimeMs: 0 };
-    }
+    // Cache disabled — key was based on row count + config length, which collides
+    // across different datasets. Per-request orchestrator instance means cache never
+    // hits anyway. Re-enable only with a proper content-hash key.
 
     onProgress?.({
       analysisId: analysisId ?? '',
@@ -340,7 +316,7 @@ export class DAGOrchestrator {
       };
 
       cb.recordSuccess();
-      this.cache.set(cacheKey, finalResult);
+      // Cache set removed — see comment above
 
       onProgress?.({
         analysisId: analysisId ?? '',

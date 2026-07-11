@@ -4,6 +4,7 @@
  */
 
 import { BaseAgent, AgentMetadata, AgentContext, AgentResult } from '../core';
+import { createRng } from '../seededRandom';
 import {
   zScores, quantile, iqr, ewma, mean, stdev, kmeans, silhouetteScore,
   euclideanDistance, shannonEntropy,
@@ -29,6 +30,7 @@ export class AnomalyEnsembleAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const profileResult = previousResults.get('data_profiling');
 
@@ -113,6 +115,7 @@ export class IsolationForestAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const profileResult = previousResults.get('data_profiling');
 
@@ -146,19 +149,19 @@ export class IsolationForestAgent extends BaseAgent {
       // Random sample
       const indices = Array.from({ length: data.length }, (_, i) => i);
       for (let i = indices.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
+        const j = Math.floor(rng() * (i + 1));
         [indices[i], indices[j]] = [indices[j], indices[i]];
       }
       const sample = indices.slice(0, sampleSize);
 
       // Random split depths
       for (let i = 0; i < data.length; i++) {
-        const featureIdx = Math.floor(Math.random() * numericCols.length);
+        const featureIdx = Math.floor(rng() * numericCols.length);
         const sampleValues = sample.map(idx => data[idx][featureIdx]);
-        const minVal = Math.min(...sampleValues);
-        const maxVal = Math.max(...sampleValues);
+        const minVal = sampleValues.reduce((a,b) => Math.min(a,b), Infinity);
+        const maxVal = sampleValues.reduce((a,b) => Math.max(a,b), -Infinity);
         if (maxVal === minVal) { scores[i] += 1; continue; }
-        const splitPoint = minVal + Math.random() * (maxVal - minVal);
+        const splitPoint = minVal + rng() * (maxVal - minVal);
 
         // Path length approximation
         let depth = 0;
@@ -214,6 +217,7 @@ export class KMeansClusterAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const profileResult = previousResults.get('data_profiling');
 
@@ -290,6 +294,7 @@ export class DBSCANClusterAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const profileResult = previousResults.get('data_profiling');
 
@@ -388,6 +393,7 @@ export class GaussianMixtureAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const profileResult = previousResults.get('data_profiling');
 
@@ -419,7 +425,7 @@ export class GaussianMixtureAgent extends BaseAgent {
     // Initialize means randomly
     const means: number[][] = [];
     for (let i = 0; i < k; i++) {
-      means.push(data[Math.floor(Math.random() * n)]);
+      means.push(data[Math.floor(rng() * n)]);
     }
     const weights = new Array(k).fill(1 / k);
     const variances = new Array(k).fill(0).map(() => {
@@ -501,6 +507,7 @@ export class FraudDetectionAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const anomalyResult = previousResults.get('anomaly_ensemble');
 
@@ -610,6 +617,7 @@ export class SentimentAnalysisAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const schemaResult = previousResults.get('schema_inference');
 
@@ -686,6 +694,7 @@ export class CorrelationMatrixAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults } = ctx;
     const profileResult = previousResults.get('data_profiling');
 
@@ -701,18 +710,26 @@ export class CorrelationMatrixAgent extends BaseAgent {
       return this.createResult({ matrix: {}, message: 'Need 2+ numeric columns' }, {}, Date.now() - start);
     }
 
-    // Build column arrays
-    const colData: Record<string, number[]> = {};
-    for (const col of numericCols) {
-      colData[col] = dataframe.map(r => Number(r[col])).filter(n => !isNaN(n));
-    }
-
-    // Compute correlation matrix
+    // Compute correlation matrix — filter rows where BOTH columns are non-null (aligned pairs)
     const matrix: Record<string, Record<string, number>> = {};
     for (const col1 of numericCols) {
       matrix[col1] = {};
       for (const col2 of numericCols) {
-        matrix[col1][col2] = this.pearson(colData[col1], colData[col2]);
+        if (col1 === col2) {
+          matrix[col1][col2] = 1.0;
+          continue;
+        }
+        // Fix: filter rows where BOTH columns are non-null (aligned pairs)
+        const pairs = dataframe
+          .map(r => [Number(r[col1]), Number(r[col2])])
+          .filter(([a, b]) => !isNaN(a) && !isNaN(b));
+        if (pairs.length < 2) {
+          matrix[col1][col2] = 0;
+          continue;
+        }
+        const x = pairs.map(p => p[0]);
+        const y = pairs.map(p => p[1]);
+        matrix[col1][col2] = this.pearson(x, y);
       }
     }
 
@@ -779,6 +796,7 @@ export class StationarityTesterAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults, config } = ctx;
     const profileResult = previousResults.get('data_profiling');
 
@@ -854,6 +872,7 @@ export class SeasonalityDetectorAgent extends BaseAgent {
 
   async execute(ctx: AgentContext): Promise<AgentResult> {
     const start = Date.now();
+    const rng = createRng(42); // Seeded for reproducibility
     const { dataframe, previousResults, config } = ctx;
     const profileResult = previousResults.get('data_profiling');
 

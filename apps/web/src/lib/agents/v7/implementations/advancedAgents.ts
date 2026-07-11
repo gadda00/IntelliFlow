@@ -45,7 +45,17 @@ export class HoltWintersForecastAgent extends BaseAgent {
       return this.createError('No target column for forecasting', Date.now() - start);
     }
 
-    const values = dataframe.map(r => Number(r[targetCol])).filter(n => !isNaN(n));
+    // Sort by time column if specified (fix: was using row order, ignoring time)
+    let sortedData = dataframe;
+    if (config.timeColumn && dataframe[0]?.[config.timeColumn]) {
+      sortedData = [...dataframe].sort((a, b) => {
+        const ta = new Date(a[config.timeColumn!]).getTime();
+        const tb = new Date(b[config.timeColumn!]).getTime();
+        return (isNaN(ta) ? 0 : ta) - (isNaN(tb) ? 0 : tb);
+      });
+    }
+
+    const values = sortedData.map(r => Number(r[targetCol])).filter(n => !isNaN(n));
     const seasonLength = seasonResult?.output?.seasonLength ?? config.seasonLength ?? 12;
     const forecastHorizon = config.forecastHorizon ?? 6;
 
@@ -92,8 +102,8 @@ export class HoltWintersForecastAgent extends BaseAgent {
 
 export class ARIMAAgent extends BaseAgent {
   readonly metadata: AgentMetadata = {
-    id: 'arima_forecast',
-    name: 'ARIMA Forecast',
+    id: 'autoregressive_forecast',
+    name: 'Autoregressive Forecast',
     role: 'AutoRegressive Integrated Moving Average',
     tier: 'stats',
     stage: 'forecast',
@@ -274,8 +284,8 @@ export class AnomalyForecastingAgent extends BaseAgent {
 
     // Flag future periods where the lower bound exceeds historical max
     const historicalValues = historicalAnomalies.map((a: any) => a.value);
-    const historicalMax = historicalValues.length > 0 ? Math.max(...historicalValues) : Infinity;
-    const historicalMin = historicalValues.length > 0 ? Math.min(...historicalValues) : -Infinity;
+    const historicalMax = historicalValues.length > 0 ? historicalValues.reduce((a,b) => Math.max(a,b), -Infinity) : Infinity;
+    const historicalMin = historicalValues.length > 0 ? historicalValues.reduce((a,b) => Math.min(a,b), Infinity) : -Infinity;
 
     const predictedAnomalies = forecast.filter((f: any) =>
       f.lower > historicalMax || f.upper < historicalMin
@@ -494,8 +504,8 @@ export class FeatureImportanceAgent extends BaseAgent {
 
 export class SHAPExplainerAgent extends BaseAgent {
   readonly metadata: AgentMetadata = {
-    id: 'shap_explainer',
-    name: 'SHAP Explainer',
+    id: 'feature_contribution',
+    name: 'Feature Contribution',
     role: 'SHAP-style feature contribution analysis',
     tier: 'ml',
     stage: 'infer',
@@ -1258,8 +1268,8 @@ export class VisualizationAgent extends BaseAgent {
     for (const col of numericCols.slice(0, 3)) {
       const values = dataframe.map(r => Number(r[col])).filter(n => !isNaN(n));
       const histogram: { bin: string; count: number }[] = [];
-      const min = Math.min(...values);
-      const max = Math.max(...values);
+      const min = values.reduce((a,b) => Math.min(a,b), Infinity);
+      const max = values.reduce((a,b) => Math.max(a,b), -Infinity);
       const binCount = 10;
       const binSize = (max - min) / binCount;
       for (let i = 0; i < binCount; i++) {

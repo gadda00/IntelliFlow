@@ -51,17 +51,55 @@ export function PipelineStep({
     return { total, completed, running, failed, skipped, pending, progress };
   }, [states]);
 
-  // Convert to PipelineVisualizer format
+  // Convert to PipelineVisualizer format — with real dependencies, colors, icons
+  const STAGE_COLORS: Record<string, string> = {
+    ingest: '#3b82f6', engineer: '#8b5cf6', detect: '#ef4444',
+    forecast: '#f59e0b', infer: '#10b981', cluster: '#06b6d4', report: '#ec4899',
+  };
+  const STAGE_ICONS: Record<string, string> = {
+    ingest: '📥', engineer: '⚙️', detect: '🔍',
+    forecast: '📈', infer: '🧪', cluster: '🎯', report: '📝',
+  };
+  const AGENT_DEPS: Record<string, string[]> = {
+    data_ingestion: [], schema_inference: ['data_ingestion'], data_profiling: ['data_ingestion'],
+    missing_value_analyzer: ['schema_inference'], cardinality_checker: ['schema_inference'],
+    duplicate_detector: ['data_ingestion'], data_quality_scorer: ['schema_inference', 'missing_value_analyzer'],
+    pii_detection: ['schema_inference'], text_length_profiler: ['schema_inference'],
+    nlq_interpreter: ['schema_inference'],
+    data_cleaner: ['schema_inference'], median_imputation: ['schema_inference'],
+    mode_imputation: ['schema_inference'], standard_scaler: ['schema_inference'],
+    minmax_scaler: ['schema_inference'], outlier_detector: ['data_profiling'],
+    feature_engineering: ['schema_inference'], text_normalizer: ['schema_inference'],
+    duplicate_reporter: ['duplicate_detector'], type_coercion: ['schema_inference'],
+    data_sampling: ['data_ingestion'],
+    anomaly_ensemble: ['data_profiling'], isolation_forest: ['data_profiling'],
+    kmeans_cluster: ['data_profiling'], dbscan_cluster: ['data_profiling'],
+    gaussian_mixture: ['data_profiling'], fraud_detection: ['data_profiling'],
+    sentiment_analysis: ['schema_inference'], correlation_matrix: ['data_profiling'],
+    stationarity_tester: ['data_profiling'], seasonality_detector: ['data_profiling'],
+    holt_winters_forecast: ['data_profiling'], arima_forecast: ['data_profiling'],
+    moving_average_forecast: ['data_profiling'], anomaly_forecasting: ['anomaly_ensemble'],
+    ols_regression: ['correlation_matrix'], causal_inference: ['correlation_matrix'],
+    feature_importance: ['ols_regression'], shap_explainer: ['ols_regression'],
+    auto_ml: ['ols_regression', 'kmeans_cluster'], benchmark_agent: ['data_profiling'],
+    knowledge_graph: ['correlation_matrix'], africa_market_intel: ['schema_inference'],
+    insight_generator: ['anomaly_ensemble', 'holt_winters_forecast', 'correlation_matrix', 'causal_inference'],
+    narrative_composer: ['insight_generator'], code_generator: ['ols_regression', 'anomaly_ensemble'],
+    visualization_agent: ['data_profiling', 'correlation_matrix'],
+    synthetic_data_generator: ['schema_inference'], reflection_agent: ['insight_generator'],
+    realtime_alert: ['anomaly_ensemble'], orchestrator: ['narrative_composer', 'insight_generator'],
+  };
+
   const visualizerAgents = useMemo(() => {
     return states.map(s => ({
       id: s.agentId,
       name: s.agentName,
       stage: s.stage,
       stageNumber: s.stageNumber,
-      dependencies: [],
-      tier: '',
-      color: '',
-      icon: '',
+      dependencies: AGENT_DEPS[s.agentId] || [],
+      tier: 'core',
+      color: STAGE_COLORS[s.stage] || '#888',
+      icon: STAGE_ICONS[s.stage] || '⚙️',
     }));
   }, [states]);
 

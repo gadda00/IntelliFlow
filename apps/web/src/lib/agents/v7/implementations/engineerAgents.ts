@@ -38,7 +38,7 @@ export class MedianImputationAgent extends BaseAgent {
       .map(([col]) => col);
 
     const imputations: Record<string, { median: number; filled: number }> = {};
-    const cleanedData = [...dataframe];
+    const cleanedData = dataframe.map(r => ({ ...r }));
 
     for (const col of numericColumns) {
       const values = dataframe.map(r => Number(r[col])).filter(n => !isNaN(n));
@@ -98,7 +98,7 @@ export class ModeImputationAgent extends BaseAgent {
       .map(([col]) => col);
 
     const imputations: Record<string, { mode: string; filled: number }> = {};
-    const cleanedData = [...dataframe];
+    const cleanedData = dataframe.map(r => ({ ...r }));
 
     for (const col of catColumns) {
       const values = dataframe.map(r => r[col]).filter(v => v !== null && v !== undefined && v !== '');
@@ -212,8 +212,8 @@ export class MinMaxScalerAgent extends BaseAgent {
     for (const col of numericColumns) {
       const values = dataframe.map(r => Number(r[col])).filter(n => !isNaN(n));
       if (values.length === 0) continue;
-      const mn = Math.min(...values);
-      const mx = Math.max(...values);
+      const mn = values.reduce((a,b) => Math.min(a,b), Infinity);
+      const mx = values.reduce((a,b) => Math.max(a,b), -Infinity);
       const r = mx - mn;
       scalers[col] = { min: mn, max: mx, range: r };
       scaledColumns[col] = r === 0 ? values.map(() => 0.5) : values.map(v => (v - mn) / r);
@@ -229,8 +229,8 @@ export class MinMaxScalerAgent extends BaseAgent {
 
 export class OutlierRemovalAgent extends BaseAgent {
   readonly metadata: AgentMetadata = {
-    id: 'outlier_removal',
-    name: 'Outlier Removal',
+    id: 'outlier_detector',
+    name: 'Outlier Detector',
     role: 'Remove statistical outliers from data',
     tier: 'advanced',
     stage: 'engineer',
@@ -409,8 +409,8 @@ export class TextNormalizerAgent extends BaseAgent {
 
 export class DuplicateRemoverAgent extends BaseAgent {
   readonly metadata: AgentMetadata = {
-    id: 'duplicate_remover',
-    name: 'Duplicate Remover',
+    id: 'duplicate_reporter',
+    name: 'Duplicate Reporter',
     role: 'Remove duplicate rows from dataset',
     tier: 'core',
     stage: 'engineer',
