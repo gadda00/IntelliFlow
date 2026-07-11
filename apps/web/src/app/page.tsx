@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { Header } from '@/components/busara/Header';
 import { Hero } from '@/components/busara/Hero';
 import { AgentGallery } from '@/components/busara/AgentGallery';
-import { Analyzer } from '@/components/busara/Analyzer';
 import { ChatSection } from '@/components/busara/ChatSection';
 import { Pricing } from '@/components/busara/Pricing';
 import { Footer } from '@/components/busara/Footer';
@@ -13,6 +13,9 @@ import { PWAInstallPrompt } from '@/components/busara/PWAInstallPrompt';
 import { CommandPalette } from '@/components/busara/CommandPalette';
 import { OnboardingTour } from '@/components/busara/OnboardingTour';
 import { storage } from '@/lib/api-client';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Zap, Upload, TrendingUp, Brain, ArrowRight, Sparkles } from 'lucide-react';
 
 interface AppUser {
   id: string;
@@ -96,7 +99,7 @@ export default function Home() {
   }, []);
 
   const handleOpenComposer = useCallback(() => {
-    scrollTo('analyze');
+    window.location.href = '/analyze';
   }, []);
 
   if (!mounted) {
@@ -121,7 +124,59 @@ export default function Home() {
           onSeeAgents={() => window.location.href = '/agents'}
         />
         <AgentGallery />
-        <Analyzer />
+
+        {/* Unified Analyze CTA — replaces legacy Analyzer component */}
+        <section id="analyze" className="py-16 px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Ready to analyze your data?
+            </h2>
+            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Upload a CSV or JSON file and watch 50 AI agents analyze it in real time.
+              Get insights, forecasts, anomaly detection, and actionable recommendations in seconds.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link href="/analyze">
+                <Button size="lg" className="gap-2">
+                  <Upload className="h-5 w-5" />
+                  Start Analysis
+                </Button>
+              </Link>
+              <Link href="/agents">
+                <Button size="lg" variant="outline" className="gap-2">
+                  <Brain className="h-5 w-5" />
+                  Explore Agents
+                </Button>
+              </Link>
+            </div>
+
+            {/* Feature highlights */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12">
+              <Card className="p-6 text-left">
+                <Zap className="h-8 w-8 text-primary mb-3" />
+                <h3 className="font-semibold mb-1">50 AI Agents</h3>
+                <p className="text-sm text-muted-foreground">
+                  Multi-agent DAG pipeline with real statistical math — Holt-Winters, OLS, K-Means++, Granger causality.
+                </p>
+              </Card>
+              <Card className="p-6 text-left">
+                <TrendingUp className="h-8 w-8 text-primary mb-3" />
+                <h3 className="font-semibold mb-1">Real Insights</h3>
+                <p className="text-sm text-muted-foreground">
+                  Not just numbers — get plain-English explanations, recommended actions, and AI-powered narratives.
+                </p>
+              </Card>
+              <Card className="p-6 text-left">
+                <Sparkles className="h-8 w-8 text-primary mb-3" />
+                <h3 className="font-semibold mb-1">AI Narrative</h3>
+                <p className="text-sm text-muted-foreground">
+                  LLM-powered executive summaries that reference your specific data, not generic templates.
+                </p>
+              </Card>
+            </div>
+          </div>
+        </section>
+
         <ChatSection isOpen={chatOpen} onToggle={() => setChatOpen(prev => !prev)} />
         <Pricing />
       </main>

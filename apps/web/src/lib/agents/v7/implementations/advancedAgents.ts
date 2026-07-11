@@ -1129,7 +1129,7 @@ anomalies = (np.abs(z_scores) > 3).sum(axis=0)
 print(f"Anomalies by column: {anomalies}")
 
 # Linear regression
-target = '${targetCol}'
+target = '${targetCol.replace(/'/g, "\\'")}'
 features = [c for c in df.select_dtypes(include=[np.number]).columns if c != target]
 X = df[features].fillna(df[features].mean())
 y = df[target].fillna(df[target].mean())
@@ -1212,7 +1212,7 @@ function correlation(x, y) {
 }
 
 const data = parseCSV(fs.readFileSync('data.csv', 'utf-8'));
-const target = '${targetCol}';
+const target = '${targetCol.replace(/'/g, "\\'")}';
 const values = data.map(r => Number(r[target])).filter(n => !isNaN(n));
 
 console.log('Stats:', stats(values));
@@ -1584,19 +1584,21 @@ export class OrchestratorAgent extends BaseAgent {
     const africaIntel = previousResults.get('africa_market_intel');
     const alerts = previousResults.get('realtime_alert');
 
-    // Compute overall confidence
+    // Compute overall confidence — normalize all metrics to 0-1 scale
     const confidenceScores: number[] = [];
     for (const result of previousResults.values()) {
       if (result.metrics) {
-        const confidence = result.metrics.accuracy || result.metrics.rSquared || result.metrics.qualityScore;
-        if (typeof confidence === 'number' && confidence > 0) {
-          confidenceScores.push(Math.min(confidence / 100, 1));
-        }
+        const m = result.metrics;
+        // accuracy is 0-100, rSquared is 0-1, qualityScore is 0-100, silhouette is -1 to 1
+        if (m.accuracy !== undefined) confidenceScores.push(Math.min(m.accuracy / 100, 1));
+        else if (m.rSquared !== undefined) confidenceScores.push(Math.max(0, Math.min(m.rSquared, 1)));
+        else if (m.qualityScore !== undefined) confidenceScores.push(Math.min(m.qualityScore / 100, 1));
+        else if (m.silhouette !== undefined) confidenceScores.push(Math.max(0, (m.silhouette + 1) / 2));
       }
     }
     const overallConfidence = confidenceScores.length > 0
       ? mean(confidenceScores)
-      : 0.7;
+      : 0.5;
 
     return this.createResult({
       executiveSummary: narrative?.output?.executiveSummary ?? 'Analysis complete.',

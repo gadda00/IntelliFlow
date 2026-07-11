@@ -159,11 +159,17 @@ export class DAGOrchestrator {
     userId?: string;
     enabledAgents?: string[];
     onProgress?: ProgressCallback;
+    signal?: AbortSignal;
   }): Promise<ExecutionSummary> {
     const startTime = Date.now();
     const results = new Map<string, AgentResult>();
     const stageTimings: Record<number, number> = {};
     const plan = this.buildExecutionPlan(opts.enabledAgents);
+
+    // Check for cancellation before starting
+    if (opts.signal?.aborted) {
+      throw new Error('Analysis cancelled');
+    }
 
     const baseContext: Omit<AgentContext, 'previousResults'> = {
       analysisId: opts.analysisId,
@@ -179,6 +185,11 @@ export class DAGOrchestrator {
     let agentsSkipped = 0;
 
     for (let stageIdx = 0; stageIdx < plan.stages.length; stageIdx++) {
+      // Check for cancellation between stages
+      if (opts.signal?.aborted) {
+        throw new Error('Analysis cancelled');
+      }
+
       const stageAgents = plan.stages[stageIdx];
       const stageStart = Date.now();
       const stageNumber = stageAgents[0]?.stageNumber ?? stageIdx;
