@@ -130,15 +130,39 @@ model UsageRecord {
 }
 
 model AgentMetric {
-  id          String   @id @default(cuid())
-  agentId     String
-  analysisId  String?
-  durationMs  Int
-  success     Boolean
-  errorType   String?
-  createdAt   DateTime @default(now())
+  id            String   @id @default(cuid())
+  agentId       String
+  analysisId    String?
+  durationMs    Int
+  success       Boolean
+  errorType     String?
+
+  // Accuracy metrics (populated by forecasting, anomaly, and ML agents)
+  rmse          Float?   // Root Mean Square Error
+  mae           Float?   // Mean Absolute Error
+  mape          Float?   // Mean Absolute Percentage Error
+  rSquared      Float?   // R² (coefficient of determination)
+  anomalyRate   Float?   // Fraction of rows flagged as anomalies (0–1)
+  precision     Float?   // True positives / (TP + FP)
+  recall        Float?   // True positives / (TP + FN)
+  f1Score       Float?   // Harmonic mean of precision and recall
+  silhouette    Float?   // Clustering silhouette score
+  auroc         Float?   // Area under ROC curve (binary classifiers)
+
+  // Execution context
+  inputRows     Int?     // Number of rows processed
+  outputRows    Int?     // Number of rows emitted
+  tokensUsed    Int?     // LLM tokens consumed (if applicable)
+  costUsd       Float?   // Estimated cost in USD
+  agentVersion  String?  // Agent version tag
+  config        Json?    // Agent config snapshot (for reproducibility)
+
+  createdAt     DateTime @default(now())
+
   @@index([agentId])
+  @@index([analysisId])
   @@index([createdAt])
+  @@index([success])
 }
 
 /// AReaL Pillar 1 — Standardized trajectory data protocol.

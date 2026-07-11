@@ -41,6 +41,9 @@ function loadStage(stageName: string): AgentModule {
 export * from './agents/ingest';
 export * from './agents/engineer';
 export * from './agents/detect';
+export * from './agents/forecast';
+export * from './agents/infer';
+export * from './agents/cluster';
 
 // ============================================================================
 // Agent Pool

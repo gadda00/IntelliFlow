@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PipelineVisualizer } from '@/components/busara/PipelineVisualizer';
+import type { PipelineAgent } from '@/components/busara/PipelineVisualizer';
 import {
   Activity,
   AlertTriangle,
@@ -123,6 +125,27 @@ export default function DashboardOverviewPage() {
           accentClassName="text-amber-400"
         />
       </div>
+
+      {/* Pipeline Visualizer */}
+      <Card className="mb-6 bg-slate-900/60 border-slate-800 p-5">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-semibold text-slate-100 flex items-center gap-2">
+              <Brain className="h-5 w-5 text-cyan-400" />
+              Agent Pipeline Visualizer
+            </h2>
+            <p className="text-xs text-slate-500">Real-time DAG pipeline with 33+ agents across 7 stages</p>
+          </div>
+          <Link href="/dashboard/agents">
+            <Button variant="outline" size="sm" className="border-slate-700 text-slate-300 hover:text-cyan-400">
+              Explore Agents <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          </Link>
+        </div>
+        <div className="h-96 overflow-hidden rounded-lg border border-slate-800 bg-slate-950/50">
+          <PipelineVisualizerWrapper />
+        </div>
+      </Card>
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
@@ -294,5 +317,50 @@ export default function DashboardOverviewPage() {
         )}
       </Card>
     </>
+  );
+}
+
+// ─── Pipeline Visualizer Wrapper ─────────────────────────────────────
+// Static demo agents for the dashboard pipeline visualization.
+// In production, these would be populated from the useAgentStream hook
+// connected to the /api/v7/analyze-stream SSE endpoint.
+
+const DASHBOARD_AGENTS: PipelineAgent[] = [
+  // Stage 0: Ingest
+  { id: 'data_ingestion', name: 'Data Ingestion', stage: 'ingest', stageNumber: 0, dependencies: [], tier: 'core', color: '#3b82f6', icon: '📥' },
+  { id: 'schema_inference', name: 'Schema Inference', stage: 'ingest', stageNumber: 0, dependencies: ['data_ingestion'], tier: 'core', color: '#3b82f6', icon: '🔤' },
+  { id: 'data_profiler', name: 'Data Profiler', stage: 'ingest', stageNumber: 0, dependencies: ['data_ingestion'], tier: 'core', color: '#3b82f6', icon: '📊' },
+  // Stage 1: Engineer
+  { id: 'data_cleaner', name: 'Data Cleaner', stage: 'engineer', stageNumber: 1, dependencies: ['schema_inference'], tier: 'core', color: '#8b5cf6', icon: '🧹' },
+  { id: 'data_engineer', name: 'Data Engineer', stage: 'engineer', stageNumber: 1, dependencies: ['data_cleaner'], tier: 'core', color: '#8b5cf6', icon: '⚙️' },
+  { id: 'feature_engineer', name: 'Feature Engineer', stage: 'engineer', stageNumber: 1, dependencies: ['data_engineer'], tier: 'core', color: '#8b5cf6', icon: '🔧' },
+  // Stage 2: Detect
+  { id: 'anomaly_sentinel', name: 'Anomaly Sentinel', stage: 'detect', stageNumber: 2, dependencies: ['data_engineer'], tier: 'core', color: '#ef4444', icon: '🚨' },
+  { id: 'analysis_strategist', name: 'Analysis Strategist', stage: 'detect', stageNumber: 2, dependencies: ['feature_engineer'], tier: 'core', color: '#ef4444', icon: '🧠' },
+  { id: 'forecasting_oracle', name: 'Forecasting Oracle', stage: 'detect', stageNumber: 2, dependencies: ['feature_engineer'], tier: 'advanced', color: '#ef4444', icon: '🔮' },
+  { id: 'causal_architect', name: 'Causal Architect', stage: 'detect', stageNumber: 2, dependencies: ['data_engineer'], tier: 'advanced', color: '#ef4444', icon: '🔗' },
+  // Stage 3: Forecast
+  { id: 'trend_detector', name: 'Trend Detector', stage: 'forecast', stageNumber: 3, dependencies: ['forecasting_oracle'], tier: 'core', color: '#f59e0b', icon: '📈' },
+  { id: 'seasonality_detector', name: 'Seasonality Detector', stage: 'forecast', stageNumber: 3, dependencies: ['forecasting_oracle'], tier: 'core', color: '#f59e0b', icon: '📅' },
+  { id: 'time_series_decomposition', name: 'Time Series Decomposition', stage: 'forecast', stageNumber: 3, dependencies: ['trend_detector', 'seasonality_detector'], tier: 'core', color: '#f59e0b', icon: '🧩' },
+  // Stage 4: Infer
+  { id: 'ab_test_significance', name: 'A/B Test Significance', stage: 'infer', stageNumber: 4, dependencies: ['data_engineer'], tier: 'core', color: '#10b981', icon: '🧪' },
+  { id: 'survival_analysis', name: 'Survival Analysis', stage: 'infer', stageNumber: 4, dependencies: ['data_engineer'], tier: 'advanced', color: '#10b981', icon: '⏱️' },
+  { id: 'cohort_analysis', name: 'Cohort Analysis', stage: 'infer', stageNumber: 4, dependencies: ['data_engineer'], tier: 'core', color: '#10b981', icon: '👥' },
+  // Stage 5: Cluster
+  { id: 'cluster_profiler', name: 'Cluster Profiler', stage: 'cluster', stageNumber: 5, dependencies: ['analysis_strategist'], tier: 'core', color: '#06b6d4', icon: '🎯' },
+  { id: 'funnel_analysis', name: 'Funnel Analysis', stage: 'cluster', stageNumber: 5, dependencies: ['cohort_analysis'], tier: 'core', color: '#06b6d4', icon: '🔻' },
+  // Stage 6: Report
+  { id: 'insight_summarizer', name: 'Insight Summarizer', stage: 'report', stageNumber: 6, dependencies: ['anomaly_sentinel', 'trend_detector'], tier: 'core', color: '#ec4899', icon: '📝' },
+  { id: 'recommendation', name: 'Recommendation', stage: 'report', stageNumber: 6, dependencies: ['insight_summarizer'], tier: 'core', color: '#ec4899', icon: '💡' },
+];
+
+function PipelineVisualizerWrapper() {
+  return (
+    <PipelineVisualizer
+      agents={DASHBOARD_AGENTS}
+      agentStatuses={{}}
+      height={384}
+    />
   );
 }
