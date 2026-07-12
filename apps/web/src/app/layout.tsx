@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
-  title: "Busara — 50-Agent Data Intelligence Platform",
-  description: "Twenty-six agents. One mind. Busara orchestrates 26 specialized AI agents in a parallel DAG to extract every actionable insight from your data. Built in Nairobi for the world.",
+  title: "Busara AI — Data Intelligence Platform",
+  description: "Busara AI — the data analyst that understands your business. Upload data, get insights, forecasts, and recommendations powered by 50 specialized AI agents in a parallel DAG to extract every actionable insight from your data. Built in Nairobi for the world.",
   keywords: ["Busara", "multi-agent", "data analysis", "AI agents", "TypeScript", "Next.js", "Flutterwave", "anomaly detection", "forecasting", "causal inference", "Africa", "Nairobi"],
   authors: [{ name: "Victor Ndunda" }],
   applicationName: "Busara",
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     statusBarStyle: "black-translucent",
   },
   openGraph: {
-    title: "Busara — 50-Agent Data Intelligence Platform",
-    description: "Twenty-six agents. One mind. Built in Nairobi for the world.",
+    title: "Busara AI — Data Intelligence Platform",
+    description: "Built in Nairobi for the world. AI-powered data intelligence for every business.",
     url: "https://busara.ai",
     siteName: "Busara",
     type: "website",
@@ -44,8 +44,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Busara — 50-Agent Data Intelligence",
-    description: "Twenty-six agents. One mind.",
+    title: "Busara AI — Data Intelligence",
+    description: "AI-powered data intelligence, built in Nairobi.",
     images: ["/og-image.png"],
   },
   formatDetection: {

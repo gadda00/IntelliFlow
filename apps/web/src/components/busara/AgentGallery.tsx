@@ -96,7 +96,7 @@ export function AgentGallery() {
             The Agent Pool
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            26 specialists.<br />
+            50 specialists.<br />
             <span className="gradient-text-hero">One orchestrated pipeline.</span>
           </h2>
           <p className="text-muted-foreground text-lg">

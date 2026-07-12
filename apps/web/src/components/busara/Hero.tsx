@@ -11,7 +11,7 @@ interface HeroProps {
 }
 
 const STATS = [
-  { icon: Brain, label: 'Specialized Agents', value: '50', color: 'text-primary' },
+  { icon: Brain, label: 'AI Analysts', value: '7 Stages', color: 'text-primary' },
   { icon: Layers, label: 'Parallel DAG Stages', value: '7', color: 'text-chart-2' },
   { icon: Cpu, label: 'Algorithms/Agent', value: '3-5', color: 'text-chart-3' },
   { icon: Globe, label: 'Languages Generated', value: '3', color: 'text-chart-4' },
@@ -55,7 +55,7 @@ export function Hero({ onAnalyze, onSeeAgents }: HeroProps) {
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
-              Busara orchestrates a parallel DAG of 26 specialized AI agents — profilers, forecasters, causal
+              Busara orchestrates a parallel DAG of 50 specialized AI agents — profilers, forecasters, causal
               architects, privacy guardians, code generators — to extract every actionable insight from your dataset.
               Production-ready. Installable as a PWA.
             </p>

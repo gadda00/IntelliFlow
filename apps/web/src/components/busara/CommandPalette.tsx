@@ -37,7 +37,7 @@ export function CommandPalette({ open, onClose, onNavigate, onOpenAuth, onOpenCo
 
   const commands: CommandItem[] = [
     { id: 'nav-hero', label: 'Go to Home', description: 'Return to the hero section', icon: Activity, section: 'Navigation', action: () => onNavigate('hero') },
-    { id: 'nav-agents', label: 'Explore Agents', description: 'View all 26 specialized AI agents', icon: Brain, section: 'Navigation', action: () => onNavigate('agents'), badge: '26' },
+    { id: 'nav-agents', label: 'Explore Agents', description: 'View all 50 specialized AI agents', icon: Brain, section: 'Navigation', action: () => onNavigate('agents'), badge: '50' },
     { id: 'nav-analyze', label: 'Analyze Data', description: 'Upload data and run the agent pipeline', icon: Zap, section: 'Navigation', action: () => onNavigate('analyze') },
     { id: 'nav-chat', label: 'Chat with Busara', description: 'Ask questions about your data or the platform', icon: MessageCircle, section: 'Navigation', action: () => onToggleChat() },
     { id: 'nav-pricing', label: 'View Pricing', description: 'See plans and upgrade options', icon: BarChart3, section: 'Navigation', action: () => onNavigate('pricing') },

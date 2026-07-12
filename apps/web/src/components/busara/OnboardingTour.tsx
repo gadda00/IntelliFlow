@@ -16,13 +16,13 @@ const TOUR_STEPS: TourStep[] = [
   {
     targetId: 'hero',
     title: 'Welcome to Busara',
-    description: 'Busara is a 26-agent AI data intelligence platform. Upload any dataset and get instant insights from specialized AI agents running in parallel. Let us show you around!',
+    description: 'Busara is a 50-agent AI data intelligence platform. Upload any dataset and get instant insights from specialized AI agents running in parallel. Let us show you around!',
     icon: Sparkles,
   },
   {
     targetId: 'agents',
     title: 'Meet the Agents',
-    description: 'Busara has 26 specialized AI agents organized in a 7-stage pipeline. From Data Scout to the Orchestrator, each agent has a unique role. Click any agent to learn more about what it does.',
+    description: 'Busara has 50 specialized AI agents organized in a 7-stage pipeline. From Data Scout to the Orchestrator, each agent has a unique role. Click any agent to learn more about what it does.',
     icon: Brain,
   },
   {

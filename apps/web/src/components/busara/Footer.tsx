@@ -15,7 +15,7 @@ export function Footer() {
               <span className="font-bold">Busara</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              26 specialized AI agents in a parallel DAG. TypeScript-native. Production-ready. Built in Nairobi for the world.
+              50 specialized AI agents in a parallel DAG. TypeScript-native. Production-ready. Built in Nairobi for the world.
             </p>
             <div className="flex items-center gap-1.5 mt-3 text-[10px] text-muted-foreground">
               <Command className="h-3 w-3" />

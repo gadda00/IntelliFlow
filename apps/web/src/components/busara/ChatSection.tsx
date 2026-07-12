@@ -32,7 +32,7 @@ const INITIAL_GREETING: ChatMessage = {
 
 const KNOWLEDGE_BASE: Record<string, { content: string; followups: string[] }> = {
   'what can busara do': {
-    content: 'Busara is a multi-agent data analysis platform with 26 specialized AI agents organized in a 7-stage DAG. It can: profile datasets, detect anomalies (Z-score, IQR, EWMA), forecast time series (Holt-Winters), discover causal relationships, detect PII for privacy compliance, generate synthetic data, build knowledge graphs, compare against industry benchmarks, train ML models automatically, explain feature importance, generate Python/SQL/JS code, and produce executive narrative reports — all from a single CSV/JSON upload.',
+    content: 'Busara is a multi-agent data analysis platform with 50 specialized AI agents organized in a 7-stage DAG. It can: profile datasets, detect anomalies (Z-score, IQR, EWMA), forecast time series (Holt-Winters), discover causal relationships, detect PII for privacy compliance, generate synthetic data, build knowledge graphs, compare against industry benchmarks, train ML models automatically, explain feature importance, generate Python/SQL/JS code, and produce executive narrative reports — all from a single CSV/JSON upload.',
     followups: ['How does the agent pipeline work?', 'What is synthetic data?', 'How accurate is the forecast?'],
   },
   'pipeline': {
