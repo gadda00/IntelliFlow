@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'),
   title: "Busara AI — Data Intelligence Platform",
-  description: "Busara AI — the data analyst that understands your business. Upload data, get insights, forecasts, and recommendations powered by 50 specialized AI agents in a parallel DAG to extract every actionable insight from your data. Built in Nairobi for the world.",
+  description: "Busara AI — the data analyst that understands your business. Upload data, get insights, forecasts, and recommendations powered by a multi-stage AI pipeline to extract every actionable insight from your data. Built in Nairobi for the world.",
   keywords: ["Busara", "multi-agent", "data analysis", "AI agents", "TypeScript", "Next.js", "Flutterwave", "anomaly detection", "forecasting", "causal inference", "Africa", "Nairobi"],
   authors: [{ name: "Victor Ndunda" }],
   applicationName: "Busara",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "Busara",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "black",
   },
   openGraph: {
     title: "Busara AI — Data Intelligence Platform",
@@ -77,7 +77,7 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
         <meta name="apple-mobile-web-app-title" content="Busara" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>

@@ -137,7 +137,7 @@ export default function AgentsPage() {
     <>
       <DashboardPageHeader
         title="Agents"
-        description="Per-agent performance, drift, and stability across all 50 agents in the v7.0 pipeline."
+        description="Per-agent performance, drift, and stability across the v7.0 pipeline."
         badge={loading ? '…' : `${agentData?.total ?? 0} registered`}
       />
 

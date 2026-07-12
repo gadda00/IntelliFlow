@@ -96,7 +96,7 @@ export function AgentGallery() {
             The Agent Pool
           </Badge>
           <h2 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
-            50 specialists.<br />
+            Specialized AI analysts.<br />
             <span className="gradient-text-hero">One orchestrated pipeline.</span>
           </h2>
           <p className="text-muted-foreground text-lg">
@@ -162,7 +162,7 @@ export function AgentGallery() {
                 <div className="flex items-center gap-2 mb-4">
                   <Activity className="h-4 w-4 text-primary" />
                   <h3 className="text-sm font-semibold">Agent Pipeline DAG</h3>
-                  <Badge variant="secondary" className="text-[10px]">7 stages · 50 agents</Badge>
+                  <Badge variant="secondary" className="text-[10px]">7 stages · specialized AI</Badge>
                 </div>
                 <AgentDAGVisualizer agentStatuses={
                   Object.fromEntries(agents.map(a => [a.id, 'completed']))

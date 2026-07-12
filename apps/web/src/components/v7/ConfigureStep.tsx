@@ -21,7 +21,7 @@ const PRESETS = [
   {
     id: 'full',
     name: 'Full Pipeline',
-    description: 'All 50 agents — complete analysis',
+    description: 'Complete analysis — all stages',
     icon: Layers,
     config: {},
   },

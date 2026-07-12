@@ -49,13 +49,13 @@ export function Hero({ onAnalyze, onSeeAgents }: HeroProps) {
             </Badge>
 
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 leading-[1.05]">
-              50 agents.
+              Specialized AI analysts.
               <br />
               <span className="gradient-text-hero animate-gradient">One mind.</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
-              Busara orchestrates a parallel DAG of 50 specialized AI agents — profilers, forecasters, causal
+              Busara orchestrates a parallel pipeline of specialized AI agents — profilers, forecasters, causal
               architects, privacy guardians, code generators — to extract every actionable insight from your dataset.
               Production-ready. Installable as a PWA.
             </p>
